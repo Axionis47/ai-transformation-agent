@@ -18,7 +18,7 @@ from ops.logger import PipelineLogger, get_logger
 from orchestrator.state import PipelineState, PipelineStatus
 from rag.ingest import ensure_seeds_loaded
 
-_STAGE_TIMEOUT_S = 30
+_STAGE_TIMEOUT_S = 60
 _COST_CONSULTANT = 0.005
 _COST_REPORT = 0.004
 
