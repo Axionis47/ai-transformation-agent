@@ -14,7 +14,7 @@ def test_ingest_loads_seeds(monkeypatch, tmp_path):
 
     store = ChromaStore()
     store._init_chroma()
-    assert store._collection.count() == 10
+    assert store._collection.count() == 20
 
 
 def test_ingest_idempotent(monkeypatch, tmp_path):
@@ -29,7 +29,7 @@ def test_ingest_idempotent(monkeypatch, tmp_path):
 
     store = ChromaStore()
     store._init_chroma()
-    assert store._collection.count() == 10
+    assert store._collection.count() == 20
 
 
 def test_ingest_skips_dry_run(monkeypatch, tmp_path):
