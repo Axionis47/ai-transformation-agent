@@ -15,6 +15,7 @@ from agents.rag_query import RAGQueryAgent
 from agents.report_writer import ReportWriterAgent
 from agents.scraper import ScraperAgent
 from ops.logger import PipelineLogger, get_logger
+from orchestrator.gates import scraper_quality_gate
 from orchestrator.state import PipelineState, PipelineStatus
 from rag.ingest import ensure_seeds_loaded
 
@@ -60,6 +61,16 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
         return _fail(state, result, start, logger)
     state.company_data = result
     logger.log("SCRAPER", "complete", elapsed_ms=int((time.time() - _stage_start) * 1000))
+
+    # Gate: reject thin or error-page content before expensive stages
+    if not dry_run:
+        passed, reason = scraper_quality_gate(state.company_data)
+        if not passed:
+            logger.log("GATE", "scraper_quality_fail", reason=reason)
+            return _fail(state, AgentError(
+                code="SCRAPE_THIN", message=reason,
+                recoverable=False, agent_tag="SCRAPER"
+            ), start, logger)
 
     # Step 2: RAG query
     _stage_start = time.time()
