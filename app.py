@@ -37,6 +37,7 @@ class AnalyzeSuccess(BaseModel):
     cost_usd: float
     report: dict[str, Any]
     analysis: dict[str, Any] | None = None
+    rag_context: list[dict[str, Any]] | None = None
 
 
 class ErrorDetail(BaseModel):
@@ -77,4 +78,5 @@ async def analyze(request: AnalyzeRequest) -> AnalyzeSuccess:
         cost_usd=state.cost_usd,
         report=state.report or {},
         analysis=state.analysis,
+        rag_context=state.rag_context,
     )

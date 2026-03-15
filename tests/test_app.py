@@ -42,6 +42,7 @@ async def test_analyze_dry_run(monkeypatch, transport):
     assert "analysis" in body, "Response missing 'analysis' field"
     assert body["analysis"] is not None, "analysis field is null"
     assert "maturity_score" in body["analysis"], "analysis missing maturity_score"
+    assert "rag_context" in body, "Response missing 'rag_context' field"
 
 
 @pytest.mark.asyncio
