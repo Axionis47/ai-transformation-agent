@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --neo-bg: #e0e5ec;
+  --neo-shadow-dark: #a3b1c6;
+  --neo-shadow-light: #ffffff;
+}
+
+body {
+  background-color: var(--neo-bg);
+  color: #2d3748;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+@layer utilities {
+  .neo-raised {
+    box-shadow: 6px 6px 12px #a3b1c6, -6px -6px 12px #ffffff;
+    background: #e0e5ec;
+    border-radius: 16px;
+  }
+  .neo-flat {
+    box-shadow: 3px 3px 6px #a3b1c6, -3px -3px 6px #ffffff;
+    background: #e0e5ec;
+    border-radius: 16px;
+  }
+  .neo-inset {
+    box-shadow: inset 6px 6px 12px #a3b1c6, inset -6px -6px 12px #ffffff;
+    background: #e0e5ec;
+    border-radius: 16px;
+  }
+}
