@@ -29,18 +29,17 @@ def format_wins(rag_context: list) -> str:
         industry = win.get("industry", "unknown")
 
         # company_profile — nested dict (full record) or flat fields (ChromaDB)
-        profile = win.get("company_profile", {})
-        size = (
-            profile.get("size_label", "")
-            if isinstance(profile, dict)
-            else win.get("size_label", "")
-        )
+        profile = win.get("company_profile")
+        if isinstance(profile, dict):
+            size = profile.get("size_label", "")
+        else:
+            size = win.get("size_label", "")
 
         maturity = win.get("maturity_at_engagement", "")
 
-        # results — nested dict or flat fields
-        results = win.get("results", {})
-        if isinstance(results, dict):
+        # results — nested dict (full record) or flat fields (ChromaDB)
+        results = win.get("results")
+        if isinstance(results, dict) and results:
             pm = results.get("primary_metric", {})
             metric_label = pm.get("label", "")
             metric_value = pm.get("value", "")

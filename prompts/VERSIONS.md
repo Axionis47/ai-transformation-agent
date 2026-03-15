@@ -15,6 +15,7 @@ PM owns this file. Update at every prompt version bump.
 | Version | Date | Description | ADR |
 |---------|------|-------------|-----|
 | 1.0 | 2026-03-15 | Initial prompt. Dimension-based scoring, evidence-grounded use cases, RAG calibration, failure-mode guards, complete AnalysisResult schema. | ADR-006 |
+| 2.0 | 2026-03-15 | Victory citation pattern. RAG Context Usage renamed to Tenex Delivery Win Citation. win-NNN IDs required (no fabrication). Wins are primary ROI evidence. Explicit alignment statements when industry/size/problem match. rag_matches schema: seed_id→win_id, solution_title→engagement_title. rag_benchmark now cites win-NNN. | — |
 
 ## report_writer.md
 
