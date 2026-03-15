@@ -35,6 +35,7 @@ class AnalyzeSuccess(BaseModel):
     elapsed_seconds: float
     cost_usd: float
     report: dict[str, Any]
+    analysis: dict[str, Any] | None = None
 
 
 class ErrorDetail(BaseModel):
@@ -71,4 +72,5 @@ async def analyze(request: AnalyzeRequest) -> AnalyzeSuccess:
         elapsed_seconds=state.elapsed_seconds,
         cost_usd=state.cost_usd,
         report=state.report or {},
+        analysis=state.analysis,
     )
