@@ -40,8 +40,8 @@ def _run_with_timeout(agent: BaseAgent, state: PipelineState, timeout: int = _ST
 
 def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     """Execute the full pipeline: scrape -> RAG -> consult -> report."""
-    if dry_run:
-        os.environ["DRY_RUN"] = "true"
+    # Set DRY_RUN env var so agents pick up the mode
+    os.environ["DRY_RUN"] = "true" if dry_run else "false"
 
     if not dry_run:
         ensure_seeds_loaded()
