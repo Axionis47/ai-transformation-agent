@@ -55,3 +55,27 @@ def test_build_query_unknown_industry(monkeypatch):
     assert isinstance(query, str) and len(query) > 10
     assert "Looking for:" in query
     assert "Unknown" in query
+
+
+def test_build_query_healthcare(monkeypatch):
+    """A healthcare company profile should produce a query containing 'Healthcare'."""
+    monkeypatch.delenv("DRY_RUN", raising=False)
+
+    from agents.rag_query import RAGQueryAgent
+
+    agent = RAGQueryAgent()
+    company_data = {
+        "about_text": "We operate a network of hospital clinics focused on patient care.",
+        "job_postings": ["nurse practitioner", "clinical data analyst"],
+    }
+    query = agent._build_query(company_data)
+
+    assert "Healthcare" in query
+
+
+def test_build_query_empty_company_data(monkeypatch):
+    """Empty company_data should not raise — returns a fallback query."""
+    monkeypatch.delenv("DRY_RUN", raising=False)
+    from agents.rag_query import RAGQueryAgent
+    query = RAGQueryAgent()._build_query({})
+    assert isinstance(query, str) and len(query) > 0
