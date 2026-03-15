@@ -9,7 +9,18 @@ from typing import Any
 from agents.base import AgentError, BaseAgent
 from rag.vector_store import get_vector_store
 
-_SEEDS = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "rag_seeds" / "seeds.json"
+_FIXTURES = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "rag_seeds"
+_VICTORIES = _FIXTURES / "victories.json"
+
+# Industry keywords for query signal extraction
+_INDUSTRY_KEYWORDS: dict[str, list[str]] = {
+    "Logistics": ["logistics", "freight", "carrier", "shipping", "trucking", "fleet", "delivery", "supply chain", "warehouse"],
+    "Healthcare": ["health", "hospital", "clinic", "medical", "patient", "pharma", "clinical", "care"],
+    "Financial Services": ["financial", "finance", "bank", "insurance", "fintech", "lending", "credit", "investment"],
+    "Retail": ["retail", "ecommerce", "e-commerce", "consumer", "store", "merchandise", "fulfillment"],
+    "Manufacturing": ["manufacturing", "factory", "production", "industrial", "plant", "assembly", "machining"],
+    "Technology": ["software", "saas", "platform", "tech", "developer", "cloud", "api", "data"],
+}
 
 
 class RAGQueryAgent(BaseAgent):
@@ -20,10 +31,10 @@ class RAGQueryAgent(BaseAgent):
     def _run(self, state: Any) -> list[dict] | AgentError:
         if self.dry_run:
             try:
-                seeds = json.loads(_SEEDS.read_text())
-                return seeds[:3]
+                records = json.loads(_VICTORIES.read_text())
+                return records[:3]
             except FileNotFoundError:
-                return [{"text": "Mock: AI solution", "industry": "general"}]
+                return [{"id": "win-000", "embed_text": "Mock: AI solution", "industry": "general"}]
 
         company_data = state.company_data if hasattr(state, "company_data") else state
         query_text = self._build_query(company_data)
@@ -31,9 +42,30 @@ class RAGQueryAgent(BaseAgent):
         return store.query(query_text, k=3)
 
     def _build_query(self, company_data: dict) -> str:
-        parts = []
-        if company_data.get("about_text"):
-            parts.append(company_data["about_text"][:500])
-        if company_data.get("job_postings"):
-            parts.append(" ".join(company_data["job_postings"][:3]))
-        return " ".join(parts) if parts else "AI transformation solutions"
+        """Build a structured query using the victory embed_text template format."""
+        about = company_data.get("about_text", "")
+        postings = company_data.get("job_postings", [])
+        combined_text = (about + " " + " ".join(postings[:3])).lower()
+
+        industry = "Unknown"
+        for label, keywords in _INDUSTRY_KEYWORDS.items():
+            if any(kw in combined_text for kw in keywords):
+                industry = label
+                break
+
+        pain_hint = ""
+        if "manual" in combined_text or "inefficien" in combined_text:
+            pain_hint = "manual processes and operational inefficiency"
+        elif "cost" in combined_text or "spend" in combined_text:
+            pain_hint = "cost reduction and spend optimisation"
+        elif "growth" in combined_text or "scale" in combined_text:
+            pain_hint = "scaling operations and accelerating growth"
+
+        profile_snippet = about[:300].strip() if about else "Company profile not available"
+        problem_line = f"Problem: {pain_hint}" if pain_hint else "Problem: operational inefficiency and manual processes"
+
+        return (
+            f"{industry} — {profile_snippet}\n\n"
+            f"{problem_line}\n\n"
+            "Looking for: similar Tenex delivery win with quantified results"
+        )

@@ -90,17 +90,20 @@ class ChromaStore(VectorStore):
 class MockStore(VectorStore):
     """Returns fixture data for dry-run mode — zero external calls."""
 
-    _SEEDS = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "rag_seeds" / "seeds.json"
+    _FIXTURES = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "rag_seeds"
+    _VICTORIES = _FIXTURES / "victories.json"
+    _SEEDS_FALLBACK = _FIXTURES / "seeds.json"
 
     def add(self, docs: list[dict[str, Any]]) -> None:
         return None
 
     def query(self, text: str, k: int = 3) -> list[dict[str, Any]]:
         try:
-            seeds = json.loads(self._SEEDS.read_text())
-            return seeds[:k]
+            source = self._VICTORIES if self._VICTORIES.exists() else self._SEEDS_FALLBACK
+            records = json.loads(source.read_text())
+            return records[:k]
         except FileNotFoundError:
-            return [{"text": "Mock seed: AI transformation solution", "industry": "general"}]
+            return [{"id": "win-000", "embed_text": "Mock seed: AI transformation solution", "industry": "general"}]
 
 
 def get_vector_store() -> VectorStore:
