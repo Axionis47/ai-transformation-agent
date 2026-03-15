@@ -1,11 +1,15 @@
 "use client";
 
+import EvidencePanel from "@/components/EvidencePanel";
+import type { VictoryMatch } from "@/lib/types";
+
 interface ReportCardProps {
   title: string;
   content: string;
+  wins?: VictoryMatch[];
 }
 
-export default function ReportCard({ title, content }: ReportCardProps) {
+export default function ReportCard({ title, content, wins }: ReportCardProps) {
   // Split on double-newlines for paragraph breaks; treat **text** as bold
   const paragraphs = content.split(/\n\n+/).filter(Boolean);
 
@@ -19,6 +23,7 @@ export default function ReportCard({ title, content }: ReportCardProps) {
           <p key={i} dangerouslySetInnerHTML={{ __html: formatParagraph(para) }} />
         ))}
       </div>
+      <EvidencePanel wins={wins ?? []} />
     </div>
   );
 }

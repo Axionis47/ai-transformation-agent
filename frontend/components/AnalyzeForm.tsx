@@ -61,9 +61,15 @@ export default function AnalyzeForm() {
             label={state.data.analysis?.maturity_label}
             elapsedSeconds={state.data.elapsed_seconds}
             costUsd={state.data.cost_usd}
+            dimensions={state.data.analysis?.dimensions}
           />
           {SECTION_ORDER.map((key) => (
-            <ReportCard key={key} title={SECTION_LABELS[key]} content={state.data.report[key]} />
+            <ReportCard
+              key={key}
+              title={SECTION_LABELS[key]}
+              content={state.data.report[key]}
+              wins={state.data.rag_context}
+            />
           ))}
         </div>
       )}
