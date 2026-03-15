@@ -1,0 +1,53 @@
+name: Commit lint
+
+on:
+  pull_request:
+    branches: [develop, main]
+
+jobs:
+  commitlint:
+    name: Enforce conventional commits
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check all commits in PR
+        run: |
+          # Write violations to a temp file — avoids subshell variable scope bug
+          VIOLATIONS=$(mktemp)
+
+          git log origin/develop..HEAD --format="%s" | while read msg; do
+            # Skip merge commits
+            if echo "$msg" | grep -qE "^Merge "; then
+              continue
+            fi
+            # Check format
+            if ! echo "$msg" | grep -qE "^(feat|fix|refactor|test|chore|docs|perf|ci)(\(.+\))?: .{10,}"; then
+              echo "❌ Bad format: $msg" >> $VIOLATIONS
+            fi
+            # Check for agent tags
+            if echo "$msg" | grep -qE "\[(BE|FE|CONS|PE|OPS|EVAL|QA|RAG|DOC|PM)\]"; then
+              echo "❌ Agent tag in commit: $msg" >> $VIOLATIONS
+            fi
+            # Check for ticket numbers
+            if echo "$msg" | grep -qE "DISC-[0-9]+"; then
+              echo "❌ Ticket number in commit: $msg" >> $VIOLATIONS
+            fi
+          done
+
+          if [ -s $VIOLATIONS ]; then
+            echo ""
+            echo "Commit convention violations found:"
+            cat $VIOLATIONS
+            echo ""
+            echo "Fix commit messages to follow: <type>(<scope>): <description>"
+            echo "Types: feat | fix | refactor | test | chore | docs | perf | ci"
+            echo "Never include agent tags [BE] [FE] or ticket numbers DISC-n"
+            rm $VIOLATIONS
+            exit 1
+          fi
+
+          rm $VIOLATIONS
+          echo "✅ All commits follow conventional format"
