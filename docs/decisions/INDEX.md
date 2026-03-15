@@ -1,0 +1,9 @@
+# Architecture Decision Records Index
+
+| ADR | Title | Status | Date |
+|-----|-------|--------|------|
+| [ADR-001](ADR-001.md) | Infrastructure Stack for MVP | Approved | 2026-03-14 |
+| [ADR-002](ADR-002.md) | Authentication Strategy | Approved | 2026-03-14 |
+| [ADR-003](ADR-003.md) | Vector Store Selection | Approved | 2026-03-14 |
+| [ADR-004](ADR-004.md) | Model Routing Configuration | Approved | 2026-03-14 |
+| [ADR-005](ADR-005.md) | Secrets Management | Approved | 2026-03-14 |
