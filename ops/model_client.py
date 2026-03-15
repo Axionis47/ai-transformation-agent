@@ -37,15 +37,30 @@ class VertexProvider(ModelClient):
         aiplatform.init(project=self._project, location=self._location)
         self._initialized = True
 
+    def _strip_code_fences(self, text: str) -> str:
+        """Strip markdown code fences from model response."""
+        text = text.strip()
+        if text.startswith("```"):
+            lines = text.split("\n")
+            lines = lines[1:]  # drop opening fence (```json or ```)
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]  # drop closing fence
+            text = "\n".join(lines)
+        return text.strip()
+
     def complete(self, prompt: str, system: str = "", model: str = "") -> str | AgentError:
         try:
             self._init_vertex()
-            from vertexai.generative_models import GenerativeModel  # noqa
+            from vertexai.generative_models import GenerationConfig, GenerativeModel  # noqa
 
             model_name = model or self._default_model
             gen_model = GenerativeModel(model_name, system_instruction=system or None)
-            response = gen_model.generate_content(prompt)
-            return response.text
+            config = GenerationConfig(
+                response_mime_type="application/json",
+                temperature=0.2,
+            )
+            response = gen_model.generate_content(prompt, generation_config=config)
+            return self._strip_code_fences(response.text)
         except Exception as exc:
             return AgentError(
                 code="MODEL_CALL_FAIL",
