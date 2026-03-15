@@ -39,6 +39,9 @@ async def test_analyze_dry_run(monkeypatch, transport):
     assert "report" in body
     for section in ["exec_summary", "current_state", "use_cases", "roadmap", "roi_analysis"]:
         assert section in body["report"], f"Missing report section: {section}"
+    assert "analysis" in body, "Response missing 'analysis' field"
+    assert body["analysis"] is not None, "analysis field is null"
+    assert "maturity_score" in body["analysis"], "analysis missing maturity_score"
 
 
 @pytest.mark.asyncio
