@@ -19,6 +19,21 @@ export const WithScore: Story = {
   },
 };
 
+export const WithDimensions: Story = {
+  args: {
+    score: 2.3,
+    label: "Developing",
+    elapsedSeconds: 47.3,
+    costUsd: 0.011,
+    dimensions: {
+      data_infrastructure: 3.0,
+      ml_ai_capability: 1.5,
+      strategy_intent: 2.8,
+      operational_readiness: 1.9,
+    },
+  },
+};
+
 export const HighScore: Story = {
   args: {
     score: 4.2,

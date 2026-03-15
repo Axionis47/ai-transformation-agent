@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import ReportCard from "@/components/ReportCard";
+import type { VictoryMatch } from "@/lib/types";
 
 const meta: Meta<typeof ReportCard> = {
   title: "Components/ReportCard",
@@ -15,10 +16,31 @@ const SAMPLE_CONTENT =
   "The company processes over 2 million shipments monthly across 200+ logistics customers.\n\n" +
   "Their investment in a BigQuery data lake demonstrates data engineering maturity.";
 
+const SAMPLE_WINS: VictoryMatch[] = [
+  {
+    id: "win-001",
+    engagement_title: "Logistics AI Maturity Uplift",
+    industry: "Logistics",
+    size_label: "Mid-market",
+    primary_metric_label: "Fulfillment accuracy",
+    primary_metric_value: "+18%",
+    measurement_period: "6 months post-deployment",
+    maturity_at_engagement: "Developing",
+  },
+];
+
 export const ExecSummary: Story = {
   args: {
     title: "Executive Summary",
     content: SAMPLE_CONTENT,
+  },
+};
+
+export const WithEvidencePanel: Story = {
+  args: {
+    title: "Executive Summary",
+    content: SAMPLE_CONTENT,
+    wins: SAMPLE_WINS,
   },
 };
 
