@@ -1,0 +1,20 @@
+{
+  "url": "https://www.cargologik.com",
+  "name": "CargoLogik",
+  "about_text": "CargoLogik is a mid-market B2B SaaS platform serving 200+ logistics companies across North America. Founded in 2018, we provide end-to-end supply chain visibility, route optimization, and warehouse management solutions. Our platform processes over 2 million shipments monthly, integrating with major carriers including FedEx, UPS, and regional freight networks. We are investing in data infrastructure to support our next generation of intelligent logistics tools.",
+  "job_postings": [
+    "Senior Data Engineer — Build and maintain our data lake on BigQuery. Experience with Spark, Airflow, and dbt required. You will design pipelines processing 50M+ events daily.",
+    "Product Manager, Analytics — Own our reporting and dashboards product. Work with customers to identify data-driven insights for fleet optimization.",
+    "Full Stack Engineer — React/Node.js stack. Build customer-facing tools for shipment tracking and carrier performance monitoring."
+  ],
+  "tech_stack_mentions": [
+    "BigQuery",
+    "React",
+    "Node.js",
+    "Kubernetes",
+    "Airflow",
+    "PostgreSQL",
+    "Redis"
+  ],
+  "last_scraped": "2026-03-14T10:30:00Z"
+}

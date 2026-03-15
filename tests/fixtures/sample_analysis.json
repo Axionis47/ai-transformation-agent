@@ -1,0 +1,47 @@
+{
+  "maturity_score": 2.3,
+  "confidence": 0.75,
+  "signals": [
+    {
+      "signal": "Data infrastructure investment",
+      "evidence": "Hiring Senior Data Engineer for BigQuery data lake with Spark/Airflow/dbt stack processing 50M+ events daily",
+      "weight": 0.3
+    },
+    {
+      "signal": "Analytics focus without ML",
+      "evidence": "Product Manager role focused on reporting and dashboards, not predictive models — indicates BI maturity but pre-ML stage",
+      "weight": 0.25
+    },
+    {
+      "signal": "No ML/AI job titles",
+      "evidence": "No data scientist, ML engineer, or AI-related roles in current postings — engineering team is data-aware but not yet ML-capable",
+      "weight": 0.25
+    },
+    {
+      "signal": "Scale suggests AI ROI potential",
+      "evidence": "2M+ shipments/month across 200+ customers creates substantial dataset for route optimization and demand forecasting models",
+      "weight": 0.2
+    }
+  ],
+  "top_use_cases": [
+    {
+      "title": "Predictive Route Optimization",
+      "rationale": "With 2M+ monthly shipments and existing carrier integration data, ML-based route optimization could reduce transit times by 12-18% and fuel costs by 8-15%. The BigQuery data lake already captures the historical data needed for training.",
+      "effort": "medium",
+      "roi_estimate": "15-20% reduction in per-shipment cost within 6 months"
+    },
+    {
+      "title": "Demand Forecasting for Warehouse Capacity",
+      "rationale": "Seasonal shipping volume patterns across 200+ logistics customers create a strong signal for demand prediction. Accurate forecasts would reduce warehouse overstaffing by 20-30% during low periods and prevent capacity shortfalls during peaks.",
+      "effort": "medium",
+      "roi_estimate": "20-30% reduction in warehouse labor cost variance"
+    },
+    {
+      "title": "Carrier Performance Scoring & Auto-Selection",
+      "rationale": "Historical carrier delivery data enables an automated scoring model that selects optimal carriers per route and package type. Currently manual carrier selection likely leaves 10-15% cost savings on the table.",
+      "effort": "low",
+      "roi_estimate": "10-15% reduction in carrier spend through intelligent selection"
+    }
+  ],
+  "reasoning": "CargoLogik is at the Developing stage (2.3/5) of AI maturity. They have strong data infrastructure foundations — a BigQuery data lake, Airflow pipelines, and engineering talent experienced with large-scale data processing. However, they have not yet hired ML-specific roles or deployed any predictive models. Their current analytics are descriptive (dashboards and reports), not predictive. The 2M+ monthly shipment volume and 200+ customer base provide excellent training data density for logistics-specific ML models. The highest-ROI opportunity is predictive route optimization, which directly leverages their existing data assets and addresses their core value proposition of supply chain optimization."
+}

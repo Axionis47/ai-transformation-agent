@@ -1,0 +1,72 @@
+[
+  {
+    "id": "seed-01",
+    "text": "A regional logistics company with 500 trucks implemented ML-based route optimization using historical GPS and delivery data. Reduced fuel costs by 14% and improved on-time delivery from 87% to 94% within 4 months.",
+    "industry": "logistics",
+    "company_type": "mid-market",
+    "use_case": "route optimization"
+  },
+  {
+    "id": "seed-02",
+    "text": "An e-commerce fulfillment provider deployed demand forecasting models using 3 years of order history. Reduced warehouse overstaffing costs by 25% and eliminated 90% of stockout events during peak seasons.",
+    "industry": "retail",
+    "company_type": "mid-market",
+    "use_case": "demand forecasting"
+  },
+  {
+    "id": "seed-03",
+    "text": "A manufacturing company with 12 production lines implemented computer vision for defect detection. Reduced quality inspection time by 60% and caught 30% more defects than manual inspection.",
+    "industry": "manufacturing",
+    "company_type": "enterprise",
+    "use_case": "defect detection"
+  },
+  {
+    "id": "seed-04",
+    "text": "A financial services firm built an ML fraud detection system processing 2M daily transactions. Reduced false positive rate by 40% compared to rules-based system while catching 15% more actual fraud.",
+    "industry": "financial services",
+    "company_type": "enterprise",
+    "use_case": "fraud detection"
+  },
+  {
+    "id": "seed-05",
+    "text": "A healthcare SaaS company deployed NLP-based patient triage for urgent care clinics. Reduced average wait times by 35% and improved triage accuracy to 92%, freeing nursing staff for higher-acuity patients.",
+    "industry": "healthcare",
+    "company_type": "mid-market",
+    "use_case": "patient triage"
+  },
+  {
+    "id": "seed-06",
+    "text": "A B2B SaaS company serving supply chain managers implemented carrier performance scoring using 18 months of shipment data. Automated carrier selection reduced shipping costs by 12% across 150K annual shipments.",
+    "industry": "logistics",
+    "company_type": "startup",
+    "use_case": "carrier selection"
+  },
+  {
+    "id": "seed-07",
+    "text": "An insurance company built predictive models for claims processing using historical claims and adjuster notes. Reduced average claims processing time from 14 days to 5 days and improved accuracy of initial reserve estimates by 25%.",
+    "industry": "insurance",
+    "company_type": "enterprise",
+    "use_case": "claims automation"
+  },
+  {
+    "id": "seed-08",
+    "text": "A mid-market retailer deployed customer churn prediction using purchase history and engagement data. Targeted retention campaigns reduced churn by 18% and increased customer lifetime value by 22%.",
+    "industry": "retail",
+    "company_type": "mid-market",
+    "use_case": "churn prediction"
+  },
+  {
+    "id": "seed-09",
+    "text": "A construction company implemented predictive maintenance for heavy equipment using IoT sensor data. Reduced unplanned downtime by 28% and extended average equipment lifespan by 15%.",
+    "industry": "construction",
+    "company_type": "mid-market",
+    "use_case": "predictive maintenance"
+  },
+  {
+    "id": "seed-10",
+    "text": "A professional services firm deployed an AI-powered document analysis system for contract review. Reduced contract review time by 70% and identified 40% more risk clauses than manual review.",
+    "industry": "professional services",
+    "company_type": "mid-market",
+    "use_case": "document analysis"
+  }
+]
