@@ -69,3 +69,23 @@ async def test_analyze_failure(transport):
     body = resp.json()
     assert "error" in body["detail"]
     assert body["detail"]["error"]["code"] == "SCRAPE_ERROR"
+
+
+@pytest.mark.asyncio
+async def test_analyze_scrape_thin(transport):
+    """SCRAPE_THIN pipeline failure should return 422, not 500."""
+    thin_state = PipelineState(
+        url="https://blocked.com",
+        status=PipelineStatus.FAILED,
+        error={"code": "SCRAPE_THIN", "message": "Scraped content too thin (5 words).", "agent": "SCRAPER"},
+    )
+
+    with patch("app.run_pipeline", return_value=thin_state):
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.post(
+                "/v1/analyze", json={"url": "https://blocked.com", "dry_run": False}
+            )
+
+    assert resp.status_code == 422
+    body = resp.json()
+    assert body["detail"]["error"]["code"] == "SCRAPE_THIN"
