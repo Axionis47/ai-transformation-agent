@@ -1,3 +1,16 @@
+export interface VictoryMatch {
+  id: string;
+  engagement_title: string;
+  industry: string;
+  size_label?: string;
+  primary_metric_label?: string;
+  primary_metric_value?: string;
+  measurement_period?: string;
+  duration_months?: number;
+  maturity_at_engagement?: string;
+  embed_text?: string;
+}
+
 export interface ReportSections {
   exec_summary: string;
   current_state: string;
@@ -15,7 +28,15 @@ export interface AnalyzeSuccess {
   analysis?: {
     maturity_score?: number;
     maturity_label?: string;
+    dimensions?: {
+      data_infrastructure?: number;
+      ml_ai_capability?: number;
+      strategy_intent?: number;
+      operational_readiness?: number;
+    };
+    [key: string]: unknown;
   };
+  rag_context?: VictoryMatch[];
 }
 
 export interface AnalyzeError {
