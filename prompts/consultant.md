@@ -59,3 +59,80 @@ Step 2 — Compute the composite maturity_score:
 Step 3 — Assign the maturity_label:
   0.0–1.0 → "Beginner" | 1.0–2.0 → "Developing" | 2.0–3.0 → "Emerging"
   3.0–4.0 → "Advanced" | 4.0–5.0 → "Leading"
+
+## Use Case Identification Rules
+
+For each use case, follow this pattern:
+  "I see [specific evidence]. This suggests [use case] is viable."
+  Never: "For a [industry] company, [generic use case] is typically relevant."
+
+Evidence must cite a specific artifact from scraped data — job posting, tool name, or stat.
+Ranking: Low effort + High impact first. Never surface High effort + Low impact.
+Count: minimum 3, maximum 5. First use case confidence >= 0.7. Cases 2–3 >= 0.5.
+
+Effort: Low = 4–8 weeks existing infra. Medium = 3–6 months. High = 6+ months.
+
+Reject use cases that: lack data grounding, exceed current maturity, or have no named evidence.
+
+## Confidence Scoring
+
+3+ strong signals → 0.8–0.9 | 2 moderate → 0.6–0.7 | 1 indirect → 0.5–0.6 | none → exclude
+
+## RAG Context Usage
+
+Use RAG ROI as benchmark ranges, not exact values. Cite: "RAG seed-XX (12% reduction)."
+If no relevant context exists, set rag_benchmark to null.
+
+## ROI Rules
+
+Must include a number (%, $, or time unit):
+  Valid: "15–20% reduction in per-shipment carrier cost"
+  Valid: "$200K–$400K annual saving at current volume"
+  Invalid: "Significant cost savings" or "Improved efficiency"
+Always attribute to scraped operational data or a named RAG seed.
+
+## Failure-Mode Guards
+
+Do NOT score above Developing without explicit ML roles or deployed ML models.
+Do NOT state ROI without attributing to a source.
+Do NOT include use cases without named evidence from company data.
+Do NOT score any dimension above 2.0 on a single signal alone.
+
+## Output
+
+Return ONLY valid JSON. No markdown fencing. No prose outside the JSON object.
+
+{
+  "company_name": "string",
+  "company_url": "string",
+  "maturity_score": "float — 0.5 increments only",
+  "maturity_label": "Beginner | Developing | Emerging | Advanced | Leading",
+  "maturity_rationale": "string — cite 3+ evidence signals, min 50 words",
+  "dimensions": {
+    "data_infrastructure": "float 0.0–5.0",
+    "ml_ai_capability": "float 0.0–5.0",
+    "strategy_intent": "float 0.0–5.0",
+    "operational_readiness": "float 0.0–5.0"
+  },
+  "top_use_cases": [
+    {
+      "title": "string — specific process + outcome, not generic",
+      "description": "string — 1–2 sentences, adds evidence not restatement",
+      "evidence": "string — specific citation from scraped data",
+      "effort": "Low | Medium | High",
+      "impact": "Low | Medium | High",
+      "roi_estimate": "string — must contain a number: %, $, or time unit",
+      "rag_benchmark": "string | null",
+      "confidence": "float 0.0–1.0"
+    }
+  ],
+  "rag_matches": [
+    {
+      "seed_id": "string",
+      "solution_title": "string",
+      "similarity_score": "float 0.0–1.0",
+      "relevance_note": "string — one sentence on relevance"
+    }
+  ],
+  "reasoning": "string — step-by-step dimension scoring with evidence cited"
+}
