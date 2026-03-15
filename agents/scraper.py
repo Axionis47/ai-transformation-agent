@@ -1,0 +1,71 @@
+"""Scraper agent — extracts company data from a URL."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Any
+
+from agents.base import AgentError, BaseAgent
+
+_FIXTURE = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "sample_company.json"
+
+
+class ScraperAgent(BaseAgent):
+    """Scrapes company about/careers pages and returns structured data."""
+
+    agent_tag = "SCRAPER"
+
+    def _run(self, state: Any) -> dict | AgentError:
+        url = state.url if hasattr(state, "url") else state.get("url", "")
+
+        if self.dry_run:
+            return json.loads(_FIXTURE.read_text())
+
+        return self._scrape_live(url)
+
+    def _scrape_live(self, url: str) -> dict | AgentError:
+        """Live scraping with httpx + BeautifulSoup."""
+        import httpx
+        from bs4 import BeautifulSoup
+
+        try:
+            client = httpx.Client(timeout=10.0, follow_redirects=True)
+            about_text = self._fetch_page(client, url, ["/about", "/about-us", "/company"])
+            jobs_text = self._fetch_page(client, url, ["/careers", "/jobs", "/join-us"])
+            client.close()
+
+            if len(about_text) < 200:
+                return AgentError(
+                    code="SCRAPE_THIN", message="About page too thin (<200 chars)",
+                    recoverable=True, agent_tag=self.agent_tag,
+                )
+
+            return {
+                "url": url,
+                "name": url.split("//")[-1].split(".")[0].title(),
+                "about_text": about_text,
+                "job_postings": [jobs_text] if jobs_text else [],
+                "tech_stack_mentions": [],
+                "last_scraped": None,
+            }
+        except httpx.HTTPError as exc:
+            return AgentError(
+                code="SCRAPE_FAIL", message=f"HTTP error: {exc}",
+                recoverable=True, agent_tag=self.agent_tag,
+            )
+
+    def _fetch_page(self, client, base_url: str, paths: list[str]) -> str:
+        from bs4 import BeautifulSoup
+
+        for path in paths:
+            try:
+                resp = client.get(base_url.rstrip("/") + path)
+                if resp.status_code == 200:
+                    soup = BeautifulSoup(resp.text, "lxml")
+                    for tag in soup(["nav", "footer", "script", "style"]):
+                        tag.decompose()
+                    return soup.get_text(separator=" ", strip=True)[:5000]
+            except Exception:
+                continue
+        return ""
