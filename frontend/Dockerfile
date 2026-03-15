@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-ENV NEXT_PUBLIC_API_URL=https://ai-transform-agent-du6qod3mja-uc.a.run.app
+ENV NEXT_PUBLIC_API_URL=https://ai-transform-agent-359145045403.us-central1.run.app
 RUN npm run build
 
 FROM node:20-alpine AS runner
