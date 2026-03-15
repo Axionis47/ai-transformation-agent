@@ -6,6 +6,7 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from infra.health_check import health_router
@@ -55,13 +56,16 @@ async def analyze(request: AnalyzeRequest) -> AnalyzeSuccess:
 
     if state.status == PipelineStatus.FAILED:
         err = state.error or {}
-        raise HTTPException(
-            status_code=500,
-            detail={
-                "error": {
-                    "code": err.get("code", "UNKNOWN"),
-                    "message": err.get("message", "Pipeline failed"),
-                    "agent": err.get("agent", "unknown"),
+        status_code = 422 if err.get("code") == "SCRAPE_THIN" else 500
+        return JSONResponse(
+            status_code=status_code,
+            content={
+                "detail": {
+                    "error": {
+                        "code": err.get("code", "UNKNOWN"),
+                        "message": err.get("message", "Pipeline failed"),
+                        "agent": err.get("agent", "unknown"),
+                    }
                 }
             },
         )
