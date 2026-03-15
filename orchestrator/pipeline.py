@@ -13,12 +13,16 @@ from agents.rag_query import RAGQueryAgent
 from agents.report_writer import ReportWriterAgent
 from agents.scraper import ScraperAgent
 from orchestrator.state import PipelineState, PipelineStatus
+from rag.ingest import ensure_seeds_loaded
 
 
 def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     """Execute the full pipeline: scrape -> RAG -> consult -> report."""
     if dry_run:
         os.environ["DRY_RUN"] = "true"
+
+    if not dry_run:
+        ensure_seeds_loaded()
 
     state = PipelineState(url=url, dry_run=dry_run)
     state.status = PipelineStatus.RUNNING
