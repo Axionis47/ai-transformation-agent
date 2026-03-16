@@ -22,10 +22,10 @@ export default function EvidencePanel({ wins }: EvidencePanelProps) {
       {open && (
         <div className="mt-2 space-y-2">
           {wins.map((win) => (
-            <div key={win.id} className="neo-flat p-3 text-xs space-y-1">
+            <div key={win.win_id ?? win.id} className="neo-flat p-3 text-xs space-y-1">
               <div className="flex items-center gap-2">
                 <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-mono font-semibold">
-                  {win.id}
+                  {win.win_id ?? win.id}
                 </span>
                 <span className="font-medium text-gray-700">{win.engagement_title}</span>
               </div>

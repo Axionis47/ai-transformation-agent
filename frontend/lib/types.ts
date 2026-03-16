@@ -1,7 +1,66 @@
-export interface VictoryMatch {
-  id: string;
-  engagement_title: string;
+export interface Signal {
+  signal_id: string;
+  type: string;
+  value: string;
+  source: string;
+  confidence: number;
+  raw_quote: string;
+}
+
+export interface SignalSet {
+  signals: Signal[];
   industry: string;
+  scale: string;
+  confidence_level: "HIGH" | "MEDIUM" | "LOW";
+  signal_count: number;
+}
+
+export interface DimensionScore {
+  score: number;
+  signals_used: string[];
+  rationale: string;
+}
+
+export interface MaturityResult {
+  dimensions: Record<string, DimensionScore>;
+  composite_score: number;
+  composite_label: string;
+  composite_rationale: string;
+}
+
+export interface DataFlow {
+  data_inputs: string[];
+  model_approach: string;
+  output_consumer: string;
+  feedback_loop: string;
+  value_measurement: string;
+}
+
+export interface TieredUseCase {
+  tier: "LOW_HANGING_FRUIT" | "MEDIUM_SOLUTION" | "HARD_EXPERIMENT";
+  title: string;
+  description: string;
+  evidence_signal_ids: string[];
+  effort: "Low" | "Medium" | "High";
+  impact: "Low" | "Medium" | "High";
+  roi_estimate: string;
+  roi_basis: string;
+  rag_benchmark: string | null;
+  confidence: number;
+  why_this_company: string;
+  data_flow: DataFlow;
+}
+
+export interface VictoryMatch {
+  win_id: string;
+  id?: string;
+  engagement_title: string;
+  match_tier: "DIRECT_MATCH" | "CALIBRATION_MATCH" | "ADJACENT_MATCH";
+  relevance_note?: string;
+  roi_benchmark: string;
+  industry: string;
+  similarity_score?: number;
+  confidence: number;
   size_label?: string;
   primary_metric_label?: string;
   primary_metric_value?: string;
@@ -37,6 +96,10 @@ export interface AnalyzeSuccess {
     [key: string]: unknown;
   };
   rag_context?: VictoryMatch[];
+  signals?: SignalSet;
+  maturity?: MaturityResult;
+  victory_matches?: VictoryMatch[];
+  use_cases?: TieredUseCase[];
 }
 
 export interface AnalyzeError {
@@ -57,7 +120,6 @@ export type PageState =
   | { phase: "success"; data: AnalyzeSuccess }
   | { phase: "error"; message: string };
 
-// Human-readable error code map — lives in frontend, not backend
 export const ERROR_CODE_MAP: Record<string, string> = {
   SCRAPE_FAIL: "Could not reach that website. Try a different URL.",
   SCRAPE_THIN: "The website had too little content to analyze. Try the company's main page.",
