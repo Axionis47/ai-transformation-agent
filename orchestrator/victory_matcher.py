@@ -4,11 +4,44 @@ from __future__ import annotations
 from orchestrator.schemas import VictoryMatch
 
 
+_MATURITY_FLOAT: dict[str, float] = {
+    "Beginner": 1.0,
+    "Developing": 2.0,
+    "Emerging": 3.0,
+    "Advanced": 4.0,
+    "Leading": 5.0,
+}
+
+
+def _compute_gap_analysis(win: dict, company_composite_score: float) -> str | None:
+    """Return a formatted gap analysis string, or None if calibration fields are absent."""
+    industry_benchmark = win.get("industry_benchmark")
+    if not industry_benchmark:
+        return None
+
+    win_maturity = win.get("maturity_at_engagement", "")
+    victory_float = _MATURITY_FLOAT.get(win_maturity)
+    gap = abs(company_composite_score - victory_float) if victory_float is not None else 0.0
+
+    template = win.get("gap_analysis_template", "")
+    template_part = template.format(gap=f"{gap:.1f}") if template else ""
+
+    success_threshold = win.get("success_threshold", "")
+    parts = [f"Industry benchmark: {industry_benchmark}."]
+    parts.append(f"Maturity gap: {gap:.1f} points.")
+    if success_threshold:
+        parts.append(success_threshold)
+    if template_part:
+        parts.append(template_part)
+    return " ".join(parts)
+
+
 def match_victories(
     signals_industry: str,
     signals_scale: str,
     maturity_label: str,
     rag_results: list[dict],
+    company_composite_score: float = 0.0,
 ) -> list[VictoryMatch]:
     """Score and tier-classify RAG results against company signals.
 
@@ -66,6 +99,8 @@ def match_victories(
         else:
             roi = f"{win.get('primary_metric_label', '')}: {win.get('primary_metric_value', '')}"
 
+        gap_analysis = _compute_gap_analysis(win, company_composite_score)
+
         matches.append(VictoryMatch(
             win_id=win.get("id", "unknown"),
             engagement_title=win.get("engagement_title", "Untitled"),
@@ -75,6 +110,7 @@ def match_victories(
             industry=win_industry,
             similarity_score=total,
             confidence=round(confidence, 2),
+            gap_analysis=gap_analysis,
         ))
 
     tier_order = {"DIRECT_MATCH": 0, "CALIBRATION_MATCH": 1, "ADJACENT_MATCH": 2}
