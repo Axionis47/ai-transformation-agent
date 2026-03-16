@@ -23,7 +23,7 @@ _RUBRICS = {
 }
 _TEST_COMPANIES = REPO_ROOT / "evals" / "test_companies.json"
 _BASELINES = REPO_ROOT / "evals" / "baselines.json"
-_SPRINT = "sprint_5"
+_SPRINT = "sprint_6"
 
 
 def _uc_vars(uc: dict, mat: dict | None) -> dict:
@@ -76,7 +76,7 @@ def run_baseline() -> None:
     avgs = {k: round(sum(r[k] for r in results.values()) / len(results), 2) for k in _RUBRICS}
     entry: dict = {"run_date": str(date.today()), "companies": results, "averages": avgs}
     if not judge._available:
-        entry["note"] = "ANTHROPIC_API_KEY not set — scores are 0.0 placeholders."
+        entry["note"] = "GCP_PROJECT_ID not set — scores are 0.0 placeholders."
 
     existing = json.loads(_BASELINES.read_text()) if _BASELINES.exists() else {}
     existing[_SPRINT] = entry
