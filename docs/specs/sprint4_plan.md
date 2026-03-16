@@ -190,8 +190,6 @@ in DISC-39 — they do not define their own schema inline.
 
 ---
 
-## What Changes in Sprint 4---
-
 ## What Changes in Sprint 4
 
 Sprint 3 shipped the victory citation system. The pipeline now says
@@ -1307,7 +1305,11 @@ Test 6 — Eval scores:
 | PipelineState extended with signals, maturity, victory_matches, use_cases fields | ADR-009 (new) |
 | LOW/MEDIUM/HARD tier classification is a first-class output type and UI concept | ADR-009 |
 
-PM to file ADR-008 and ADR-009 at sprint open, before DISC-40 execution begins.
+PM to file ADR-008 and ADR-009 at sprint open, before DISC-39 execution begins.
+
+ADR-009 covers the Pydantic schema contract decision: all inter-agent data must
+flow through typed `orchestrator/schemas.py` models, validated by `orchestrator/validators.py`
+before promotion to pipeline state.
 
 ---
 
@@ -1328,9 +1330,10 @@ PM to file ADR-008 and ADR-009 at sprint open, before DISC-40 execution begins.
 
 Sprint 4 is complete when:
 
-1. All 6 tickets have QA sign-off
-2. Pipeline runs 7 steps and `state.signals`, `state.maturity`, `state.victory_matches`,
-   `state.use_cases`, `state.report` are all non-null on completion
+1. All 7 tickets have QA sign-off (DISC-39 through DISC-45)
+2. Pipeline runs 8 steps and `state.signals` (as `SignalSet`), `state.maturity` (as `MaturityResult`),
+   `state.victory_matches` (as `list[VictoryMatch]`), `state.use_cases` (as `list[UseCase]`),
+   `state.report` are all non-null and schema-valid on completion
 3. Live frontend shows three-tier use case sections with correct colors
 4. A logistics company URL produces at least one "Proven Solutions" card citing win-001/002/003
 5. Tier classification eval scores >= 3.5/5 for all 3 test companies
@@ -1341,6 +1344,7 @@ Sprint 4 is complete when:
 
 **If the use cases are still a flat list — Sprint 4 is not done.**
 **If a "Proven" card does not cite a real Tenex win — Sprint 4 is not done.**
+**If inter-agent data flows as untyped dicts with no validation gate — Sprint 4 is not done.**
 
 ---
 
