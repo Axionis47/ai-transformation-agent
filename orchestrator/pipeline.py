@@ -24,10 +24,10 @@ _COST_CONSULTANT = 0.005
 _COST_REPORT = 0.004
 
 
-def _run_with_timeout(agent: BaseAgent, state: PipelineState, timeout: int = _STAGE_TIMEOUT_S) -> object:
-    """Run agent.run(state) in a thread; return AgentError on timeout."""
+def _run_with_timeout(agent: BaseAgent, input_data: dict, timeout: int = _STAGE_TIMEOUT_S) -> object:
+    """Run agent.run(input_data) in a thread; return AgentError on timeout."""
     with ThreadPoolExecutor(max_workers=1) as executor:
-        future = executor.submit(agent.run, state)
+        future = executor.submit(agent.run, input_data)
         try:
             return future.result(timeout=timeout)
         except FuturesTimeout:
@@ -55,7 +55,7 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     # Step 1: Scrape
     _stage_start = time.time()
     logger.log("SCRAPER", "start", prompt_file="prompts/scraper.md", prompt_version="1.0")
-    result = _run_with_timeout(ScraperAgent(), state)
+    result = _run_with_timeout(ScraperAgent(), {"url": state.url})
     if isinstance(result, AgentError):
         logger.log("SCRAPER", "error", code=result.code, message=result.message)
         return _fail(state, result, start, logger)
@@ -75,7 +75,7 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     # Step 2: RAG query
     _stage_start = time.time()
     logger.log("RAG", "start", prompt_file="prompts/rag_query.md", prompt_version="1.0")
-    result = _run_with_timeout(RAGQueryAgent(), state)
+    result = _run_with_timeout(RAGQueryAgent(), {"company_data": state.company_data})
     if isinstance(result, AgentError):
         logger.log("RAG", "error", code=result.code, message=result.message)
         return _fail(state, result, start, logger)
@@ -85,7 +85,7 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     # Step 3: Consultant analysis
     _stage_start = time.time()
     logger.log("CONSULTANT", "start", prompt_file="prompts/consultant.md", prompt_version="1.0")
-    result = _run_with_timeout(ConsultantAgent(), state)
+    result = _run_with_timeout(ConsultantAgent(), {"company_data": state.company_data, "rag_context": state.rag_context})
     if isinstance(result, AgentError):
         logger.log("CONSULTANT", "error", code=result.code, message=result.message)
         return _fail(state, result, start, logger)
@@ -98,7 +98,7 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     # Step 4: Report generation
     _stage_start = time.time()
     logger.log("REPORT_WRITER", "start", prompt_file="prompts/report_writer.md", prompt_version="1.0")
-    result = _run_with_timeout(ReportWriterAgent(), state)
+    result = _run_with_timeout(ReportWriterAgent(), {"analysis": state.analysis})
     if isinstance(result, AgentError):
         logger.log("REPORT_WRITER", "error", code=result.code, message=result.message)
         return _fail(state, result, start, logger)

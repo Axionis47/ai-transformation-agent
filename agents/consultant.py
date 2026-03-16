@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
-
 from agents.base import AgentError, BaseAgent
 from ops.model_client import get_model_client
 
@@ -89,12 +87,12 @@ class ConsultantAgent(BaseAgent):
 
     agent_tag = "CONSULTANT"
 
-    def _run(self, state: Any) -> dict | AgentError:
+    def _run(self, input_data: dict) -> dict | AgentError:
         if self.dry_run:
             return json.loads(_FIXTURE.read_text())
 
-        company_data = state.company_data if hasattr(state, "company_data") else {}
-        rag_context = state.rag_context if hasattr(state, "rag_context") else []
+        company_data = input_data.get("company_data", {})
+        rag_context = input_data.get("rag_context", [])
 
         prompt = self._load_prompt(company_data, rag_context)
         client = get_model_client()

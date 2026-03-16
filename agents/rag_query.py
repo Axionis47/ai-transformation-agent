@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
-
 from agents.base import AgentError, BaseAgent
 from rag.vector_store import get_vector_store
 
@@ -28,7 +26,7 @@ class RAGQueryAgent(BaseAgent):
 
     agent_tag = "RAG"
 
-    def _run(self, state: Any) -> list[dict] | AgentError:
+    def _run(self, input_data: dict) -> list[dict] | AgentError:
         if self.dry_run:
             try:
                 records = json.loads(_VICTORIES.read_text())
@@ -36,7 +34,7 @@ class RAGQueryAgent(BaseAgent):
             except FileNotFoundError:
                 return [{"id": "win-000", "embed_text": "Mock: AI solution", "industry": "general"}]
 
-        company_data = state.company_data if hasattr(state, "company_data") else state
+        company_data = input_data.get("company_data", {})
         query_text = self._build_query(company_data)
         store = get_vector_store()
         return store.query(query_text, k=3)

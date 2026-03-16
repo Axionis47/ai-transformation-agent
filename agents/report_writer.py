@@ -5,8 +5,6 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Any
-
 from agents.base import AgentError, BaseAgent
 from ops.model_client import get_model_client
 
@@ -21,11 +19,11 @@ class ReportWriterAgent(BaseAgent):
 
     agent_tag = "REPORT"
 
-    def _run(self, state: Any) -> dict | AgentError:
+    def _run(self, input_data: dict) -> dict | AgentError:
         if self.dry_run:
             return json.loads(_FIXTURE.read_text())
 
-        analysis = state.analysis if hasattr(state, "analysis") else state
+        analysis = input_data.get("analysis", {})
         prompt = self._load_prompt(analysis)
         client = get_model_client()
         model = os.getenv("VERTEX_FAST_MODEL", "gemini-2.5-flash")

@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
-
 from agents.base import AgentError, BaseAgent
 
 _FIXTURE = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "sample_company.json"
@@ -16,8 +14,8 @@ class ScraperAgent(BaseAgent):
 
     agent_tag = "SCRAPER"
 
-    def _run(self, state: Any) -> dict | AgentError:
-        url = state.url if hasattr(state, "url") else state.get("url", "")
+    def _run(self, input_data: dict) -> dict | AgentError:
+        url = input_data.get("url", "")
 
         if self.dry_run:
             return json.loads(_FIXTURE.read_text())
