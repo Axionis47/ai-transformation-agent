@@ -1,0 +1,62 @@
+[
+  {
+    "tier": "LOW_HANGING_FRUIT",
+    "title": "Carrier Performance Scoring & Auto-Selection",
+    "description": "Build a scoring model using historical carrier delivery data to rank carriers by lane, cost, and reliability.",
+    "evidence_signal_ids": ["sig-001", "sig-003", "sig-006"],
+    "effort": "Low",
+    "impact": "Medium",
+    "roi_estimate": "10-12% reduction in per-shipment carrier cost",
+    "roi_basis": "Based on win-002: 12% carrier cost savings at a similar B2B logistics SaaS",
+    "rag_benchmark": "win-002: 12% average cost reduction across 150K shipments",
+    "confidence": 0.82,
+    "why_this_company": "BigQuery data lake (sig-001) with 50M+ daily events (sig-003) already contains the shipment performance history needed. Logistics industry (sig-006) aligns with proven solution.",
+    "data_flow": {
+      "data_inputs": ["Shipment performance history from BigQuery (18 months)", "Carrier rate cards", "Delivery SLA data"],
+      "model_approach": "Weighted scoring model ranking carriers per lane and weight class",
+      "output_consumer": "Operations team via carrier recommendation dashboard",
+      "feedback_loop": "Monthly model refresh with new delivery performance data",
+      "value_measurement": "Per-shipment cost tracked monthly vs 6-month pre-deployment baseline"
+    }
+  },
+  {
+    "tier": "MEDIUM_SOLUTION",
+    "title": "Predictive Route Optimization",
+    "description": "ML-based route optimization using GPS telemetry and historical shipment data to reduce fuel costs and improve on-time delivery.",
+    "evidence_signal_ids": ["sig-001", "sig-002", "sig-003", "sig-005"],
+    "effort": "Medium",
+    "impact": "High",
+    "roi_estimate": "12-16% fuel cost reduction, estimated $250K-$350K annual savings",
+    "roi_basis": "Adapted from win-001: 14% fuel cost reduction. Adjusted for CargoLogik's scale (2M+ monthly shipments vs 420 vehicles).",
+    "rag_benchmark": "win-001: 14% fuel cost reduction ($294K annual savings)",
+    "confidence": 0.68,
+    "why_this_company": "Airflow orchestration (sig-002) and Kubernetes infrastructure (sig-005) provide the pipeline and serving capability. 50M+ daily events (sig-003) provide training data volume.",
+    "data_flow": {
+      "data_inputs": ["GPS telemetry data", "Historical shipment routes from BigQuery", "Real-time traffic API", "Driver schedule constraints"],
+      "model_approach": "XGBoost regression for route scoring, adapted from win-001 approach",
+      "output_consumer": "Dispatchers via route planning interface integrated with existing TMS",
+      "feedback_loop": "Weekly retraining on actual vs predicted delivery times",
+      "value_measurement": "Monthly fuel cost compared to same period prior year, adjusted for fuel price index"
+    }
+  },
+  {
+    "tier": "HARD_EXPERIMENT",
+    "title": "Demand Forecasting for Warehouse Capacity Planning",
+    "description": "Time-series forecasting to predict shipping volume by customer and region, enabling proactive warehouse staffing.",
+    "evidence_signal_ids": ["sig-003", "sig-006", "sig-007"],
+    "effort": "High",
+    "impact": "High",
+    "roi_estimate": "Projected 15-25% reduction in warehouse labor cost variance",
+    "roi_basis": "Projected conservative estimate. No direct Tenex precedent in this company's exact configuration.",
+    "rag_benchmark": null,
+    "confidence": 0.52,
+    "why_this_company": "High data volume (sig-003) across 200+ customers (sig-007) creates strong seasonal patterns suitable for time-series modeling.",
+    "data_flow": {
+      "data_inputs": ["Historical order volumes by customer/region (BigQuery)", "Seasonal calendar data", "Customer growth trajectory data"],
+      "model_approach": "Prophet or LSTM time-series forecasting",
+      "output_consumer": "Warehouse managers via weekly capacity planning dashboard",
+      "feedback_loop": "Monthly accuracy review comparing predicted vs actual volumes",
+      "value_measurement": "Quarterly warehouse labor cost variance vs prior year"
+    }
+  }
+]
