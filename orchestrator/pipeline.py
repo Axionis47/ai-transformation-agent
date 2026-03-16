@@ -18,6 +18,12 @@ from agents.signal_extractor import SignalExtractorAgent
 from agents.use_case_generator import UseCaseGeneratorAgent
 from ops.logger import PipelineLogger, get_logger
 from orchestrator.gates import scraper_quality_gate
+from orchestrator.stage_io import (
+    maturity_input, maturity_output, rag_input, rag_output,
+    report_writer_input, report_writer_output, scraper_input, scraper_output,
+    signal_input, signal_output, use_case_input, use_case_output,
+    victory_input, victory_output,
+)
 from orchestrator.state import PipelineState, PipelineStatus
 from orchestrator.validators import validate_maturity, validate_signals, validate_use_cases
 from orchestrator.victory_matcher import match_victories
@@ -28,10 +34,10 @@ _COST_SIGNAL = 0.001
 _COST_MATURITY = 0.001
 _COST_USE_CASE = 0.005
 _COST_REPORT = 0.004
+_REPORT_SECTIONS = ["exec_summary", "current_state", "use_cases", "roadmap", "roi_analysis"]
 
 
 def _run_with_timeout(agent: BaseAgent, input_data: dict, timeout: int = _STAGE_TIMEOUT_S) -> object:
-    """Run agent.run(input_data) in a thread; return AgentError on timeout."""
     with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(agent.run, input_data)
         try:
@@ -62,7 +68,6 @@ def _fail(state: PipelineState, error: AgentError, start: float,
 def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     """Execute the 7-stage AI transformation pipeline."""
     os.environ["DRY_RUN"] = "true" if dry_run else "false"
-
     if not dry_run:
         ensure_seeds_loaded()
 
@@ -73,13 +78,16 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
 
     # Stage 1: Scrape
     t = time.time()
-    _log_stage(logger, "SCRAPER", "start", prompt_file="prompts/scraper.md", prompt_version="1.0")
+    logger.log_agent_call("SCRAPER", prompt_file="prompts/scraper.md", prompt_version="1.0",
+                          input_summary=scraper_input(state.url))
     result = _run_with_timeout(ScraperAgent(), {"url": state.url})
     if isinstance(result, AgentError):
         _log_stage(logger, "SCRAPER", "error", code=result.code, message=result.message)
         return _fail(state, result, start, logger)
     state.company_data = result
-    _log_stage(logger, "SCRAPER", "complete", elapsed_ms=int((time.time() - t) * 1000))
+    logger.log_agent_call("SCRAPER", result=True, start_time=t,
+                          prompt_file="prompts/scraper.md", prompt_version="1.0",
+                          output_summary=scraper_output(state.company_data))
 
     if not dry_run:
         passed, reason = scraper_quality_gate(state.company_data)
@@ -92,7 +100,8 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
 
     # Stage 2: Signal extraction
     t = time.time()
-    _log_stage(logger, "SIGNAL_EXTRACTOR", "start", prompt_version="1.0")
+    logger.log_agent_call("SIGNAL_EXTRACTOR", prompt_version="1.0",
+                          input_summary=signal_input(state.company_data))
     result = _run_with_timeout(SignalExtractorAgent(), {"company_data": state.company_data})
     if isinstance(result, AgentError):
         _log_stage(logger, "SIGNAL_EXTRACTOR", "error", code=result.code, message=result.message)
@@ -103,11 +112,13 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     state.signals = validated.model_dump()
     if not dry_run:
         state.cost_usd += _COST_SIGNAL
-    _log_stage(logger, "SIGNAL_EXTRACTOR", "complete", elapsed_ms=int((time.time() - t) * 1000))
+    logger.log_agent_call("SIGNAL_EXTRACTOR", result=True, start_time=t, prompt_version="1.0",
+                          output_summary=signal_output(state.signals))
 
     # Stage 3: Maturity scoring
     t = time.time()
-    _log_stage(logger, "MATURITY_SCORER", "start", prompt_version="1.0")
+    logger.log_agent_call("MATURITY_SCORER", prompt_version="1.0",
+                          input_summary=maturity_input(state.signals))
     result = _run_with_timeout(MaturityScorerAgent(), {"signals": state.signals})
     if isinstance(result, AgentError):
         _log_stage(logger, "MATURITY_SCORER", "error", code=result.code, message=result.message)
@@ -118,32 +129,40 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     state.maturity = validated.model_dump()
     if not dry_run:
         state.cost_usd += _COST_MATURITY
-    _log_stage(logger, "MATURITY_SCORER", "complete", elapsed_ms=int((time.time() - t) * 1000))
+    logger.log_agent_call("MATURITY_SCORER", result=True, start_time=t, prompt_version="1.0",
+                          output_summary=maturity_output(state.maturity))
 
     # Stage 4: RAG query
     t = time.time()
-    _log_stage(logger, "RAG", "start", prompt_file="prompts/rag_query.md", prompt_version="1.0")
+    logger.log_agent_call("RAG", prompt_file="prompts/rag_query.md", prompt_version="1.0",
+                          input_summary=rag_input(state.signals, state.company_data))
     result = _run_with_timeout(RAGQueryAgent(), {"company_data": state.company_data})
     if isinstance(result, AgentError):
         _log_stage(logger, "RAG", "error", code=result.code, message=result.message)
         return _fail(state, result, start, logger)
     state.rag_context = result
-    _log_stage(logger, "RAG", "complete", elapsed_ms=int((time.time() - t) * 1000))
+    logger.log_agent_call("RAG", result=True, start_time=t,
+                          prompt_file="prompts/rag_query.md", prompt_version="1.0",
+                          output_summary=rag_output(state.rag_context))
 
     # Stage 5: Victory matching (deterministic — no model call)
-    industry = state.signals.get("industry", "unknown") if state.signals else "unknown"
-    scale = state.signals.get("scale", "unknown") if state.signals else "unknown"
-    maturity_label = state.maturity.get("composite_label", "") if state.maturity else ""
+    industry = (state.signals or {}).get("industry", "unknown")
+    scale = (state.signals or {}).get("scale", "unknown")
+    maturity_label = (state.maturity or {}).get("composite_label", "")
+    logger.log_agent_call("VICTORY_MATCHER",
+                          input_summary=victory_input(state.rag_context, state.maturity))
     victory_list = match_victories(
         signals_industry=industry, signals_scale=scale,
         maturity_label=maturity_label, rag_results=state.rag_context or [],
     )
     state.victory_matches = [vm.model_dump() for vm in victory_list]
-    _log_stage(logger, "VICTORY_MATCHER", "complete", match_count=len(state.victory_matches))
+    logger.log_agent_call("VICTORY_MATCHER", result=True,
+                          output_summary=victory_output(state.victory_matches))
 
     # Stage 6: Use case generation
     t = time.time()
-    _log_stage(logger, "USE_CASE_GENERATOR", "start", prompt_version="1.0")
+    logger.log_agent_call("USE_CASE_GENERATOR", prompt_version="1.0",
+                          input_summary=use_case_input(state.signals, state.maturity, state.victory_matches))
     result = _run_with_timeout(UseCaseGeneratorAgent(), {
         "signals": state.signals, "maturity": state.maturity,
         "victory_matches": state.victory_matches,
@@ -157,23 +176,25 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     state.use_cases = [uc.model_dump() for uc in validated]
     if not dry_run:
         state.cost_usd += _COST_USE_CASE
-    _log_stage(logger, "USE_CASE_GENERATOR", "complete", elapsed_ms=int((time.time() - t) * 1000))
+    logger.log_agent_call("USE_CASE_GENERATOR", result=True, start_time=t, prompt_version="1.0",
+                          output_summary=use_case_output(state.use_cases))
 
     # Build analysis for backward compat with app.py
     state.analysis = {
-        "maturity_score": state.maturity.get("composite_score") if state.maturity else None,
-        "maturity_label": state.maturity.get("composite_label") if state.maturity else None,
-        "dimensions": state.maturity.get("dimensions") if state.maturity else None,
+        "maturity_score": (state.maturity or {}).get("composite_score"),
+        "maturity_label": (state.maturity or {}).get("composite_label"),
+        "dimensions": (state.maturity or {}).get("dimensions"),
         "use_cases": state.use_cases,
     }
 
     # Stage 7: Report generation
     t = time.time()
-    _log_stage(logger, "REPORT_WRITER", "start", prompt_file="prompts/report_writer.md", prompt_version="1.0")
+    logger.log_agent_call("REPORT_WRITER", prompt_file="prompts/report_writer.md", prompt_version="1.0",
+                          input_summary=report_writer_input(_REPORT_SECTIONS))
     result = _run_with_timeout(ReportWriterAgent(), {"analysis": {
-        "maturity_score": state.maturity.get("composite_score") if state.maturity else None,
-        "maturity_label": state.maturity.get("composite_label") if state.maturity else None,
-        "dimensions": state.maturity.get("dimensions") if state.maturity else None,
+        "maturity_score": (state.maturity or {}).get("composite_score"),
+        "maturity_label": (state.maturity or {}).get("composite_label"),
+        "dimensions": (state.maturity or {}).get("dimensions"),
         "signals": state.signals, "use_cases": state.use_cases,
         "victory_matches": state.victory_matches,
     }})
@@ -183,7 +204,9 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     state.report = result
     if not dry_run:
         state.cost_usd += _COST_REPORT
-    _log_stage(logger, "REPORT_WRITER", "complete", elapsed_ms=int((time.time() - t) * 1000))
+    logger.log_agent_call("REPORT_WRITER", result=True, start_time=t,
+                          prompt_file="prompts/report_writer.md", prompt_version="1.0",
+                          output_summary=report_writer_output(state.report, _REPORT_SECTIONS))
 
     state.status = PipelineStatus.COMPLETE
     state.elapsed_seconds = round(time.time() - start, 2)
@@ -198,8 +221,7 @@ def print_report(state: PipelineState) -> None:
     if not state.report:
         print("[pipeline] No report generated.")
         return
-    sections = ["exec_summary", "current_state", "use_cases", "roadmap", "roi_analysis"]
-    for section in sections:
+    for section in _REPORT_SECTIONS:
         title = section.replace("_", " ").upper()
         content = state.report.get(section, "N/A")
         print(f"\n{'='*60}\n  {title}\n{'='*60}\n{content}")
