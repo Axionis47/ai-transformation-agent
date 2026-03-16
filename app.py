@@ -1,7 +1,10 @@
-"""FastAPI entry point — POST /v1/analyze + health check."""
+"""FastAPI entry point — POST /v1/analyze + health check + GET /v1/trace."""
 
 from __future__ import annotations
 
+import json
+import re
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
@@ -12,6 +15,9 @@ from pydantic import BaseModel
 from infra.health_check import health_router
 from orchestrator.pipeline import run_pipeline
 from orchestrator.state import PipelineStatus
+
+_LOG_DIR = Path("logs/runs")
+_RUN_ID_RE = re.compile(r"^[a-zA-Z0-9\-]+$")
 
 app = FastAPI(title="AI Transformation Discovery Agent", version="0.1.0")
 
@@ -52,6 +58,26 @@ class ErrorDetail(BaseModel):
 
 class AnalyzeError(BaseModel):
     error: ErrorDetail
+
+
+@app.get("/v1/trace/{run_id}")
+async def get_trace(run_id: str) -> dict[str, Any]:
+    """Return all log entries for a pipeline run."""
+    if not _RUN_ID_RE.match(run_id):
+        raise HTTPException(status_code=400, detail="Invalid run_id format")
+    log_path = _LOG_DIR / f"{run_id}.jsonl"
+    if not log_path.exists():
+        raise HTTPException(status_code=404, detail=f"No trace found for run_id: {run_id}")
+    stages = []
+    with open(log_path) as fh:
+        for line in fh:
+            line = line.strip()
+            if line:
+                try:
+                    stages.append(json.loads(line))
+                except json.JSONDecodeError:
+                    pass
+    return {"run_id": run_id, "stages": stages}
 
 
 @app.post("/v1/analyze", response_model=AnalyzeSuccess)
