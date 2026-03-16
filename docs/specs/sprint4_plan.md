@@ -7,6 +7,189 @@
 
 ---
 
+## AI Native Data Flow — Cross-Cutting Architectural Requirement
+
+**Status:** Required for Sprint 4. DISC-39 is the foundation ticket. All other tickets
+in this sprint depend on it.
+
+### What "AI Native" Means Here
+
+Every inter-agent handoff in this pipeline must be a structured, validated artifact
+— not a string blob, not an untyped dict, not a JSON string that only gets parsed
+at the destination. Each agent receives exactly the fields it needs, in the shape it
+expects, validated before it ever touches agent code.
+
+This is enforced by Pydantic models in `orchestrator/schemas.py`. If an agent returns
+data that does not conform to its schema, Pydantic rejects it before it enters pipeline
+state. The orchestrator retries once. If retry fails, a clean `AgentError` is raised.
+
+### Schema Contracts
+
+All schemas live in `orchestrator/schemas.py`. These are the canonical definitions.
+Agent output comments and prompt files reference these types by name.
+
+```python
+class Signal(BaseModel):
+    signal_id: str          # sig-001, sig-002 ... (orchestrator assigns)
+    type: Literal["tech_stack", "data_signal", "ml_signal", "intent_signal",
+                  "ops_signal", "industry_hint", "scale_hint"]
+    value: str              # "BigQuery", "hiring ML Engineer"
+    source: Literal["about_text", "job_posting", "product_page", "careers_page"]
+    confidence: float = 1.0
+    raw_quote: str = ""     # the verbatim text this signal was extracted from
+
+class SignalSet(BaseModel):
+    signals: list[Signal]
+    industry: str = "unknown"
+    scale: str = "unknown"
+    signal_count: int = 0   # len(signals) — orchestrator enforces consistency
+
+class DimensionScore(BaseModel):
+    score: float            # 0.0–5.0, must be a valid 0.5 increment
+    signals_used: list[str] # signal_ids from the SignalSet that support this score
+    rationale: str          # 1–2 sentences citing specific signals
+
+class MaturityResult(BaseModel):
+    dimensions: dict[str, DimensionScore]  # keys: data_infrastructure, ml_ai_capability,
+                                           #        strategy_intent, operational_readiness
+    composite_score: float
+    composite_label: str    # Beginner / Developing / Emerging / Advanced / Leading
+    composite_rationale: str  # 50 words minimum
+
+class VictoryMatch(BaseModel):
+    win_id: str
+    engagement_title: str
+    match_tier: Literal["DIRECT_MATCH", "CALIBRATION_MATCH", "ADJACENT_MATCH"]
+    relevance_note: str
+    roi_benchmark: str      # e.g. "14% fuel cost reduction"
+    industry: str
+    similarity_score: float
+    confidence: float       # floor set by match_tier (0.75 / 0.55 / 0.40)
+
+class UseCase(BaseModel):
+    tier: Literal["LOW_HANGING_FRUIT", "MEDIUM_SOLUTION", "HARD_EXPERIMENT"]
+    title: str
+    description: str
+    evidence_signal_ids: list[str]   # signal_ids from SignalSet that ground this use case
+    effort: Literal["Low", "Medium", "High"]
+    impact: Literal["Low", "Medium", "High"]
+    roi_estimate: str
+    roi_basis: str          # "Based on win-001: 14% fuel cost reduction"
+    rag_benchmark: str | None  # win_id or None for HARD_EXPERIMENT
+    confidence: float
+    why_this_company: str   # specific to this company — not a generic statement
+```
+
+**Why `signal_id` matters:**
+Signal IDs are the traceability thread. `DimensionScore.signals_used` lists signal IDs.
+`UseCase.evidence_signal_ids` lists signal IDs. A human reading the output can trace
+every score and every use case back to a verbatim quote in the original scraped text
+via `Signal.raw_quote`. This is not optional — it is how we prove the system is not
+hallucinating.
+
+### Orchestrator Validation Gates
+
+After each agent returns, the orchestrator runs a typed validation function before
+promoting output to pipeline state. These live in `orchestrator/validators.py`.
+
+Pattern:
+
+```python
+def validate_signals(result: dict) -> SignalSet:
+    """Validate signal extractor output and promote to pipeline state."""
+    signal_set = SignalSet(**result)  # Pydantic validates structure
+    if len(signal_set.signals) < 3:
+        raise ValueError(f"Too few signals: {len(signal_set.signals)}")
+    # assign signal_ids if agent did not
+    for i, sig in enumerate(signal_set.signals):
+        if not sig.signal_id:
+            sig.signal_id = f"sig-{i+1:03d}"
+    signal_set.signal_count = len(signal_set.signals)
+    return signal_set
+```
+
+On validation failure: append the Pydantic error message to the prompt and retry once.
+On second failure: raise `AgentError` — pipeline stops, clean error returned to caller.
+
+One validator per pipeline stage:
+
+| Validator function    | Validates            | Key guard                                    |
+|-----------------------|----------------------|----------------------------------------------|
+| `validate_signals`    | `SignalSet`          | >= 3 signals, at least 1 industry_hint       |
+| `validate_maturity`   | `MaturityResult`     | all 4 dimensions present, composite formula  |
+| `validate_victories`  | `list[VictoryMatch]` | tier values valid, confidence floors held    |
+| `validate_use_cases`  | `list[UseCase]`      | >= 2 use cases, first is LOW_HANGING_FRUIT   |
+| `validate_report`     | report dict          | all 5 sections non-null, min length checks   |
+
+### Input Context Logging
+
+Every agent call logs what context it received. This is the primary debugging tool.
+
+```python
+logger.log(agent_tag, "input_context",
+    keys=list(input_data.keys()),
+    signal_count=len(input_data.get("signals", [])),
+    content_hash=hashlib.md5(
+        json.dumps(input_data, sort_keys=True).encode()
+    ).hexdigest()[:8]
+)
+```
+
+The `content_hash` lets you confirm whether two runs received identical input —
+critical for diagnosing non-determinism.
+
+### Section-Scoped Context for Report Writer
+
+The report writer does not receive a blob. The orchestrator builds five separate
+input dicts, one per section. Each section sees only what it needs.
+
+```python
+report_input = {
+    "exec_summary_context": {
+        "composite_score": maturity.composite_score,
+        "composite_label": maturity.composite_label,
+        "top_use_case": use_cases[0].model_dump(),
+    },
+    "current_state_context": {
+        "signals": [s.model_dump() for s in signal_set.signals],
+        "dimensions": {k: v.model_dump() for k, v in maturity.dimensions.items()},
+    },
+    "use_cases_context": {
+        "use_cases": [uc.model_dump() for uc in use_cases],
+        "victory_matches": [vm.model_dump() for vm in victory_matches],
+    },
+    "roi_context": {
+        "use_cases": [uc.model_dump() for uc in use_cases[:3]],
+        "victory_matches": [vm.model_dump() for vm in victory_matches],
+    },
+    "roadmap_context": {
+        "maturity": maturity.model_dump(),
+        "first_use_case": use_cases[0].model_dump(),
+        "second_use_case": use_cases[1].model_dump() if len(use_cases) > 1 else None,
+    },
+}
+```
+
+The model writing the exec summary cannot see ROI figures. The model writing
+the roadmap cannot see raw signals. Context scoping is the mechanism that makes
+section outputs internally consistent.
+
+### How Each Ticket Changes
+
+| Ticket  | Schema requirement                                                             |
+|---------|-------------------------------------------------------------------------------|
+| DISC-39 | Creates `orchestrator/schemas.py` + `orchestrator/validators.py` — foundational |
+| DISC-40 | Returns `SignalSet`. Each signal includes `signal_id` and `raw_quote`.        |
+| DISC-41 | Returns `MaturityResult`. `signals_used` per dimension are signal IDs.        |
+| DISC-42 | Returns `list[VictoryMatch]`. `match_tier` required on every record.          |
+| DISC-43 | Returns `list[UseCase]`. `evidence_signal_ids` and `why_this_company` required.|
+| DISC-44 | Report writer receives section-scoped context dict. One key per report section.|
+
+DISC-39 must complete before DISC-40 begins. All tickets use the types defined
+in DISC-39 — they do not define their own schema inline.
+
+---
+
 ## What Changes in Sprint 4---
 
 ## What Changes in Sprint 4
@@ -601,6 +784,8 @@ Above 0.75: no indicator (confident recommendation).
 ### Execution Order
 
 ```
+DISC-39 [BE] Pydantic schema contracts + orchestrator validation gates  ← NEW, blocks all
+    ↓
 DISC-40 [BE] Signal extractor agent + new pipeline state fields
     ↓
 DISC-41 [BE] Maturity scorer refactor — signals in, scores out
@@ -613,6 +798,77 @@ DISC-44 [FE] Three-tier use case UI — Low/Medium/Hard cards
     ↓ (parallel after DISC-43)
 DISC-45 [QA] Sprint 4 eval — tier classification accuracy + report coherence
 ```
+
+---
+
+### DISC-39 — [BE] Pydantic Schema Contracts + Orchestrator Validation Gates
+
+**Priority:** P0 — foundation for every other Sprint 4 ticket. Nothing proceeds without this.
+**Execute with:** Primary: backend
+**Blocked by:** nothing
+
+**User story:**
+As the pipeline orchestrator, I need every inter-agent handoff to be a typed,
+validated artifact so that a schema violation is caught immediately at the
+boundary — before bad data propagates to the next agent and produces a
+confidently wrong output.
+
+**What it builds:**
+
+`orchestrator/schemas.py` — new file:
+- `Signal`, `SignalSet`, `DimensionScore`, `MaturityResult`, `VictoryMatch`, `UseCase`
+- All schemas as defined in the "AI Native Data Flow" section above
+- `model_config = ConfigDict(extra="forbid")` on every model — no silent extra fields
+- Typed literals for `type`, `source`, `match_tier`, `tier`, `effort`, `impact`
+
+`orchestrator/validators.py` — new file:
+- `validate_signals(result: dict) -> SignalSet`
+- `validate_maturity(result: dict) -> MaturityResult`
+- `validate_victories(result: dict | list) -> list[VictoryMatch]`
+- `validate_use_cases(result: dict | list) -> list[UseCase]`
+- `validate_report(result: dict) -> dict`
+- Each validator: (1) Pydantic parse, (2) business rule checks, (3) signal_id
+  auto-assignment where needed, (4) raises `AgentError` on second failure
+- Retry logic: on first `ValidationError`, return the error string so the
+  orchestrator can append it to the prompt and retry the agent call
+
+`orchestrator/pipeline.py` updated:
+- Import and call validators at each step transition
+- Add `input_context` logging call before each agent invocation (see pattern above)
+- Section-scoped report_input dict built from typed `.model_dump()` calls
+
+`requirements.txt` updated:
+- `pydantic>=2.0` added (Pydantic v2 — not v1)
+
+`tests/test_schemas.py` — new test file:
+- Round-trip tests: valid input passes, invalid input raises `ValidationError`
+- Extra field test: schema rejects extra keys
+- Business rule tests: `validate_signals` rejects < 3 signals, `validate_use_cases`
+  enforces first item is LOW_HANGING_FRUIT, `validate_victories` enforces confidence floors
+
+**done_when:**
+`tests/test_schemas.py` passes. `orchestrator/schemas.py` and `orchestrator/validators.py`
+exist and are importable. `from orchestrator.schemas import Signal, SignalSet,
+MaturityResult, VictoryMatch, UseCase` works without error. All existing tests green.
+
+**Acceptance criteria:**
+- `orchestrator/schemas.py` exists with all 6 models
+- All models use `extra="forbid"` — no silent extra fields
+- `orchestrator/validators.py` exists with 5 validator functions
+- Retry pattern implemented: validator returns `(None, error_str)` on first fail,
+  raises `AgentError` on second
+- `tests/test_schemas.py` covers: valid round-trip, extra field rejection,
+  business rule enforcement per validator
+- `pydantic>=2.0` in requirements.txt
+- All existing tests green
+
+**Visible deliverable:**
+`pytest tests/test_schemas.py -q --tb=short` passes with all tests green.
+`python -c "from orchestrator.schemas import UseCase; print(UseCase.__fields__)"` prints
+the field list without error.
+
+**Test certification format:**
+`pytest tests/test_schemas.py -q --tb=short`
 
 ---
 
