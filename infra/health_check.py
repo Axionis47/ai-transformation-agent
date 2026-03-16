@@ -20,6 +20,7 @@ class HealthResponse(BaseModel):
     status: str
     version: str
     model_provider: str
+    pipeline: str
 
 
 @health_router.get("/health", response_model=HealthResponse)
@@ -27,6 +28,7 @@ async def health_check() -> HealthResponse:
     """Health check endpoint for Cloud Run liveness probes."""
     return HealthResponse(
         status="healthy",
-        version=os.getenv("SERVICE_VERSION", "0.0.0"),
-        model_provider=os.getenv("MODEL_PROVIDER", "vertex")
+        version=os.getenv("SERVICE_VERSION", "sprint6"),
+        model_provider=os.getenv("MODEL_PROVIDER", "vertex"),
+        pipeline="ready",
     )
