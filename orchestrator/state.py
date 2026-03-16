@@ -29,6 +29,12 @@ class PipelineState(BaseModel):
     analysis: dict[str, Any] | None = None
     report: dict[str, Any] | None = None
 
+    # Sprint 4 — new stage outputs
+    signals: dict[str, Any] | None = None
+    maturity: dict[str, Any] | None = None
+    victory_matches: list[dict[str, Any]] | None = None
+    use_cases: list[dict[str, Any]] | None = None
+
     # Metadata
     status: PipelineStatus = PipelineStatus.PENDING
     error: dict[str, Any] | None = None
