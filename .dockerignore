@@ -1,41 +1,18 @@
-# Frontend
-frontend/
-node_modules/
-.next/
-
-# Python virtual envs
-.venv/
-venv/
-
-# Cache
-__pycache__/
-*.pyc
-
-# Git
-.git/
-.gitignore
-.githooks/
-
-# Logs and local stores
+.env
+.env.*
 logs/
 rag/store/
-
-# Secrets
-.env
+.git/
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+frontend/
+.DS_Store
 *.key
 *.pem
 service_account.json
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Docs (not needed in container, except prompts)
 docs/
-agents/pm/
-agents/backend/
-agents/frontend/
-agents/qa/
 .github/
-CLAUDE.md
-README.md
