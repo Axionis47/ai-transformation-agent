@@ -13,9 +13,9 @@ from agents.base import AgentError, BaseAgent
 from agents.maturity_scorer import MaturityScorerAgent
 from agents.rag_query import RAGQueryAgent
 from agents.report_writer import ReportWriterAgent
-from agents.scraper import ScraperAgent
 from agents.signal_extractor import SignalExtractorAgent
 from agents.use_case_generator import UseCaseGeneratorAgent
+from orchestrator.tool_registry import registry
 from ops.logger import PipelineLogger, get_logger
 from orchestrator.gates import scraper_quality_gate
 from orchestrator.stage_io import (
@@ -80,7 +80,8 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     t = time.time()
     logger.log_agent_call("SCRAPER", prompt_file="prompts/scraper.md", prompt_version="1.0",
                           input_summary=scraper_input(state.url))
-    result = _run_with_timeout(ScraperAgent(), {"url": state.url})
+    scraper_tool = registry.get("website_scraper")
+    result = scraper_tool.run({"url": state.url, "dry_run": dry_run})
     if isinstance(result, AgentError):
         _log_stage(logger, "SCRAPER", "error", code=result.code, message=result.message)
         return _fail(state, result, start, logger)
