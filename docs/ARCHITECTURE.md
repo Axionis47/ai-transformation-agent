@@ -3,132 +3,115 @@
 ## System Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│  FRONTEND (Vercel)                                                       │
-│  Next.js App Router + TypeScript + Tailwind + Neomorphic Design         │
-│                                                                          │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐                  │
-│  │  URL Input  │───▶│  Analysis   │───▶│   Report    │                  │
-│  │  Component  │    │   Status    │    │   Renderer  │                  │
-│  └─────────────┘    └─────────────┘    └─────────────┘                  │
-└────────────────────────────┬────────────────────────────────────────────┘
-                             │ POST /analyze
-                             ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  BACKEND (Cloud Run)                                                     │
-│  FastAPI + Python 3.11                                                   │
-│                                                                          │
-│  ┌─────────────────────────────────────────────────────────────────┐    │
-│  │  orchestrator/pipeline.py                                        │    │
-│  │                                                                   │    │
-│  │  URL ──▶ Scraper ──▶ Consultant ──▶ RAG Query ──▶ Report Writer │    │
-│  │           │              │              │              │         │    │
-│  │           ▼              ▼              ▼              ▼         │    │
-│  │      ScrapedData   AnalysisResult  RAGMatches    ReportSections │    │
-│  └─────────────────────────────────────────────────────────────────┘    │
-│                                                                          │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐               │
-│  │ ops/         │    │ rag/         │    │ infra/       │               │
-│  │ model_client │    │ vector_store │    │ health_check │               │
-│  └──────┬───────┘    └──────┬───────┘    └──────────────┘               │
-└─────────┼───────────────────┼───────────────────────────────────────────┘
-          │                   │
-          ▼                   ▼
-┌─────────────────┐   ┌─────────────────┐
-│  VERTEX AI      │   │  CHROMADB       │
-│  (GCP)          │   │  (In-container) │
-│                 │   │                 │
-│  gemini-2.5-pro │   │  20 seed        │
-│  gemini-2.5-    │   │  solutions      │
-│  flash          │   │                 │
-└─────────────────┘   └─────────────────┘
+┌───────────────────────────────────────────────────────────────┐
+│  FRONTEND (Next.js + TypeScript + Tailwind + Neomorphic)      │
+│                                                               │
+│  URLInput → AnalysisStatus → ReportRenderer + TracePanel     │
+└──────────────────────────┬────────────────────────┬──────────┘
+        POST /v1/analyze   │     GET /v1/trace/{id} │
+                           ▼                        │
+┌──────────────────────────────────────────────────────────────┐
+│  BACKEND (Cloud Run / FastAPI)                               │
+│                                                              │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  orchestrator/pipeline.py (7 stages)                │    │
+│  │  Stage 1: ToolRegistry → WebsiteScraperTool         │    │
+│  │  Stage 2: SignalExtractorAgent                       │    │
+│  │  Stage 3: MaturityScorerAgent                        │    │
+│  │  Stage 4: VictoryMatcherAgent (gap_analysis)        │    │
+│  │  Stage 5: UseCaseGeneratorAgent                      │    │
+│  │  Stage 6: ReportWriterAgent                          │    │
+│  │  Stage 7: logger.log_agent_call() per stage         │    │
+│  └────────────────────────┬────────────────────────────┘    │
+│                            │                                 │
+│  ┌───────────────┐  ┌──────▼──────────┐  ┌───────────────┐  │
+│  │ToolRegistry   │  │orchestrator/    │  │GET /v1/trace  │◀─┘
+│  │tool_registry  │  │stage_io.py      │  │endpoint       │
+│  └──────┬────────┘  └─────────────────┘  └───────────────┘
+│         │ wraps                                             │
+│  ┌──────▼────────┐  ┌─────────────────┐                    │
+│  │tools/website  │  │ops/model_client │                    │
+│  │_scraper.py    │  │ops/logger.py    │                    │
+│  └──────┬────────┘  └────────┬────────┘                    │
+│         │ wraps              │                              │
+│  ┌──────▼────────┐           ▼                              │
+│  │agents/*.py    │    VERTEX AI (gemini-2.5)                │
+│  └───────────────┘                                          │
+│  ┌───────────────┐    logs/runs/{run_id}.jsonl              │
+│  │rag/vector_    │                                          │
+│  │store.py       │                                          │
+└──┴───────┬────────┴─────────────────────────────────────────┘
+           ▼
+  CHROMADB (in-container)      ANTHROPIC (evals only, JudgeClient)
 ```
 
-## Pipeline Flow
+## Pipeline Flow (7 Stages)
 
 ```
-1. User enters company URL in frontend
-2. Frontend POSTs to /analyze endpoint
-3. Pipeline orchestrator starts run:
-   a. Scraper extracts company data (about, careers, blog, product pages)
-   b. Consultant scores AI maturity (0-5) and identifies use cases
-   c. RAG queries similar companies from vector store
-   d. Report Writer generates 5 sections using RAG matches
-4. Pipeline returns full report as JSON
-5. Frontend renders report with neomorphic UI components
+1. POST /v1/analyze → pipeline starts, run_id generated
+2. Stage 1: ToolRegistry.get("website_scraper").run(url) → ScrapedData
+3. Stage 2: SignalExtractorAgent → typed signals with raw_quote citations
+4. Stage 3: MaturityScorerAgent → maturity_score (0-5) + dimension_scores
+5. Stage 4: VictoryMatcherAgent → RAG matches with tier + gap_analysis
+6. Stage 5: UseCaseGeneratorAgent → use cases (DIRECT/CALIBRATION/ADJACENT)
+7. Stage 6: ReportWriterAgent → 5-section report
+   Stage 7: All I/O logged per stage to logs/runs/{run_id}.jsonl
+8. GET /v1/trace/{run_id} → TracePanel in frontend fetches and renders
 ```
 
-## Agent Architecture
+## Tool Registry Pattern
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  DECISION COUNCIL (pitch → approve → review)                    │
-│  ┌─────────┐    ┌─────────┐    ┌─────────┐                     │
-│  │   PM    │    │   DOC   │    │  CONS   │                     │
-│  │ [PM]    │    │ [DOC]   │    │ [CONS]  │                     │
-│  └─────────┘    └─────────┘    └─────────┘                     │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  EXECUTION AGENTS (implement tickets)                           │
-│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐  │
-│  │ Backend │ │Frontend │ │Prompt   │ │  RAG    │ │ Evals   │  │
-│  │ [BE]    │ │ [FE]    │ │Eng [PE] │ │ [RAG]   │ │ [EVAL]  │  │
-│  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └─────────┘  │
-│  ┌─────────┐                                                    │
-│  │ LLMOps  │                                                    │
-│  │ [OPS]   │                                                    │
-│  └─────────┘                                                    │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  QUALITY GATE (validate it works)                               │
-│  ┌─────────┐                                                    │
-│  │   QA    │                                                    │
-│  │ [QA]    │                                                    │
-│  └─────────┘                                                    │
-└─────────────────────────────────────────────────────────────────┘
+pipeline.py
+  registry.get("website_scraper").run(url)
+        ↓
+orchestrator/tool_registry.py   (Tool ABC + ToolRegistry singleton)
+        ↓
+tools/website_scraper.py        (WebsiteScraperTool)
+        ↓ wraps
+agents/scraper.py               (ScraperAgent, unchanged)
+```
+
+To add a tool in Sprint 6: create `tools/new_tool.py`,
+call `registry.register(NewTool())` — no changes to `pipeline.py`.
+
+## Stage I/O Logging Flow
+
+```
+ops/logger.log_agent_call(stage, input_summary, output_summary, run_id)
+  → logs/runs/{run_id}.jsonl (append-only, never committed)
+  → GET /v1/trace/{run_id} parses and returns stage list
+  → frontend TracePanel renders collapsible rows
+```
+
+## Eval Judge Flow
+
+```
+evals/ci_eval.py (5 test companies from test_companies.json)
+  → evals/judge_client.py (JudgeClient → Anthropic claude-sonnet-4-20250514)
+  → scores 3 rubrics: tier_classification, evidence_grounding, roi_basis
+  → writes to evals/baselines.json (sprint-keyed history)
 ```
 
 ## Data Flow
 
 ```
-ScrapedData
-├── url: string
-├── company_name: string
-├── pages.about: string
-├── pages.careers: string
-├── pages.blog: string
-└── pages.product: string
-         │
-         ▼
-AnalysisResult
-├── maturity_score: 0.0-5.0
-├── maturity_label: Beginner|Developing|Emerging|Advanced|Leading
-├── maturity_rationale: string (cites evidence)
-├── top_use_cases: [
-│     { title, description, effort, impact, roi_estimate, confidence }
-│   ]
-└── rag_matches: [StoredSolution]
-         │
-         ▼
-ReportSections
-├── exec_summary: string
-├── maturity: string
-├── use_cases: string
-├── roi: string
-└── roadmap: string
+ScrapedData { url, company_name, pages }
+  → ExtractedSignals { signals[{ signal_id, type, value, raw_quote }] }
+  → AnalysisResult { maturity_score, dimension_scores, company_composite_score }
+  → VictoryMatches { matches[{ win_id, tier, gap_analysis, confidence }] }
+  → ReportSections { exec_summary, maturity, use_cases, roi, roadmap }
 ```
 
 ## Model Routing
 
 | Stage | Model | Provider | Cost/Call |
 |-------|-------|----------|-----------|
-| Consultant | gemini-2.5-pro | Vertex AI | ~$0.005 |
+| Signal Extractor | gemini-2.5-flash | Vertex AI | ~$0.001 |
+| Maturity Scorer | gemini-2.5-flash | Vertex AI | ~$0.002 |
+| Victory Matcher | gemini-2.5-flash | Vertex AI | ~$0.002 |
+| Use Case Generator | gemini-2.5-pro | Vertex AI | ~$0.005 |
 | Report Writer | gemini-2.5-flash | Vertex AI | ~$0.004 |
-| RAG Relevance | gemini-2.5-flash | Vertex AI | ~$0.001 |
 | Eval Judge | claude-sonnet-4-20250514 | Anthropic | ~$0.04 |
 
 Total pipeline: ~$0.011 | With eval: ~$0.05
@@ -141,20 +124,14 @@ Total pipeline: ~$0.011 | With eval: ~$0.05
 | Frontend | Vercel | Edge |
 | Models | Vertex AI | us-central1 |
 | Vector Store | ChromaDB | In-container |
+| Eval Judge | Anthropic API | Global |
 | Secrets | Secret Manager | Global |
-| Logs | Cloud Logging | Global |
 
 ## File Ownership
 
-| Directory | Owner Agent |
-|-----------|-------------|
-| agents/*.py | Backend |
-| orchestrator/*.py | Backend |
-| ops/*.py | Backend, LLMOps |
-| rag/*.py | RAG |
-| evals/*.py | Evals |
-| infra/*.py | Backend |
-| prompts/*.md | Prompt Eng |
-| frontend/**/*.ts | Frontend |
-| docs/*.md | DOC |
-| .github/workflows/*.yml | LLMOps |
+| Directory | Owner |
+|-----------|-------|
+| agents/*.py, orchestrator/*.py, tools/*.py, ops/*.py, rag/*.py, infra/*.py | Backend |
+| evals/*.py, evals/rubrics/*.yaml, .github/workflows/*.yml | QA |
+| prompts/*.md, docs/*.md | PM |
+| frontend/**/*.ts, frontend/**/*.tsx | Frontend |
