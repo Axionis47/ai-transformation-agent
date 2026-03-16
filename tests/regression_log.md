@@ -48,3 +48,38 @@
 
 ### Previous baseline
 - Sprint 3: 73 tests, 4-stage pipeline
+
+## Sprint 6 Baseline — 2026-03-16
+
+### Summary
+- Total tests: 140
+- All passing: yes
+- Command: `PYTHONPATH=/path/to/repo python3 -m pytest tests/ -q --tb=short`
+
+### Eval Run — claude-opus-4-6 via Vertex AI
+- Status: BLOCKED — HTTP 429 quota-exhausted on all scoring calls
+- Region: us-east5 (only region where model exists in this project)
+- All 5 test companies: scores are 0.0 quota-failure artifacts
+- Averages: tier_classification=0.0, evidence_grounding=0.0, roi_basis=0.0
+- These are NOT real quality scores — they are failure placeholders
+
+### Blocker for Sai
+The GCP project `plotpointe` has exhausted the per-minute token quota
+for `anthropic-claude-opus-4-6` on Vertex AI. To get real eval scores:
+1. Submit a quota increase request at:
+   https://cloud.google.com/vertex-ai/docs/generative-ai/quotas-genai
+2. Or add a real ANTHROPIC_API_KEY to `.env` and switch judge_client.py
+   to use the direct Anthropic API (requires architecture change).
+
+### Dry-run pipeline — confirmed working
+- Pipeline produces real use_cases and maturity data from fixtures
+- Example: CargoLogik returns 3 use cases, maturity composite_score=2.0
+- All 5 pipeline stages execute without errors in dry-run mode
+
+### Test delta vs Sprint 4
+- Sprint 4: 79 tests
+- Sprint 6: 140 tests (+61 tests added in Sprints 5-6)
+
+### No regressions
+- All 140 tests pass
+- No previously-passing tests broke
