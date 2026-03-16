@@ -5,8 +5,28 @@ from __future__ import annotations
 import json
 import time
 from pathlib import Path
+from typing import Any
 
 _LOG_DIR = Path("logs/runs")
+_MAX_STR_LEN = 200
+_MAX_LIST_ITEMS = 3
+
+
+def _truncate(value: Any) -> Any:
+    """Truncate strings > 200 chars and lists > 3 items for log safety."""
+    if isinstance(value, str) and len(value) > _MAX_STR_LEN:
+        return value[:_MAX_STR_LEN] + "..."
+    if isinstance(value, list) and len(value) > _MAX_LIST_ITEMS:
+        extra = len(value) - _MAX_LIST_ITEMS
+        return value[:_MAX_LIST_ITEMS] + [f"[+{extra} more]"]
+    return value
+
+
+def _truncate_summary(summary: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Apply truncation to every value in a summary dict."""
+    if summary is None:
+        return None
+    return {k: _truncate(v) for k, v in summary.items()}
 
 
 class PipelineLogger:
@@ -17,17 +37,64 @@ class PipelineLogger:
         _LOG_DIR.mkdir(parents=True, exist_ok=True)
         self._path = _LOG_DIR / f"{run_id}.jsonl"
 
-    def log(self, agent_tag: str, event: str, **kwargs: object) -> None:
+    def log(
+        self,
+        agent_tag: str,
+        event: str,
+        *,
+        input_summary: dict[str, Any] | None = None,
+        output_summary: dict[str, Any] | None = None,
+        **kwargs: object,
+    ) -> None:
         """Write one log entry. Extra kwargs are merged into the entry."""
-        entry = {
+        entry: dict[str, Any] = {
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "run_id": self.run_id,
             "agent_tag": agent_tag,
             "event": event,
             **kwargs,
         }
+        if input_summary is not None:
+            entry["input_summary"] = _truncate_summary(input_summary)
+        if output_summary is not None:
+            entry["output_summary"] = _truncate_summary(output_summary)
         with open(self._path, "a") as fh:
             fh.write(json.dumps(entry) + "\n")
+
+    def log_agent_call(
+        self,
+        agent_tag: str,
+        *,
+        result: Any = None,
+        start_time: float | None = None,
+        prompt_file: str | None = None,
+        prompt_version: str | None = None,
+        input_summary: dict[str, Any] | None = None,
+        output_summary: dict[str, Any] | None = None,
+    ) -> None:
+        """Log agent_start or agent_complete depending on whether result is provided."""
+        if result is None and output_summary is None:
+            # Starting the agent
+            self.log(
+                agent_tag,
+                "agent_start",
+                prompt_file=prompt_file,
+                prompt_version=prompt_version,
+                input_summary=input_summary,
+            )
+        else:
+            # Agent completed
+            latency_ms = (
+                int((time.time() - start_time) * 1000) if start_time is not None else None
+            )
+            self.log(
+                agent_tag,
+                "agent_complete",
+                prompt_file=prompt_file,
+                prompt_version=prompt_version,
+                latency_ms=latency_ms,
+                output_summary=output_summary,
+            )
 
     @property
     def log_path(self) -> Path:
