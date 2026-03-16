@@ -1,0 +1,73 @@
+{
+  "company_url": "https://cargologik.com",
+  "industry": "B2B logistics SaaS",
+  "scale": "mid-market",
+  "scale_rationale": "200+ customers and 2M+ monthly shipments indicate mid-market scale",
+  "signals": [
+    {
+      "signal_id": "sig-001",
+      "type": "tech_stack",
+      "value": "BigQuery",
+      "source": "about_text",
+      "confidence": 0.95,
+      "raw_quote": "BigQuery data lake with Airflow orchestration"
+    },
+    {
+      "signal_id": "sig-002",
+      "type": "tech_stack",
+      "value": "Airflow",
+      "source": "about_text",
+      "confidence": 0.95,
+      "raw_quote": "BigQuery data lake with Airflow orchestration"
+    },
+    {
+      "signal_id": "sig-003",
+      "type": "data_signal",
+      "value": "50M+ events daily",
+      "source": "job_posting",
+      "confidence": 0.9,
+      "raw_quote": "processing 50M+ events daily"
+    },
+    {
+      "signal_id": "sig-004",
+      "type": "ml_signal",
+      "value": "No ML/AI roles in postings",
+      "source": "job_posting",
+      "confidence": 0.8,
+      "raw_quote": "Data Engineer, Product Manager, Full Stack Engineer"
+    },
+    {
+      "signal_id": "sig-005",
+      "type": "ops_signal",
+      "value": "Kubernetes",
+      "source": "job_posting",
+      "confidence": 0.9,
+      "raw_quote": "Kubernetes, Docker, CI/CD"
+    },
+    {
+      "signal_id": "sig-006",
+      "type": "industry_hint",
+      "value": "logistics",
+      "source": "about_text",
+      "confidence": 0.95,
+      "raw_quote": "2M+ shipments monthly across 200+ logistics customers"
+    },
+    {
+      "signal_id": "sig-007",
+      "type": "scale_hint",
+      "value": "mid-market",
+      "source": "about_text",
+      "confidence": 0.85,
+      "raw_quote": "200+ customers"
+    },
+    {
+      "signal_id": "sig-008",
+      "type": "data_signal",
+      "value": "PostgreSQL and Redis stack",
+      "source": "job_posting",
+      "confidence": 0.9,
+      "raw_quote": "PostgreSQL, Redis"
+    }
+  ],
+  "extraction_notes": "Strong data infrastructure signals. No ML/AI roles or deployed models detected."
+}

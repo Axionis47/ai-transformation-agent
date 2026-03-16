@@ -7,6 +7,7 @@
     "Product Manager, Analytics — Own our reporting and dashboards product. Work with customers to identify data-driven insights for fleet optimization.",
     "Full Stack Engineer — React/Node.js stack. Build customer-facing tools for shipment tracking and carrier performance monitoring."
   ],
+  "product_text": "CargoLogik provides a cloud-native logistics management platform with modules for shipment tracking, carrier integration, and warehouse orchestration. Our solutions are built for mid-market shippers who need real-time visibility without enterprise complexity.",
   "tech_stack_mentions": [
     "BigQuery",
     "React",
