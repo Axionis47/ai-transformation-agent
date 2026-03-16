@@ -1,8 +1,9 @@
 """Tests for orchestrator/pipeline.py — dry-run end-to-end."""
 
 import os
+from unittest.mock import MagicMock, patch
 
-from orchestrator.pipeline import run_pipeline
+from orchestrator.pipeline import _parallel_report_sections, run_pipeline
 from orchestrator.state import PipelineStatus
 
 
@@ -41,3 +42,52 @@ def test_dry_run_no_real_api_calls(monkeypatch):
 
     state = run_pipeline(url="https://example.com", dry_run=True)
     assert state.status == PipelineStatus.COMPLETE
+
+
+def test_parallel_report_sections_calls_generate_section(monkeypatch):
+    """Verify _parallel_report_sections exercises generate_section per section."""
+    monkeypatch.setenv("DRY_RUN", "true")
+
+    call_log: list[str] = []
+
+    def fake_generate(section: str, analysis: dict) -> str:
+        call_log.append(section)
+        return f"content for {section}"
+
+    mock_logger = MagicMock()
+
+    with patch("orchestrator.pipeline.ReportWriterAgent") as MockAgent:
+        instance = MockAgent.return_value
+        instance.generate_section.side_effect = fake_generate
+
+        report = _parallel_report_sections({}, mock_logger)
+
+    expected = ["exec_summary", "current_state", "use_cases", "roadmap", "roi_analysis"]
+    assert sorted(call_log) == sorted(expected), f"Expected all 5 sections called, got {call_log}"
+    assert sorted(report.keys()) == sorted(expected)
+    for section in expected:
+        assert report[section] == f"content for {section}"
+
+
+def test_parallel_report_tolerates_section_failure(monkeypatch):
+    """A section that returns AgentError is recorded as None; others still succeed."""
+    from agents.base import AgentError
+
+    monkeypatch.setenv("DRY_RUN", "true")
+
+    def fake_generate(section: str, analysis: dict) -> str | AgentError:
+        if section == "roi_analysis":
+            return AgentError(code="MODEL_FAIL", message="timeout", agent_tag="REPORT")
+        return f"ok:{section}"
+
+    mock_logger = MagicMock()
+
+    with patch("orchestrator.pipeline.ReportWriterAgent") as MockAgent:
+        instance = MockAgent.return_value
+        instance.generate_section.side_effect = fake_generate
+
+        report = _parallel_report_sections({}, mock_logger)
+
+    assert report["roi_analysis"] is None
+    assert report["exec_summary"] == "ok:exec_summary"
+    assert report["roadmap"] == "ok:roadmap"
