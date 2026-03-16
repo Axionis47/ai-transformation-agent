@@ -1,0 +1,32 @@
+[
+  {
+    "name": "CargoLogik",
+    "url": "https://cargologik.com",
+    "signal_expectation": "high",
+    "industry": "logistics"
+  },
+  {
+    "name": "MedFlow Health",
+    "url": "https://medflowhealth.com",
+    "signal_expectation": "medium",
+    "industry": "healthcare"
+  },
+  {
+    "name": "ShopStream",
+    "url": "https://shopstream.io",
+    "signal_expectation": "medium",
+    "industry": "retail"
+  },
+  {
+    "name": "FinVault",
+    "url": "https://finvault.co",
+    "signal_expectation": "low",
+    "industry": "fintech"
+  },
+  {
+    "name": "Apex Consulting",
+    "url": "https://apexconsulting.com",
+    "signal_expectation": "low",
+    "industry": "professional_services"
+  }
+]

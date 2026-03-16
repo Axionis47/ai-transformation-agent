@@ -1,0 +1,38 @@
+{
+  "sprint_5": {
+    "run_date": "2026-03-16",
+    "companies": {
+      "CargoLogik": {
+        "tier_classification": 0.0,
+        "evidence_grounding": 0.0,
+        "roi_basis": 0.0
+      },
+      "MedFlow Health": {
+        "tier_classification": 0.0,
+        "evidence_grounding": 0.0,
+        "roi_basis": 0.0
+      },
+      "ShopStream": {
+        "tier_classification": 0.0,
+        "evidence_grounding": 0.0,
+        "roi_basis": 0.0
+      },
+      "FinVault": {
+        "tier_classification": 0.0,
+        "evidence_grounding": 0.0,
+        "roi_basis": 0.0
+      },
+      "Apex Consulting": {
+        "tier_classification": 0.0,
+        "evidence_grounding": 0.0,
+        "roi_basis": 0.0
+      }
+    },
+    "averages": {
+      "tier_classification": 0.0,
+      "evidence_grounding": 0.0,
+      "roi_basis": 0.0
+    },
+    "note": "ANTHROPIC_API_KEY not set \u2014 scores are 0.0 placeholders."
+  }
+}
