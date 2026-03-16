@@ -1,4 +1,4 @@
-"""Pipeline orchestrator — chains agents and runs end-to-end."""
+"""Pipeline orchestrator — chains agents and runs end-to-end (7 stages)."""
 
 from __future__ import annotations
 
@@ -11,16 +11,24 @@ from concurrent.futures import TimeoutError as FuturesTimeout
 
 from agents.base import AgentError, BaseAgent
 from agents.consultant import ConsultantAgent
+from agents.maturity_scorer import MaturityScorerAgent
 from agents.rag_query import RAGQueryAgent
 from agents.report_writer import ReportWriterAgent
 from agents.scraper import ScraperAgent
+from agents.signal_extractor import SignalExtractorAgent
+from agents.use_case_generator import UseCaseGeneratorAgent
 from ops.logger import PipelineLogger, get_logger
 from orchestrator.gates import scraper_quality_gate
 from orchestrator.state import PipelineState, PipelineStatus
+from orchestrator.validators import validate_maturity, validate_signals, validate_use_cases
+from orchestrator.victory_matcher import match_victories
 from rag.ingest import ensure_seeds_loaded
 
 _STAGE_TIMEOUT_S = 60
 _COST_CONSULTANT = 0.005
+_COST_SIGNAL = 0.001
+_COST_MATURITY = 0.001
+_COST_USE_CASE = 0.005
 _COST_REPORT = 0.004
 
 
@@ -39,9 +47,22 @@ def _run_with_timeout(agent: BaseAgent, input_data: dict, timeout: int = _STAGE_
             )
 
 
+def _log_stage(logger: PipelineLogger, tag: str, event: str, **kwargs: object) -> None:
+    logger.log(tag, event, **kwargs)
+
+
+def _fail(state: PipelineState, error: AgentError, start: float,
+          logger: PipelineLogger | None = None) -> PipelineState:
+    state.status = PipelineStatus.FAILED
+    state.error = {"code": error.code, "message": error.message, "agent": error.agent_tag}
+    state.elapsed_seconds = round(time.time() - start, 2)
+    if logger:
+        logger.log("PIPELINE", "failed", error=state.error, elapsed_seconds=state.elapsed_seconds)
+    return state
+
+
 def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     """Execute the full pipeline: scrape -> RAG -> consult -> report."""
-    # Set DRY_RUN env var so agents pick up the mode
     os.environ["DRY_RUN"] = "true" if dry_run else "false"
 
     if not dry_run:
@@ -52,61 +73,59 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     start = time.time()
     logger: PipelineLogger = get_logger(state.run_id)
 
-    # Step 1: Scrape
-    _stage_start = time.time()
-    logger.log("SCRAPER", "start", prompt_file="prompts/scraper.md", prompt_version="1.0")
+    # Stage 1: Scrape
+    t = time.time()
+    _log_stage(logger, "SCRAPER", "start", prompt_file="prompts/scraper.md", prompt_version="1.0")
     result = _run_with_timeout(ScraperAgent(), {"url": state.url})
     if isinstance(result, AgentError):
-        logger.log("SCRAPER", "error", code=result.code, message=result.message)
+        _log_stage(logger, "SCRAPER", "error", code=result.code, message=result.message)
         return _fail(state, result, start, logger)
     state.company_data = result
-    logger.log("SCRAPER", "complete", elapsed_ms=int((time.time() - _stage_start) * 1000))
+    _log_stage(logger, "SCRAPER", "complete", elapsed_ms=int((time.time() - t) * 1000))
 
     # Gate: reject thin or error-page content before expensive stages
     if not dry_run:
         passed, reason = scraper_quality_gate(state.company_data)
         if not passed:
-            logger.log("GATE", "scraper_quality_fail", reason=reason)
+            _log_stage(logger, "GATE", "scraper_quality_fail", reason=reason)
             return _fail(state, AgentError(
                 code="SCRAPE_THIN", message=reason,
                 recoverable=False, agent_tag="SCRAPER"
             ), start, logger)
 
-    # Step 2: RAG query
-    _stage_start = time.time()
-    logger.log("RAG", "start", prompt_file="prompts/rag_query.md", prompt_version="1.0")
+    # Stage 2: RAG query
+    t = time.time()
+    _log_stage(logger, "RAG", "start", prompt_file="prompts/rag_query.md", prompt_version="1.0")
     result = _run_with_timeout(RAGQueryAgent(), {"company_data": state.company_data})
     if isinstance(result, AgentError):
-        logger.log("RAG", "error", code=result.code, message=result.message)
+        _log_stage(logger, "RAG", "error", code=result.code, message=result.message)
         return _fail(state, result, start, logger)
     state.rag_context = result
-    logger.log("RAG", "complete", elapsed_ms=int((time.time() - _stage_start) * 1000))
+    _log_stage(logger, "RAG", "complete", elapsed_ms=int((time.time() - t) * 1000))
 
-    # Step 3: Consultant analysis
-    _stage_start = time.time()
-    logger.log("CONSULTANT", "start", prompt_file="prompts/consultant.md", prompt_version="1.0")
+    # Stage 3: Consultant analysis
+    t = time.time()
+    _log_stage(logger, "CONSULTANT", "start", prompt_file="prompts/consultant.md", prompt_version="1.0")
     result = _run_with_timeout(ConsultantAgent(), {"company_data": state.company_data, "rag_context": state.rag_context})
     if isinstance(result, AgentError):
-        logger.log("CONSULTANT", "error", code=result.code, message=result.message)
+        _log_stage(logger, "CONSULTANT", "error", code=result.code, message=result.message)
         return _fail(state, result, start, logger)
     state.analysis = result
     if not dry_run:
         state.cost_usd += _COST_CONSULTANT
-    logger.log("CONSULTANT", "complete", elapsed_ms=int((time.time() - _stage_start) * 1000),
-               cost_usd=state.cost_usd)
+    _log_stage(logger, "CONSULTANT", "complete", elapsed_ms=int((time.time() - t) * 1000))
 
-    # Step 4: Report generation
-    _stage_start = time.time()
-    logger.log("REPORT_WRITER", "start", prompt_file="prompts/report_writer.md", prompt_version="1.0")
+    # Stage 4: Report generation
+    t = time.time()
+    _log_stage(logger, "REPORT_WRITER", "start", prompt_file="prompts/report_writer.md", prompt_version="1.0")
     result = _run_with_timeout(ReportWriterAgent(), {"analysis": state.analysis})
     if isinstance(result, AgentError):
-        logger.log("REPORT_WRITER", "error", code=result.code, message=result.message)
+        _log_stage(logger, "REPORT_WRITER", "error", code=result.code, message=result.message)
         return _fail(state, result, start, logger)
     state.report = result
     if not dry_run:
         state.cost_usd += _COST_REPORT
-    logger.log("REPORT_WRITER", "complete", elapsed_ms=int((time.time() - _stage_start) * 1000),
-               cost_usd=state.cost_usd)
+    _log_stage(logger, "REPORT_WRITER", "complete", elapsed_ms=int((time.time() - t) * 1000))
 
     state.status = PipelineStatus.COMPLETE
     state.elapsed_seconds = round(time.time() - start, 2)
@@ -114,16 +133,6 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     logger.log("PIPELINE", "complete", elapsed_seconds=state.elapsed_seconds,
                cost_usd=state.cost_usd, mode=mode)
 
-    return state
-
-
-def _fail(state: PipelineState, error: AgentError, start: float,
-          logger: PipelineLogger | None = None) -> PipelineState:
-    state.status = PipelineStatus.FAILED
-    state.error = {"code": error.code, "message": error.message, "agent": error.agent_tag}
-    state.elapsed_seconds = round(time.time() - start, 2)
-    if logger:
-        logger.log("PIPELINE", "failed", error=state.error, elapsed_seconds=state.elapsed_seconds)
     return state
 
 
