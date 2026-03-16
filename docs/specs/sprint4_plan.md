@@ -186,8 +186,8 @@ section outputs internally consistent.
 
 | Ticket  | Schema requirement                                                             |
 |---------|-------------------------------------------------------------------------------|
-| DISC-39 | Creates `orchestrator/schemas.py` + `orchestrator/validators.py` — foundational |
-| DISC-40 | Returns `SignalSet`. Each signal includes `signal_id` and `raw_quote`.        |
+| DISC-39 | Creates `orchestrator/schemas.py` (incl. `ToolResult`) + `orchestrator/validators.py` + `orchestrator/tool_registry.py` — foundational |
+| DISC-40 | `WebsiteScraperTool` returns `ToolResult`. `SignalExtractorAgent` receives `list[ToolResult]`, returns `SignalSet`. Each signal includes `signal_id` and `raw_quote`. |
 | DISC-41 | Returns `MaturityResult`. `signals_used` per dimension are signal IDs.        |
 | DISC-42 | Returns `list[VictoryMatch]`. `match_tier` required on every record.          |
 | DISC-43 | Returns `list[UseCase]`. `evidence_signal_ids`, `why_this_company`, and `data_flow` required on every item.|
@@ -195,6 +195,208 @@ section outputs internally consistent.
 
 DISC-39 must complete before DISC-40 begins. All tickets use the types defined
 in DISC-39 — they do not define their own schema inline.
+
+---
+
+## Tool Registry & Multi-Source Architecture
+
+**Status:** Required for Sprint 4. Expands DISC-39. Sai's direction: "We need more agents
+for signal scraping reliably." The key architectural insight drives the design: scraping is
+a TOOL concern (fetch data), signal extraction is an AGENT concern (reason over data).
+Multiple tools feed into one agent. Adding a new data source = adding a new tool, not
+changing the pipeline.
+
+### The Core Distinction
+
+| Layer | Concern | Changes when |
+|-------|---------|--------------|
+| Tools | Fetch data from external sources | New data source added |
+| SignalExtractorAgent | Reason over fetched data, produce typed signals | Extraction quality improves |
+| Rest of pipeline | Unchanged | Not affected by new data sources |
+
+This separation means: adding a LinkedIn Jobs scraper in Sprint 5 requires writing ONE tool
+class and registering it. The signal extractor, maturity scorer, victory matcher, and report
+writer do not change at all. The orchestrator automatically routes the new tool's output
+into the signal extraction step.
+
+### Tool Base Class
+
+All data-fetching tools inherit from `Tool` in `orchestrator/tool_registry.py`:
+
+```python
+from abc import ABC, abstractmethod
+from pydantic import BaseModel
+from typing import Literal
+
+class ToolResult(BaseModel):
+    """Standard output contract for all tools. Every tool returns this."""
+    tool_id: str                    # "website_scraper", "job_board", "news_search"
+    source_type: Literal[
+        "website", "job_board", "news", "tech_detector", "company_profile"
+    ]
+    content: dict                   # tool-specific structured content
+    pages_fetched: list[str]        # URLs actually fetched (empty list if N/A)
+    fetch_timestamp: str            # ISO 8601
+    success: bool
+    error: str | None = None        # populated on partial or full failure
+
+class Tool(ABC):
+    """Base class for all data-fetching tools."""
+    tool_id: str                    # must be unique, snake_case
+
+    @abstractmethod
+    def fetch(self, input_data: dict) -> ToolResult:
+        """Fetch data from external source. Returns ToolResult.
+        
+        Never raises — always returns ToolResult with success=False on error.
+        Callers check success before using content.
+        """
+        ...
+```
+
+### ToolRegistry
+
+```python
+class ToolRegistry:
+    """Register and discover tools. Orchestrator calls these."""
+    _tools: dict[str, Tool] = {}
+
+    @classmethod
+    def register(cls, tool: Tool) -> None:
+        cls._tools[tool.tool_id] = tool
+
+    @classmethod
+    def get(cls, tool_id: str) -> Tool:
+        if tool_id not in cls._tools:
+            raise KeyError(f"Tool not found: {tool_id}")
+        return cls._tools[tool_id]
+
+    @classmethod
+    def get_all(cls, category: str | None = None) -> list[Tool]:
+        """Return all registered tools, optionally filtered by source_type category."""
+        tools = list(cls._tools.values())
+        if category:
+            tools = [t for t in tools if hasattr(t, 'source_type') and t.source_type == category]
+        return tools
+
+    @classmethod
+    def list_ids(cls) -> list[str]:
+        return list(cls._tools.keys())
+```
+
+### ToolResult in orchestrator/schemas.py
+
+`ToolResult` lives in `orchestrator/schemas.py` alongside the pipeline schemas.
+It is the output contract for all tools, and the input type for `SignalExtractorAgent`.
+
+```python
+class ToolResult(BaseModel):
+    tool_id: str
+    source_type: Literal["website", "job_board", "news", "tech_detector", "company_profile"]
+    content: dict
+    pages_fetched: list[str]
+    fetch_timestamp: str
+    success: bool
+    error: str | None = None
+```
+
+### Updated Orchestrator Flow
+
+```
+TOOL LAYER (orchestrator calls registered tools):
+  1. Orchestrator calls ToolRegistry.get_all() → list of registered tools
+  2. For each tool: tool.fetch({"url": company_url}) → ToolResult
+  3. Orchestrator collects raw_sources: list[ToolResult]
+  4. Failed tools (success=False) are logged and excluded from raw_sources
+  5. If all tools fail → AgentError raised before signal extraction
+
+AGENT LAYER (unchanged pipeline):
+  6. SignalExtractorAgent receives raw_sources: list[ToolResult]
+  7. Agent reasons over ALL sources → SignalSet
+  8. Steps 2–5 of the pipeline proceed exactly as before
+```
+
+### Sprint 4: One Tool, Full Architecture
+
+Sprint 4 ships with ONE registered tool: `WebsiteScraperTool`. This is the existing
+scraper logic refactored to implement the `Tool` interface. The architecture is complete
+and extensible — Sprint 5 can add new tools without touching any existing code.
+
+**What changes in Sprint 4:**
+- `agents/scraper.py` logic extracted into `tools/website_scraper.py` — implements `Tool`
+- `orchestrator/tool_registry.py` created with `Tool`, `ToolRegistry`, `ToolResult`
+- Orchestrator calls `WebsiteScraperTool.fetch()` → `list[ToolResult]` instead of calling ScraperAgent directly
+- `SignalExtractorAgent` receives `raw_sources: list[ToolResult]`, not `company_data: dict`
+- `agents/scraper.py` kept as a thin wrapper calling `WebsiteScraperTool` for backward compat
+
+**What does NOT change:**
+- Signal extraction logic (same signals, same types, same schema)
+- Maturity scoring, victory matching, use case generation, report writing
+- All existing tests (scraper wrapper maintains the same public interface)
+- Dry-run behavior (tool returns fixture data in dry-run mode)
+
+### WebsiteScraperTool
+
+The existing `ScraperAgent` scraping logic becomes `WebsiteScraperTool`:
+
+```python
+class WebsiteScraperTool(Tool):
+    tool_id = "website_scraper"
+
+    def fetch(self, input_data: dict) -> ToolResult:
+        url = input_data["url"]
+        # same logic as current scraper.py: /about, /careers, /product
+        # returns ToolResult with content = {
+        #   "about_text": str,
+        #   "job_postings": list[str],
+        #   "product_text": str,
+        #   "tech_mentions": list[str]
+        # }
+```
+
+The `content` dict from `WebsiteScraperTool` is identical to the current `company_data`
+dict from `ScraperAgent`. This makes the transition backward-compatible at the content level
+— only the wrapper type changes from `dict` to `ToolResult`.
+
+### How SignalExtractorAgent Reads Multiple Sources
+
+When multiple tools are registered, the signal extractor receives a list of `ToolResult`
+objects. Each source is clearly labeled by `tool_id` and `source_type`. The prompt
+instructs the model to read each source independently before synthesizing signals:
+
+```
+Sources available:
+  [website_scraper] About page, careers page, product pages
+  [job_board] 12 active job postings from LinkedIn
+  [news_search] 3 recent press articles
+
+Extract signals from ALL sources. Label each signal's source field with the
+source_type it was extracted from. If the same signal appears in multiple sources,
+cite the highest-confidence source and note corroboration.
+```
+
+The `Signal.source` field literal set is extended in Sprint 5 to include `"job_board"`,
+`"news"` etc. In Sprint 4, only `"website"` sources are active.
+
+### Future Tools (Sprint 5+)
+
+These tools can be added without changing ANY existing pipeline code:
+
+| Tool ID | Source Type | What it fetches | Signals it enriches |
+|---------|------------|-----------------|---------------------|
+| `job_board_tool` | `job_board` | Active job listings from LinkedIn/Indeed | `ml_signals`, `tech_stack`, `scale_hint` |
+| `news_search_tool` | `news` | Recent press releases, news articles | `intent_signals`, `scale_hint` |
+| `tech_detector_tool` | `tech_detector` | BuiltWith data, GitHub public repos, API docs | `tech_stack`, `ops_signals` |
+| `company_profile_tool` | `company_profile` | Employee count, funding, industry from business data APIs | `scale_hint`, `industry_hint` |
+
+**Adding a tool in Sprint 5 is exactly 3 steps:**
+1. Write the tool class implementing `Tool.fetch()` → `ToolResult`
+2. Register it: `ToolRegistry.register(MyNewTool())`
+3. Done — orchestrator calls it automatically, signals get richer
+
+No orchestrator changes. No schema changes. No prompt changes.
+The signal extractor automatically processes the new source because it iterates
+over `raw_sources: list[ToolResult]` — it does not have a hardcoded source list.
 
 ---
 
@@ -237,10 +439,14 @@ AND extract signals simultaneously will miss signals. A model whose only
 job is to extract signals will catch more.
 
 **What it reads:**  
-- `company_data`: the full scraper output (about_text, job_postings, product_text, tech_mentions)
+- `raw_sources: list[ToolResult]`: output from all registered tools
+  - Sprint 4: one item — `WebsiteScraperTool` (about_text, job_postings, product_text, tech_mentions)
+  - Sprint 5+: may include job board, news, tech detector — no prompt or agent changes needed
+- Each `ToolResult` is labeled by `tool_id` and `source_type` so the model knows the provenance
 
 **What it writes:**  
-- `signals`: a structured list of typed, discrete observations
+- `signals`: a structured `SignalSet` of typed, discrete observations
+- Each signal carries `signal_id`, `raw_quote`, and `source` (mapped from `ToolResult.source_type`)
 
 **What it does NOT receive:**  
 - Victory records (not needed yet — this is observation only)
@@ -551,11 +757,12 @@ This is the same output schema as today. No changes to the report JSON contract.
 
 ```
 Input:
-  company_data: dict         # full scraper output
+  raw_sources: list[ToolResult]   # output from all registered tools (Sprint 4: WebsiteScraperTool only)
+                                   # each ToolResult has: tool_id, source_type, content, pages_fetched
 
 Output:
-  signals: list[SignalRecord]
-  # SignalRecord = { type, value, source, confidence? }
+  signals: list[SignalRecord]     # SignalSet validated by validate_signals
+  # SignalRecord = { signal_id, type, value, source, confidence, raw_quote }
 
 Prompt file:   prompts/signal_extractor.md
 Model:         gemini-2.5-flash (signal extraction is structured, fast task)
@@ -566,6 +773,11 @@ Context it does NOT receive:
   - No victory records
   - No maturity scoring criteria
   - No recommendation instructions
+
+Note: The agent iterates over ALL ToolResult items in raw_sources.
+Each source is clearly labeled by tool_id and source_type in the prompt.
+In Sprint 4, raw_sources contains exactly one item (website_scraper).
+In Sprint 5+, it may contain multiple items — no code changes needed.
 ```
 
 ### MaturityScorerAgent
@@ -663,14 +875,19 @@ Timeout:       40 seconds
 This shows what information each agent sees, and critically, what it does NOT see.
 
 ```
-RAW INPUT
-  URL → ScraperAgent → company_data (raw HTML-parsed dict)
+TOOL LAYER (orchestrator calls registered tools before agent pipeline):
+  URL → ToolRegistry.get_all()
+          → WebsiteScraperTool.fetch(url) → ToolResult(tool_id="website_scraper", ...)
+          [future Sprint 5+: JobBoardTool, NewsSearchTool, TechDetectorTool]
          ↓
-         [scraper_quality_gate] ← deterministic, no model call
+         Orchestrator merges: raw_sources = [ToolResult, ToolResult, ...]
+         Failed tools logged and excluded. If ALL fail → AgentError.
+         ↓
+         [scraper_quality_gate] ← deterministic, checks raw_sources non-empty
          ↓ PASS
 
 STEP 1: SIGNAL EXTRACTION
-  Input:  company_data
+  Input:  raw_sources: list[ToolResult]   ← NOT company_data dict
   Agent:  SignalExtractorAgent
   Output: signals[]
   ─────────────────────────────────────────────────────────────
