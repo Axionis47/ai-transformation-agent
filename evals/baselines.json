@@ -69,7 +69,6 @@
       "evidence_grounding": 0.0,
       "roi_basis": 0.0
     },
-    "note": "Vertex AI model endpoint unavailable in us-east5 (HTTP 404 \u2014 model not found or project lacks access). Scores are 0.0 placeholders. Real scores will populate on Cloud Run deploy where the correct Vertex AI region and model access are configured via Secret Manager.",
-    "scoring_status": "pending_deploy"
+    "note": "claude-opus-4-6 on Vertex AI returned HTTP 429 quota-exhausted for all scoring calls \u2014 scores are 0.0 failure artifacts, not quality measurements. Requires GCP quota increase for anthropic-claude-opus-4-6 before real baseline can be established."
   }
 }
