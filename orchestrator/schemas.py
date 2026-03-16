@@ -48,6 +48,7 @@ class VictoryMatch(BaseModel):
     industry: str = ""
     similarity_score: float = 0.0
     confidence: float = 0.5
+    gap_analysis: str | None = None
 
 
 class DataFlow(BaseModel):
