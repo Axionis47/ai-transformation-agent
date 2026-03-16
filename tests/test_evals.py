@@ -96,3 +96,61 @@ class TestTestCompanies:
             assert "name" in c
             assert "url" in c
             assert "industry" in c
+
+
+# ── sprint_6 baseline verification ─────────────────────────────────────────
+
+class TestSprint6Baseline:
+    def _load(self) -> dict:
+        path = REPO_ROOT / "evals" / "baselines.json"
+        assert path.exists(), "baselines.json not found"
+        return json.loads(path.read_text())
+
+    def test_sprint_6_key_exists(self) -> None:
+        data = self._load()
+        assert "sprint_6" in data, "sprint_6 key missing from baselines.json"
+
+    def test_sprint_6_has_companies_dict(self) -> None:
+        data = self._load()
+        entry = data["sprint_6"]
+        assert "companies" in entry, "sprint_6 missing companies dict"
+        assert isinstance(entry["companies"], dict)
+        assert len(entry["companies"]) > 0
+
+    def test_sprint_6_has_averages_dict(self) -> None:
+        data = self._load()
+        entry = data["sprint_6"]
+        assert "averages" in entry, "sprint_6 missing averages dict"
+        averages = entry["averages"]
+        for key in ("tier_classification", "evidence_grounding", "roi_basis"):
+            assert key in averages, f"averages missing key: {key}"
+
+    def test_sprint_6_has_run_date(self) -> None:
+        data = self._load()
+        assert "run_date" in data["sprint_6"]
+
+    def test_sprint_6_has_note_explaining_status(self) -> None:
+        data = self._load()
+        entry = data["sprint_6"]
+        assert "note" in entry, "sprint_6 missing note — scorer status undocumented"
+        assert len(entry["note"]) > 20, "sprint_6 note is too short to be useful"
+
+    def test_sprint_6_company_scores_are_floats(self) -> None:
+        data = self._load()
+        for company, scores in data["sprint_6"]["companies"].items():
+            for rubric, score in scores.items():
+                assert isinstance(score, float), (
+                    f"{company}/{rubric} score is not a float: {score!r}"
+                )
+
+
+# ── ci_eval _SPRINT constant ────────────────────────────────────────────────
+
+class TestCiEvalSprint:
+    def test_sprint_constant_is_sprint_6(self) -> None:
+        import importlib
+        import evals.ci_eval as ci_mod
+        importlib.reload(ci_mod)
+        assert ci_mod._SPRINT == "sprint_6", (
+            f"_SPRINT should be 'sprint_6', got {ci_mod._SPRINT!r}"
+        )
