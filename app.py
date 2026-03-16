@@ -38,6 +38,10 @@ class AnalyzeSuccess(BaseModel):
     report: dict[str, Any]
     analysis: dict[str, Any] | None = None
     rag_context: list[dict[str, Any]] | None = None
+    signals: dict[str, Any] | None = None
+    maturity: dict[str, Any] | None = None
+    victory_matches: list[dict[str, Any]] | None = None
+    use_cases: list[dict[str, Any]] | None = None
 
 
 class ErrorDetail(BaseModel):
@@ -79,4 +83,8 @@ async def analyze(request: AnalyzeRequest) -> AnalyzeSuccess:
         report=state.report or {},
         analysis=state.analysis,
         rag_context=state.rag_context,
+        signals=state.signals,
+        maturity=state.maturity,
+        victory_matches=state.victory_matches,
+        use_cases=state.use_cases,
     )
