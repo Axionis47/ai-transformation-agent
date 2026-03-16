@@ -49,9 +49,20 @@ class UseCaseGeneratorAgent(BaseAgent):
             return "Generate three-tier AI use cases. Return JSON array."
 
     def _build_prompt(self, signals: list, maturity: dict, victory_matches: list) -> str:
+        gap_lines = []
+        for vm in victory_matches:
+            gap = vm.get("gap_analysis") if isinstance(vm, dict) else getattr(vm, "gap_analysis", None)
+            if gap:
+                title = vm.get("engagement_title") if isinstance(vm, dict) else getattr(vm, "engagement_title", "")
+                gap_lines.append(f"- {title}: {gap}")
+        gap_section = (
+            "\n\nGap analysis from matched victories:\n" + "\n".join(gap_lines)
+            if gap_lines else ""
+        )
         return (
             f"Signals:\n{json.dumps(signals, indent=2)}\n\n"
             f"Maturity assessment:\n{json.dumps(maturity, indent=2)}\n\n"
-            f"Tenex victory matches:\n{json.dumps(victory_matches, indent=2)}\n\n"
+            f"Tenex victory matches:\n{json.dumps(victory_matches, indent=2)}"
+            f"{gap_section}\n\n"
             "Generate use cases as a JSON array."
         )

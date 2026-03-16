@@ -149,11 +149,13 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     industry = (state.signals or {}).get("industry", "unknown")
     scale = (state.signals or {}).get("scale", "unknown")
     maturity_label = (state.maturity or {}).get("composite_label", "")
+    composite_score = float((state.maturity or {}).get("composite_score", 0.0))
     logger.log_agent_call("VICTORY_MATCHER",
                           input_summary=victory_input(state.rag_context, state.maturity))
     victory_list = match_victories(
         signals_industry=industry, signals_scale=scale,
         maturity_label=maturity_label, rag_results=state.rag_context or [],
+        company_composite_score=composite_score,
     )
     state.victory_matches = [vm.model_dump() for vm in victory_list]
     logger.log_agent_call("VICTORY_MATCHER", result=True,
