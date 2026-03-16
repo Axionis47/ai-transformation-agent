@@ -56,3 +56,40 @@ def test_confidence_floors():
 
     assert direct_results[0].confidence >= 0.75
     assert adjacent_results[0].confidence >= 0.40
+
+
+def _make_win_calibrated(win_id: str, maturity: str) -> dict:
+    """Build a victory record that includes calibration fields."""
+    win = _make_win(win_id, "logistics", "mid-market", maturity)
+    win["industry_benchmark"] = "14% fuel cost reduction on $2.1M fleet spend"
+    win["success_threshold"] = "Applicable when TMS is in place."
+    win["gap_analysis_template"] = "Maturity gap of {gap} points from engagement baseline."
+    return win
+
+
+def test_gap_analysis_populated_when_calibration_fields_present():
+    """Victory with calibration fields produces non-null gap_analysis."""
+    wins = [_make_win_calibrated("w1", "Developing")]
+    # company score 1.3, victory maturity "Developing"=2.0 → gap = 0.7
+    results = match_victories("logistics", "mid-market", "Beginner", wins,
+                              company_composite_score=1.3)
+    assert results[0].gap_analysis is not None
+    assert "0.7" in results[0].gap_analysis
+    assert "14% fuel cost reduction" in results[0].gap_analysis
+
+
+def test_gap_analysis_none_when_calibration_fields_absent():
+    """Victory WITHOUT calibration fields yields gap_analysis=None, no exception."""
+    wins = [_make_win("w1", "logistics", "mid-market", "Developing")]
+    results = match_victories("logistics", "mid-market", "Developing", wins,
+                              company_composite_score=2.0)
+    assert results[0].gap_analysis is None
+
+
+def test_gap_calculation_correct():
+    """Gap = abs(company_score - victory_maturity_float), e.g. 1.3 vs Developing(2.0) = 0.7."""
+    wins = [_make_win_calibrated("w1", "Developing")]
+    results = match_victories("logistics", "mid-market", "Beginner", wins,
+                              company_composite_score=1.3)
+    gap_text = results[0].gap_analysis or ""
+    assert "0.7" in gap_text
