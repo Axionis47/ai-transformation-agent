@@ -119,6 +119,7 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
         _log_stage(logger, "SCRAPER", "error", code=result.code, message=result.message)
         return _fail(state, result, start, logger)
     state.company_data = result
+    state.pages_fetched = result.get("pages_fetched") if isinstance(result, dict) else None
     logger.log_agent_call("SCRAPER", result=True, start_time=t,
                           prompt_file="prompts/scraper.md", prompt_version="1.0",
                           output_summary=scraper_output(state.company_data))
@@ -144,6 +145,7 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     if isinstance(validated, AgentError):
         return _fail(state, validated, start, logger)
     state.signals = validated.model_dump()
+    state.signal_count = len([v for v in state.signals.values() if v])
     if not dry_run:
         state.cost_usd += _COST_SIGNAL
     logger.log_agent_call("SIGNAL_EXTRACTOR", result=True, start_time=t, prompt_version="1.0",

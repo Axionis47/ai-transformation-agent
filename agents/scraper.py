@@ -28,14 +28,16 @@ class ScraperAgent(BaseAgent):
 
         try:
             client = httpx.Client(timeout=10.0, follow_redirects=True)
-            about_text = self._fetch_page(client, url, ["/about", "/about-us", "/company"])
-            jobs_text = self._fetch_page(client, url, ["/careers", "/jobs", "/join-us"])
-            product_text = self._fetch_page(
+            about_text, about_path = self._fetch_page(client, url, ["/about", "/about-us", "/company"])
+            jobs_text, jobs_path = self._fetch_page(client, url, ["/careers", "/jobs", "/join-us"])
+            product_text, product_path = self._fetch_page(
                 client, url,
                 ["/product", "/products", "/platform", "/solutions",
                  "/features", "/capabilities", "/technology"],
             )
             client.close()
+
+            pages_fetched = [p for p in [about_path, jobs_path, product_path] if p]
 
             return {
                 "url": url,
@@ -44,6 +46,7 @@ class ScraperAgent(BaseAgent):
                 "job_postings": [jobs_text] if jobs_text else [],
                 "product_text": product_text,
                 "tech_stack_mentions": [],
+                "pages_fetched": pages_fetched,
                 "last_scraped": None,
             }
         except httpx.HTTPError as exc:
@@ -52,7 +55,7 @@ class ScraperAgent(BaseAgent):
                 recoverable=True, agent_tag=self.agent_tag,
             )
 
-    def _fetch_page(self, client, base_url: str, paths: list[str]) -> str:
+    def _fetch_page(self, client, base_url: str, paths: list[str]) -> tuple[str, str | None]:
         from bs4 import BeautifulSoup
 
         for path in paths:
@@ -62,7 +65,7 @@ class ScraperAgent(BaseAgent):
                     soup = BeautifulSoup(resp.text, "lxml")
                     for tag in soup(["nav", "footer", "script", "style"]):
                         tag.decompose()
-                    return soup.get_text(separator=" ", strip=True)[:5000]
+                    return soup.get_text(separator=" ", strip=True)[:5000], path
             except Exception:
                 continue
-        return ""
+        return "", None

@@ -48,6 +48,8 @@ class AnalyzeSuccess(BaseModel):
     maturity: dict[str, Any] | None = None
     victory_matches: list[dict[str, Any]] | None = None
     use_cases: list[dict[str, Any]] | None = None
+    pages_fetched: list[str] | None = None
+    signal_count: int | None = None
 
 
 class ErrorDetail(BaseModel):
@@ -113,4 +115,6 @@ async def analyze(request: AnalyzeRequest) -> AnalyzeSuccess:
         maturity=state.maturity,
         victory_matches=state.victory_matches,
         use_cases=state.use_cases,
+        pages_fetched=state.pages_fetched,
+        signal_count=state.signal_count,
     )

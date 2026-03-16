@@ -17,5 +17,7 @@
     "PostgreSQL",
     "Redis"
   ],
+  "pages_fetched": ["/about", "/careers", "/platform"],
+  "signal_count": 7,
   "last_scraped": "2026-03-14T10:30:00Z"
 }

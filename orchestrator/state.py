@@ -35,6 +35,10 @@ class PipelineState(BaseModel):
     victory_matches: list[dict[str, Any]] | None = None
     use_cases: list[dict[str, Any]] | None = None
 
+    # Scraper metadata
+    pages_fetched: list[str] | None = None
+    signal_count: int | None = None
+
     # Metadata
     status: PipelineStatus = PipelineStatus.PENDING
     error: dict[str, Any] | None = None
