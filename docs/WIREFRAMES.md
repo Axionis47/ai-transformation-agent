@@ -157,3 +157,54 @@
 │                                                            │
 └────────────────────────────────────────────────────────────┘
 ```
+
+### Trace Panel (below Report View — Sprint 5)
+
+```
+┌────────────────────────────────────────────────────────────┐
+│  AI Transformation Report: Example Corp           [Export] │
+├────────────────────────────────────────────────────────────┤
+│  ... report sections above ...                             │
+│                                                            │
+│  ┌──────────────────────────────────────────────────────┐ │
+│  │  ▼  Pipeline Trace  (run_id: abc-123)                │ │
+│  ├──────────────────────────────────────────────────────┤ │
+│  │  ┌────────────────────────────────────────────────┐  │ │
+│  │  │ Stage 1: website_scraper          ✓  0.8s      │  │ │
+│  │  │ IN:  { url: "example.com" }                    │  │ │
+│  │  │ OUT: { pages: 3, chars: 8400 }                 │  │ │
+│  │  └────────────────────────────────────────────────┘  │ │
+│  │  ┌────────────────────────────────────────────────┐  │ │
+│  │  │ Stage 2: signal_extractor         ✓  2.1s      │  │ │
+│  │  │ IN:  { pages_count: 3 }                        │  │ │
+│  │  │ OUT: { signal_count: 9 }                       │  │ │
+│  │  └────────────────────────────────────────────────┘  │ │
+│  │  ┌────────────────────────────────────────────────┐  │ │
+│  │  │ Stage 3: maturity_scorer          ✓  3.4s      │  │ │
+│  │  │ IN:  { signal_count: 9 }                       │  │ │
+│  │  │ OUT: { maturity_score: 3.2, label: Emerging }  │  │ │
+│  │  └────────────────────────────────────────────────┘  │ │
+│  │  ┌────────────────────────────────────────────────┐  │ │
+│  │  │ Stage 4: victory_matcher          ✓  2.8s      │  │ │
+│  │  │ Stage 5: use_case_generator       ✓  8.2s      │  │ │
+│  │  │ Stage 6: report_writer            ✓  6.1s      │  │ │
+│  │  └────────────────────────────────────────────────┘  │ │
+│  └──────────────────────────────────────────────────────┘ │
+└────────────────────────────────────────────────────────────┘
+```
+
+Component: `frontend/components/TracePanel.tsx`
+Data source: `GET /v1/trace/{run_id}`
+State: collapsed by default, expands on click
+Error state: shows "Trace unavailable" if run_id not found
+
+### Component Inventory — Sprint 5 Updates
+
+| Component | Status | Storybook |
+|-----------|--------|-----------|
+| URLInput | Ready | - |
+| ReportRenderer | Ready | - |
+| UseCaseCard | Ready | Yes |
+| UseCaseTierSection | Ready | Yes |
+| TracePanel | Ready | Yes |
+| TraceStageRow | Ready | (via TracePanel story) |
