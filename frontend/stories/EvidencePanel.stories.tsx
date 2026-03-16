@@ -13,9 +13,12 @@ type Story = StoryObj<typeof EvidencePanel>;
 
 const SAMPLE_WINS: VictoryMatch[] = [
   {
-    id: "win-001",
+    win_id: "win-001",
     engagement_title: "Logistics AI Maturity Uplift",
     industry: "Logistics",
+    match_tier: "DIRECT_MATCH",
+    roi_benchmark: "18%",
+    confidence: 0.88,
     size_label: "Mid-market",
     primary_metric_label: "Fulfillment accuracy",
     primary_metric_value: "+18%",
@@ -23,9 +26,12 @@ const SAMPLE_WINS: VictoryMatch[] = [
     maturity_at_engagement: "Developing",
   },
   {
-    id: "win-042",
+    win_id: "win-042",
     engagement_title: "Retail Demand Forecasting",
     industry: "Retail",
+    match_tier: "CALIBRATION_MATCH",
+    roi_benchmark: "23%",
+    confidence: 0.72,
     size_label: "Enterprise",
     primary_metric_label: "Inventory waste reduction",
     primary_metric_value: "23%",
@@ -46,7 +52,16 @@ export const SingleWin: Story = {
 
 export const MinimalData: Story = {
   args: {
-    wins: [{ id: "win-099", engagement_title: "Healthcare AI Pilot", industry: "Healthcare" }],
+    wins: [
+      {
+        win_id: "win-099",
+        engagement_title: "Healthcare AI Pilot",
+        industry: "Healthcare",
+        match_tier: "ADJACENT_MATCH",
+        roi_benchmark: "8%",
+        confidence: 0.6,
+      },
+    ],
   },
 };
 

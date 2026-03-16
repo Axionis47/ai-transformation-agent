@@ -18,9 +18,12 @@ const SAMPLE_CONTENT =
 
 const SAMPLE_WINS: VictoryMatch[] = [
   {
-    id: "win-001",
+    win_id: "win-001",
     engagement_title: "Logistics AI Maturity Uplift",
     industry: "Logistics",
+    match_tier: "DIRECT_MATCH",
+    roi_benchmark: "18%",
+    confidence: 0.88,
     size_label: "Mid-market",
     primary_metric_label: "Fulfillment accuracy",
     primary_metric_value: "+18%",
