@@ -9,6 +9,7 @@ import PipelineProgress from "@/components/PipelineProgress";
 import ErrorMessage from "@/components/ErrorMessage";
 import URLInputForm from "@/components/URLInputForm";
 import UseCaseTierSection from "@/components/UseCaseTierSection";
+import TracePanel from "@/components/TracePanel";
 
 async function runAnalysis(url: string, dryRun: boolean): Promise<AnalyzeResponse> {
   const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -72,6 +73,7 @@ export default function AnalyzeForm() {
           )}
           <ReportCard title="ROI Analysis" content={state.data.report.roi_analysis} />
           <ReportCard title="Transformation Roadmap" content={state.data.report.roadmap} />
+          <TracePanel runId={state.data.run_id} />
         </div>
       )}
     </div>
