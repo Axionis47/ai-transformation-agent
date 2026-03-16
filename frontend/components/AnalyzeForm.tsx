@@ -8,16 +8,7 @@ import MaturityBadge from "@/components/MaturityBadge";
 import PipelineProgress from "@/components/PipelineProgress";
 import ErrorMessage from "@/components/ErrorMessage";
 import URLInputForm from "@/components/URLInputForm";
-
-const SECTION_LABELS: Record<string, string> = {
-  exec_summary: "Executive Summary",
-  current_state: "Current State",
-  use_cases: "AI Use Cases",
-  roadmap: "Transformation Roadmap",
-  roi_analysis: "ROI Analysis",
-};
-
-const SECTION_ORDER = ["exec_summary", "current_state", "use_cases", "roadmap", "roi_analysis"] as const;
+import UseCaseTierSection from "@/components/UseCaseTierSection";
 
 async function runAnalysis(url: string, dryRun: boolean): Promise<AnalyzeResponse> {
   const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -27,6 +18,15 @@ async function runAnalysis(url: string, dryRun: boolean): Promise<AnalyzeRespons
     body: JSON.stringify({ url, dry_run: dryRun }),
   });
   return res.json();
+}
+
+function buildDimensions(data: AnalyzeSuccess): Record<string, number> | undefined {
+  if (data.maturity?.dimensions) {
+    return Object.fromEntries(
+      Object.entries(data.maturity.dimensions).map(([k, v]) => [k, v.score])
+    );
+  }
+  return data.analysis?.dimensions;
 }
 
 export default function AnalyzeForm() {
@@ -57,20 +57,21 @@ export default function AnalyzeForm() {
       {state.phase === "success" && (
         <div className="space-y-6">
           <MaturityBadge
-            score={state.data.analysis?.maturity_score}
-            label={state.data.analysis?.maturity_label}
+            score={state.data.maturity?.composite_score ?? state.data.analysis?.maturity_score}
+            label={state.data.maturity?.composite_label ?? state.data.analysis?.maturity_label}
             elapsedSeconds={state.data.elapsed_seconds}
             costUsd={state.data.cost_usd}
-            dimensions={state.data.analysis?.dimensions}
+            dimensions={buildDimensions(state.data)}
           />
-          {SECTION_ORDER.map((key) => (
-            <ReportCard
-              key={key}
-              title={SECTION_LABELS[key]}
-              content={state.data.report[key]}
-              wins={state.data.rag_context}
-            />
-          ))}
+          <ReportCard title="Executive Summary" content={state.data.report.exec_summary} wins={state.data.victory_matches ?? state.data.rag_context} />
+          <ReportCard title="Current State" content={state.data.report.current_state} />
+          {state.data.use_cases && state.data.use_cases.length > 0 ? (
+            <UseCaseTierSection useCases={state.data.use_cases} />
+          ) : (
+            <ReportCard title="AI Use Cases" content={state.data.report.use_cases} wins={state.data.victory_matches ?? state.data.rag_context} />
+          )}
+          <ReportCard title="ROI Analysis" content={state.data.report.roi_analysis} />
+          <ReportCard title="Transformation Roadmap" content={state.data.report.roadmap} />
         </div>
       )}
     </div>
