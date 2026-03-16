@@ -10,3 +10,4 @@
 | [ADR-006](ADR-006.md) | Analysis Specification v1.0 | Approved | 2026-03-14 |
 | [ADR-007](ADR-007.md) | Victory Data Schema and RAG Seed Strategy | Approved | 2026-03-15 |
 | [ADR-008](ADR-008.md) | Tool Registry as Orchestrator-Level Abstraction | Accepted | 2026-03-16 |
+| [ADR-009](ADR-009.md) | Parallel Report Section Generation via ThreadPoolExecutor | Accepted | 2026-03-16 |
