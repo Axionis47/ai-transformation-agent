@@ -194,6 +194,19 @@ time to first production model: 6–8 weeks.
 │  8–10 wks   Revenue KPI  (at ACME volume)                      │
 │                                                                │
 │  Timeline: 10 weeks to production                              │
+│                                                                │
+│  Data Flow:                                                    │
+│  Input:    Snowflake shipment history (18 months) + carrier    │
+│            performance records + weather API feed              │
+│  Model:    Gradient boosted classifier trained on delay labels  │
+│            from historical shipments (XGBoost / LightGBM)     │
+│  Output:   Risk score per shipment surfaced in operations      │
+│            dashboard 24–48 hrs ahead of expected delivery      │
+│  Feedback: Actual delivery outcomes logged weekly; model       │
+│            retrained monthly on rolling 6-month window         │
+│  Value:    Late delivery rate tracked monthly vs prior year    │
+│            baseline; alert if improvement < 8%                 │
+│                                                                │
 │  [See Full Evidence]   [Implementation Plan]                   │
 └────────────────────────────────────────────────────────────────┘
 ```
@@ -213,6 +226,16 @@ time to first production model: 6–8 weeks.
 - `roi_basis` — string (how the estimate was derived)
 - `confidence` — float 0.0–1.0
 - `implementation_weeks` — int
+- `data_flow.data_inputs` — list[string] (client's existing data sources that feed the model)
+- `data_flow.model_approach` — string (specific model type and training approach)
+- `data_flow.output_consumer` — string (role and delivery mechanism — e.g. "Dispatchers via ops dashboard")
+- `data_flow.feedback_loop` — string (how model improves post-deployment)
+- `data_flow.value_measurement` — string (specific metric, cadence, and baseline comparison)
+
+**Data Flow design note:**
+For PROVEN tier, the `data_flow` fields are derived directly from the matched victory record's
+`tech_stack.data_sources`, `tech_stack.ml_approach`, and `tech_stack.client_systems_integrated`
+fields. The use case generator maps these directly — no inference required.
 
 ---
 
@@ -244,6 +267,19 @@ time to first production model: 6–8 weeks.
 │  Risk factors:                                                 │
 │  • Carrier data quality varies — plan 2–3 weeks data cleaning  │
 │  • Stakeholder alignment with carrier relationships team needed│
+│                                                                │
+│  Data Flow:                                                    │
+│  Input:    Snowflake historical shipment records + carrier     │
+│            rate cards + new real-time carrier API feed         │
+│            (API integration required — see prerequisites)      │
+│  Model:    XGBoost regression scoring carriers by cost,        │
+│            reliability, and on-time delivery probability       │
+│  Output:   Carrier recommendation surfaced to procurement      │
+│            manager in TMS at point of shipment booking         │
+│  Feedback: Actual vs predicted on-time rates logged per        │
+│            carrier; model recalibrated quarterly               │
+│  Value:    Per-shipment carrier cost reduction measured        │
+│            monthly vs prior year; target > 8% improvement     │
 └────────────────────────────────────────────────────────────────┘
 ```
 
@@ -251,6 +287,17 @@ time to first production model: 6–8 weeks.
 - `calibration_note` — string (why the ROI is adjusted from the benchmark)
 - `prerequisites` — list[{item, status: "exists" | "needed"}]
 - `risk_factors` — list[string]
+- `data_flow.data_inputs` — list[string] (client's existing data + what must be acquired)
+- `data_flow.model_approach` — string (adapted from CALIBRATION_MATCH victory or strong signal convergence)
+- `data_flow.output_consumer` — string (specific role and delivery interface)
+- `data_flow.feedback_loop` — string (retraining cadence and feedback source)
+- `data_flow.value_measurement` — string (metric, measurement period, target threshold)
+
+**Data Flow design note:**
+For ACHIEVABLE tier, `data_flow` is adapted from the CALIBRATION_MATCH victory record's
+`tech_stack` fields, adjusted for the client's scale and system landscape. Prerequisites
+that are "needed" map to gaps between the victory's `client_systems_integrated` and
+the client's current signals.
 
 ---
 
@@ -281,12 +328,37 @@ time to first production model: 6–8 weeks.
 │  trained on this data density would outperform competitors.    │
 │                                                                │
 │  Confidence: 0.50   (lower — this is a frontier bet)          │
+│                                                                │
+│  Data Flow (proposed — not yet validated):                     │
+│  Input:    TMS shipment history + GPS telemetry stream +       │
+│            live traffic API + carrier rate cards               │
+│            (GPS telemetry collection required — new infra)     │
+│  Model:    Reinforcement learning or multi-objective optimizer  │
+│            scoring route options by cost, time, reliability    │
+│  Output:   Ranked route suggestions to dispatcher planning     │
+│            interface; also available via API for TMS auto-book │
+│  Feedback: Actual delivery time + fuel cost logged per route;  │
+│            model retrained weekly on rolling 3-month window    │
+│  Value:    Fuel cost per route vs prior year baseline;         │
+│            targeted > 10% reduction over 12 months            │
 └────────────────────────────────────────────────────────────────┘
 ```
 
 **Additional data fields:**
 - `uncertainty_note` — string (honest statement of what we don't know)
 - `strategic_upside` — string (why the bet is worth making despite uncertainty)
+- `data_flow.data_inputs` — list[string] (what the client has + what must be built or acquired)
+- `data_flow.model_approach` — string (proposed approach based on signals and industry patterns)
+- `data_flow.output_consumer` — string (role and interface — may be proposed, not confirmed)
+- `data_flow.feedback_loop` — string (proposed retraining mechanism)
+- `data_flow.value_measurement` — string (how success would be measured — stated as hypothesis)
+
+**Data Flow design note:**
+For FRONTIER tier, `data_flow` is proposed rather than proven. The use case generator
+constructs the data flow from: (a) signals indicating existing data assets, (b)
+ADJACENT_MATCH victory's `tech_stack` as a pattern reference, and (c) industry
+patterns for the use case type. Data inputs labeled "required" are net-new investments.
+The model approach is explicitly framed as a proposal, not a blueprint.
 
 ---
 
@@ -906,7 +978,18 @@ Frontend TypeScript types must be generated from this schema.
       "confidence": 0.85,
       "implementation_weeks": 10,
       "prerequisites": [],
-      "risk_factors": []
+      "risk_factors": [],
+      "data_flow": {
+        "data_inputs": [
+          "Snowflake shipment history (18 months)",
+          "Carrier performance records from TMS",
+          "Weather API feed (external)"
+        ],
+        "model_approach": "Gradient boosted classifier (XGBoost) trained on historical delay labels; features: carrier, route, weather, seasonality",
+        "output_consumer": "Operations team via existing dashboard — delay risk score per shipment 24–48 hrs ahead",
+        "feedback_loop": "Actual delivery outcomes logged to feature store weekly; model retrained monthly on rolling 6-month window",
+        "value_measurement": "Late delivery rate tracked monthly vs prior-year baseline; minimum 8% improvement threshold"
+      }
     },
     {
       "id": "uc-002",
@@ -923,7 +1006,18 @@ Frontend TypeScript types must be generated from this schema.
       "impact": "High",
       "roi_estimate": "$600K–$900K annually",
       "confidence": 0.65,
-      "implementation_weeks": 18
+      "implementation_weeks": 18,
+      "data_flow": {
+        "data_inputs": [
+          "Snowflake historical shipment records (exists)",
+          "Carrier rate cards from procurement system (exists)",
+          "Real-time carrier API feed (needed — integration required)"
+        ],
+        "model_approach": "XGBoost regression scoring carriers by predicted on-time rate, cost, and reliability; adapted from win-001 tech_stack.ml_approach with scale calibration",
+        "output_consumer": "Procurement manager via TMS carrier selection screen at point of shipment booking",
+        "feedback_loop": "Actual vs predicted on-time rate logged per carrier; model recalibrated quarterly on new performance data",
+        "value_measurement": "Per-shipment carrier cost reduction measured monthly vs prior year; target > 8% improvement"
+      }
     },
     {
       "id": "uc-003",
@@ -935,7 +1029,19 @@ Frontend TypeScript types must be generated from this schema.
       "impact": "High",
       "roi_estimate": "$3.0M–$5.0M annually",
       "confidence": 0.50,
-      "implementation_weeks": 36
+      "implementation_weeks": 36,
+      "data_flow": {
+        "data_inputs": [
+          "TMS shipment history (exists)",
+          "GPS telemetry stream (needed — new infrastructure investment)",
+          "Live traffic API (needed — external integration)",
+          "Carrier rate cards (exists)"
+        ],
+        "model_approach": "Multi-objective optimizer or RL agent scoring route options by cost, transit time, and reliability; proposed based on ADJACENT_MATCH win-007 tech_stack pattern",
+        "output_consumer": "Dispatcher via planning interface — ranked route suggestions; also available as API for TMS auto-booking (proposed)",
+        "feedback_loop": "Actual delivery time and fuel cost logged per route; model retrained weekly on rolling 3-month window once GPS telemetry is live",
+        "value_measurement": "Fuel cost per route vs prior-year baseline; hypothesis: > 10% reduction over 12 months — to be validated in pilot"
+      }
     }
   ],
   "roi_analysis": {
