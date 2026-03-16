@@ -10,7 +10,6 @@ from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FuturesTimeout
 
 from agents.base import AgentError, BaseAgent
-from agents.consultant import ConsultantAgent
 from agents.maturity_scorer import MaturityScorerAgent
 from agents.rag_query import RAGQueryAgent
 from agents.report_writer import ReportWriterAgent
@@ -25,7 +24,6 @@ from orchestrator.victory_matcher import match_victories
 from rag.ingest import ensure_seeds_loaded
 
 _STAGE_TIMEOUT_S = 60
-_COST_CONSULTANT = 0.005
 _COST_SIGNAL = 0.001
 _COST_MATURITY = 0.001
 _COST_USE_CASE = 0.005
@@ -62,7 +60,7 @@ def _fail(state: PipelineState, error: AgentError, start: float,
 
 
 def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
-    """Execute the full pipeline: scrape -> RAG -> consult -> report."""
+    """Execute the 7-stage AI transformation pipeline."""
     os.environ["DRY_RUN"] = "true" if dry_run else "false"
 
     if not dry_run:
@@ -83,7 +81,6 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     state.company_data = result
     _log_stage(logger, "SCRAPER", "complete", elapsed_ms=int((time.time() - t) * 1000))
 
-    # Gate: reject thin or error-page content before expensive stages
     if not dry_run:
         passed, reason = scraper_quality_gate(state.company_data)
         if not passed:
@@ -93,7 +90,37 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
                 recoverable=False, agent_tag="SCRAPER"
             ), start, logger)
 
-    # Stage 2: RAG query
+    # Stage 2: Signal extraction
+    t = time.time()
+    _log_stage(logger, "SIGNAL_EXTRACTOR", "start", prompt_version="1.0")
+    result = _run_with_timeout(SignalExtractorAgent(), {"company_data": state.company_data})
+    if isinstance(result, AgentError):
+        _log_stage(logger, "SIGNAL_EXTRACTOR", "error", code=result.code, message=result.message)
+        return _fail(state, result, start, logger)
+    validated = validate_signals(result)
+    if isinstance(validated, AgentError):
+        return _fail(state, validated, start, logger)
+    state.signals = validated.model_dump()
+    if not dry_run:
+        state.cost_usd += _COST_SIGNAL
+    _log_stage(logger, "SIGNAL_EXTRACTOR", "complete", elapsed_ms=int((time.time() - t) * 1000))
+
+    # Stage 3: Maturity scoring
+    t = time.time()
+    _log_stage(logger, "MATURITY_SCORER", "start", prompt_version="1.0")
+    result = _run_with_timeout(MaturityScorerAgent(), {"signals": state.signals})
+    if isinstance(result, AgentError):
+        _log_stage(logger, "MATURITY_SCORER", "error", code=result.code, message=result.message)
+        return _fail(state, result, start, logger)
+    validated = validate_maturity(result)
+    if isinstance(validated, AgentError):
+        return _fail(state, validated, start, logger)
+    state.maturity = validated.model_dump()
+    if not dry_run:
+        state.cost_usd += _COST_MATURITY
+    _log_stage(logger, "MATURITY_SCORER", "complete", elapsed_ms=int((time.time() - t) * 1000))
+
+    # Stage 4: RAG query
     t = time.time()
     _log_stage(logger, "RAG", "start", prompt_file="prompts/rag_query.md", prompt_version="1.0")
     result = _run_with_timeout(RAGQueryAgent(), {"company_data": state.company_data})
@@ -103,19 +130,12 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     state.rag_context = result
     _log_stage(logger, "RAG", "complete", elapsed_ms=int((time.time() - t) * 1000))
 
-    # Stage 3: Consultant analysis
-    t = time.time()
-    _log_stage(logger, "CONSULTANT", "start", prompt_file="prompts/consultant.md", prompt_version="1.0")
-    result = _run_with_timeout(ConsultantAgent(), {"company_data": state.company_data, "rag_context": state.rag_context})
-    if isinstance(result, AgentError):
-        _log_stage(logger, "CONSULTANT", "error", code=result.code, message=result.message)
-        return _fail(state, result, start, logger)
-    state.analysis = result
-    if not dry_run:
-        state.cost_usd += _COST_CONSULTANT
-    _log_stage(logger, "CONSULTANT", "complete", elapsed_ms=int((time.time() - t) * 1000))
-
-    # Stage 4: Report generation
+    # Stages 5-7 placeholder: use analysis + report with compat structure
+    state.analysis = {
+        "maturity_score": state.maturity.get("composite_score") if state.maturity else None,
+        "maturity_label": state.maturity.get("composite_label") if state.maturity else None,
+        "dimensions": state.maturity.get("dimensions") if state.maturity else None,
+    }
     t = time.time()
     _log_stage(logger, "REPORT_WRITER", "start", prompt_file="prompts/report_writer.md", prompt_version="1.0")
     result = _run_with_timeout(ReportWriterAgent(), {"analysis": state.analysis})
@@ -132,24 +152,19 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     mode = "dry-run" if dry_run else "live"
     logger.log("PIPELINE", "complete", elapsed_seconds=state.elapsed_seconds,
                cost_usd=state.cost_usd, mode=mode)
-
     return state
 
 
 def print_report(state: PipelineState) -> None:
-    """Print the report sections to stdout."""
+    """Print report sections to stdout."""
     if not state.report:
         print("[pipeline] No report generated.")
         return
-
     sections = ["exec_summary", "current_state", "use_cases", "roadmap", "roi_analysis"]
     for section in sections:
         title = section.replace("_", " ").upper()
         content = state.report.get(section, "N/A")
-        print(f"\n{'='*60}")
-        print(f"  {title}")
-        print(f"{'='*60}")
-        print(content)
+        print(f"\n{'='*60}\n  {title}\n{'='*60}\n{content}")
 
 
 def main() -> None:
@@ -157,14 +172,8 @@ def main() -> None:
     parser.add_argument("--url", required=True, help="Company URL to analyze")
     parser.add_argument("--dry-run", action="store_true", help="Use fixture data, no API calls")
     args = parser.parse_args()
-
     state = run_pipeline(url=args.url, dry_run=args.dry_run)
-
-    if state.status == PipelineStatus.COMPLETE:
-        print_report(state)
-        sys.exit(0)
-    else:
-        sys.exit(1)
+    sys.exit(0 if state.status == PipelineStatus.COMPLETE else 1)
 
 
 if __name__ == "__main__":
