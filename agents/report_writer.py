@@ -19,6 +19,33 @@ class ReportWriterAgent(BaseAgent):
 
     agent_tag = "REPORT"
 
+    def generate_section(self, section_name: str, analysis: dict) -> str | AgentError:
+        """Generate a single named report section. Used by parallel write path."""
+        if section_name not in REPORT_SECTIONS:
+            return AgentError(
+                code="INVALID_SECTION",
+                message=f"Unknown section: {section_name}",
+                recoverable=False, agent_tag=self.agent_tag,
+            )
+
+        if self.dry_run:
+            fixture = json.loads(_FIXTURE.read_text())
+            return fixture.get(section_name, "")
+
+        prompt = (
+            f"Analysis data:\n{json.dumps(analysis, indent=2)}\n\n"
+            f"Generate ONLY the '{section_name}' section of the AI transformation report. "
+            "Return plain text (no JSON wrapper)."
+        )
+        client = get_model_client()
+        model = os.getenv("VERTEX_FAST_MODEL", "gemini-2.5-flash")
+        response = client.complete(prompt, system=self._load_system_prompt(), model=model)
+
+        if isinstance(response, AgentError):
+            return response
+
+        return response.strip()
+
     def _run(self, input_data: dict) -> dict | AgentError:
         if self.dry_run:
             return json.loads(_FIXTURE.read_text())
