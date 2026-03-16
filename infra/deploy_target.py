@@ -13,6 +13,7 @@ Usage:
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import os
+import subprocess
 
 
 @dataclass
@@ -44,24 +45,83 @@ class DeployTarget(ABC):
 
 
 class GCPCloudRunTarget(DeployTarget):
-    """Google Cloud Run deploy target."""
+    """Google Cloud Run deploy target using gcloud CLI."""
+
+    IMAGE = "gcr.io/plotpointe/ai-transform-agent:latest"
+    SERVICE = "ai-transform-agent"
+    REGION = "us-central1"
+    ENV_VARS = (
+        "MODEL_PROVIDER=vertex,"
+        "GCP_PROJECT_ID=plotpointe,"
+        "GCP_LOCATION=us-central1,"
+        "VERTEX_MODEL=gemini-2.5-pro,"
+        "VERTEX_FAST_MODEL=gemini-2.5-flash,"
+        "SERVICE_VERSION=sprint6"
+    )
 
     def __init__(self):
-        self.project_id = os.getenv("GCP_PROJECT_ID")
-        self.location = os.getenv("GCP_LOCATION", "us-central1")
-        self.service_name = "ai-transform-agent"
+        self.project_id = os.getenv("GCP_PROJECT_ID", "plotpointe")
+        self.location = os.getenv("GCP_LOCATION", self.REGION)
 
     def deploy(self, image_uri: str) -> DeployResult:
-        # Implementation will use gcloud CLI or Cloud Run Admin API
-        raise NotImplementedError("GCP deploy not yet implemented")
+        """Build image via Cloud Build then deploy to Cloud Run."""
+        try:
+            subprocess.run(
+                ["gcloud", "builds", "submit", "--tag", self.IMAGE, "."],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                [
+                    "gcloud", "run", "deploy", self.SERVICE,
+                    "--image", self.IMAGE,
+                    "--region", self.REGION,
+                    "--memory", "2Gi",
+                    "--cpu", "1",
+                    "--min-instances", "0",
+                    "--max-instances", "3",
+                    "--allow-unauthenticated",
+                    "--set-env-vars", self.ENV_VARS,
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            url = self.get_service_url()
+            return DeployResult(success=True, service_url=url, revision=None, error=None)
+        except subprocess.CalledProcessError as exc:
+            return DeployResult(success=False, service_url=None, revision=None,
+                                error=exc.stderr or str(exc))
 
     def get_service_url(self) -> str | None:
-        # Implementation will query Cloud Run service
-        raise NotImplementedError("GCP service URL lookup not yet implemented")
+        """Query Cloud Run for the live service URL."""
+        try:
+            result = subprocess.run(
+                [
+                    "gcloud", "run", "services", "describe", self.SERVICE,
+                    "--region", self.REGION,
+                    "--format", "value(status.url)",
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            return result.stdout.strip() or None
+        except subprocess.CalledProcessError:
+            return None
 
     def health_check(self) -> bool:
-        # Implementation will call /health endpoint
-        raise NotImplementedError("GCP health check not yet implemented")
+        """GET /health on the live service and return True if 200."""
+        try:
+            import httpx
+            url = self.get_service_url()
+            if not url:
+                return False
+            response = httpx.get(f"{url}/health", timeout=10)
+            return response.status_code == 200
+        except Exception:
+            return False
 
 
 def get_deploy_target() -> DeployTarget:
