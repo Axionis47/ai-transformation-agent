@@ -1,4 +1,4 @@
-"""Judge client — LLM-as-Judge scoring via Anthropic API (evals only)."""
+"""Judge client — LLM-as-Judge scoring via Vertex AI Claude (evals only)."""
 
 from __future__ import annotations
 
@@ -11,24 +11,28 @@ import yaml
 
 logger = logging.getLogger(__name__)
 
-_MODEL = "claude-sonnet-4-20250514"
+_MODEL = "claude-opus-4-6"
 _MAX_TOKENS = 256
 _SCORE_PATTERN = re.compile(r"SCORE:\s*([1-5](?:\.\d+)?)")
 
 
 class JudgeClient:
-    """Score outputs against YAML rubrics using an LLM judge (Anthropic API)."""
+    """Score outputs against YAML rubrics using Claude on Vertex AI."""
 
     def __init__(self) -> None:
-        api_key = os.getenv("ANTHROPIC_API_KEY", "")
-        if not api_key:
-            logger.warning("JudgeClient: ANTHROPIC_API_KEY not set — scoring unavailable")
+        project_id = os.getenv("GCP_PROJECT_ID", "")
+        region = os.getenv("GCP_LOCATION", "us-east5")
+        if not project_id:
+            logger.warning("JudgeClient: GCP_PROJECT_ID not set — scoring unavailable")
             self._available = False
             self._client: Any = None
         else:
             try:
                 import anthropic  # noqa: PLC0415
-                self._client = anthropic.Anthropic(api_key=api_key)
+                self._client = anthropic.AnthropicVertex(
+                    project_id=project_id,
+                    region=region,
+                )
                 self._available = True
             except ImportError:
                 logger.warning("JudgeClient: anthropic package not installed — scoring unavailable")

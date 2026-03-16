@@ -43,7 +43,7 @@ class TestRubricYaml:
 # ── JudgeClient ────────────────────────────────────────────────────────────
 
 class TestJudgeClient:
-    def test_no_api_key_sets_unavailable(self) -> None:
+    def test_no_project_id_sets_unavailable(self) -> None:
         with patch.dict("os.environ", {}, clear=True):
             import importlib
             import evals.judge_client as jc_mod
@@ -51,7 +51,7 @@ class TestJudgeClient:
             client = jc_mod.JudgeClient()
         assert client._available is False
 
-    def test_score_returns_zero_without_api_key(self) -> None:
+    def test_score_returns_zero_without_project_id(self) -> None:
         with patch.dict("os.environ", {}, clear=True):
             from evals.judge_client import JudgeClient
             client = JudgeClient()
