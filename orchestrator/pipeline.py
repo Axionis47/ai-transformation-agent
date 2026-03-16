@@ -130,15 +130,53 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     state.rag_context = result
     _log_stage(logger, "RAG", "complete", elapsed_ms=int((time.time() - t) * 1000))
 
-    # Stages 5-7 placeholder: use analysis + report with compat structure
+    # Stage 5: Victory matching (deterministic — no model call)
+    industry = state.signals.get("industry", "unknown") if state.signals else "unknown"
+    scale = state.signals.get("scale", "unknown") if state.signals else "unknown"
+    maturity_label = state.maturity.get("composite_label", "") if state.maturity else ""
+    victory_list = match_victories(
+        signals_industry=industry, signals_scale=scale,
+        maturity_label=maturity_label, rag_results=state.rag_context or [],
+    )
+    state.victory_matches = [vm.model_dump() for vm in victory_list]
+    _log_stage(logger, "VICTORY_MATCHER", "complete", match_count=len(state.victory_matches))
+
+    # Stage 6: Use case generation
+    t = time.time()
+    _log_stage(logger, "USE_CASE_GENERATOR", "start", prompt_version="1.0")
+    result = _run_with_timeout(UseCaseGeneratorAgent(), {
+        "signals": state.signals, "maturity": state.maturity,
+        "victory_matches": state.victory_matches,
+    })
+    if isinstance(result, AgentError):
+        _log_stage(logger, "USE_CASE_GENERATOR", "error", code=result.code, message=result.message)
+        return _fail(state, result, start, logger)
+    validated = validate_use_cases(result)
+    if isinstance(validated, AgentError):
+        return _fail(state, validated, start, logger)
+    state.use_cases = [uc.model_dump() for uc in validated]
+    if not dry_run:
+        state.cost_usd += _COST_USE_CASE
+    _log_stage(logger, "USE_CASE_GENERATOR", "complete", elapsed_ms=int((time.time() - t) * 1000))
+
+    # Build analysis for backward compat with app.py
     state.analysis = {
         "maturity_score": state.maturity.get("composite_score") if state.maturity else None,
         "maturity_label": state.maturity.get("composite_label") if state.maturity else None,
         "dimensions": state.maturity.get("dimensions") if state.maturity else None,
+        "use_cases": state.use_cases,
     }
+
+    # Stage 7: Report generation
     t = time.time()
     _log_stage(logger, "REPORT_WRITER", "start", prompt_file="prompts/report_writer.md", prompt_version="1.0")
-    result = _run_with_timeout(ReportWriterAgent(), {"analysis": state.analysis})
+    result = _run_with_timeout(ReportWriterAgent(), {"analysis": {
+        "maturity_score": state.maturity.get("composite_score") if state.maturity else None,
+        "maturity_label": state.maturity.get("composite_label") if state.maturity else None,
+        "dimensions": state.maturity.get("dimensions") if state.maturity else None,
+        "signals": state.signals, "use_cases": state.use_cases,
+        "victory_matches": state.victory_matches,
+    }})
     if isinstance(result, AgentError):
         _log_stage(logger, "REPORT_WRITER", "error", code=result.code, message=result.message)
         return _fail(state, result, start, logger)
