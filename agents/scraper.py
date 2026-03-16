@@ -25,25 +25,24 @@ class ScraperAgent(BaseAgent):
     def _scrape_live(self, url: str) -> dict | AgentError:
         """Live scraping with httpx + BeautifulSoup."""
         import httpx
-        from bs4 import BeautifulSoup
 
         try:
             client = httpx.Client(timeout=10.0, follow_redirects=True)
             about_text = self._fetch_page(client, url, ["/about", "/about-us", "/company"])
             jobs_text = self._fetch_page(client, url, ["/careers", "/jobs", "/join-us"])
+            product_text = self._fetch_page(
+                client, url,
+                ["/product", "/products", "/platform", "/solutions",
+                 "/features", "/capabilities", "/technology"],
+            )
             client.close()
-
-            if len(about_text) < 200:
-                return AgentError(
-                    code="SCRAPE_THIN", message="About page too thin (<200 chars)",
-                    recoverable=True, agent_tag=self.agent_tag,
-                )
 
             return {
                 "url": url,
                 "name": url.split("//")[-1].split(".")[0].title(),
                 "about_text": about_text,
                 "job_postings": [jobs_text] if jobs_text else [],
+                "product_text": product_text,
                 "tech_stack_mentions": [],
                 "last_scraped": None,
             }
