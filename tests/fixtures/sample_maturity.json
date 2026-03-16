@@ -1,0 +1,27 @@
+{
+  "dimensions": {
+    "data_infrastructure": {
+      "score": 3.0,
+      "signals_used": ["sig-001", "sig-002", "sig-003", "sig-008"],
+      "rationale": "BigQuery data lake with Airflow orchestration and 50M+ daily events indicates mature data infrastructure. PostgreSQL and Redis provide operational data stores."
+    },
+    "ml_ai_capability": {
+      "score": 1.0,
+      "signals_used": ["sig-004"],
+      "rationale": "No ML or AI roles in current job postings. Data Engineer and Product Manager roles are data-aware but not ML-capable."
+    },
+    "strategy_intent": {
+      "score": 1.5,
+      "signals_used": [],
+      "rationale": "No explicit AI strategy or roadmap language detected. Company appears data-driven but has not articulated an AI investment direction."
+    },
+    "operational_readiness": {
+      "score": 3.0,
+      "signals_used": ["sig-005"],
+      "rationale": "Kubernetes infrastructure with CI/CD indicates cloud-native deployment capability suitable for model serving."
+    }
+  },
+  "composite_score": 2.0,
+  "composite_label": "Developing",
+  "composite_rationale": "CargoLogik scores 2.0 (Developing) with strong data infrastructure (BigQuery, Airflow, 50M daily events) and operational readiness (Kubernetes, CI/CD) but minimal ML capability (no ML roles) and limited strategic AI intent. The company has the data foundation for AI adoption but has not yet invested in ML talent or tooling."
+}
