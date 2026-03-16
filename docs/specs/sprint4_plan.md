@@ -1007,9 +1007,9 @@ Above 0.75: no indicator (confident recommendation).
 ### Execution Order
 
 ```
-DISC-39 [BE] Pydantic schema contracts + orchestrator validation gates  ← NEW, blocks all
+DISC-39 [BE] Pydantic schema contracts + tool registry + orchestrator validation gates  ← NEW, blocks all
     ↓
-DISC-40 [BE] Signal extractor agent + new pipeline state fields
+DISC-40 [BE] Signal extractor agent + scraper-to-tool refactor + new pipeline state fields
     ↓
 DISC-41 [BE] Maturity scorer refactor — signals in, scores out
     ↓
@@ -1040,9 +1040,19 @@ confidently wrong output.
 
 `orchestrator/schemas.py` — new file:
 - `Signal`, `SignalSet`, `DimensionScore`, `MaturityResult`, `VictoryMatch`, `DataFlow`, `UseCase`
-- All schemas as defined in the "AI Native Data Flow" section above
+- `ToolResult` — standard output contract for all tools (see Tool Registry section above)
+- All schemas as defined in the "AI Native Data Flow" and "Tool Registry" sections above
 - `model_config = ConfigDict(extra="forbid")` on every model — no silent extra fields
-- Typed literals for `type`, `source`, `match_tier`, `tier`, `effort`, `impact`
+- Typed literals for `type`, `source`, `match_tier`, `tier`, `effort`, `impact`, `source_type`
+
+`orchestrator/tool_registry.py` — new file:
+- `Tool` abstract base class with `tool_id: str` and `fetch(input_data: dict) -> ToolResult`
+- `ToolRegistry` class: `register()`, `get()`, `get_all()`, `list_ids()`
+- `WebsiteScraperTool` — implements `Tool`, wraps existing scraper logic
+  - `tool_id = "website_scraper"`
+  - `fetch()` returns `ToolResult` with `content` dict matching current `company_data` structure
+  - Dry-run: returns `ToolResult` built from `tests/fixtures/sample_company.json`
+- Bootstrap call at pipeline startup: `ToolRegistry.register(WebsiteScraperTool())`
 
 `orchestrator/validators.py` — new file:
 - `validate_signals(result: dict) -> SignalSet`
@@ -1070,24 +1080,32 @@ confidently wrong output.
   enforces first item is LOW_HANGING_FRUIT, `validate_victories` enforces confidence floors
 
 **done_when:**
-`tests/test_schemas.py` passes. `orchestrator/schemas.py` and `orchestrator/validators.py`
-exist and are importable. `from orchestrator.schemas import Signal, SignalSet,
-MaturityResult, VictoryMatch, UseCase` works without error. All existing tests green.
+`tests/test_schemas.py` passes. `orchestrator/schemas.py`, `orchestrator/validators.py`,
+and `orchestrator/tool_registry.py` exist and are importable. `from orchestrator.schemas
+import Signal, SignalSet, MaturityResult, VictoryMatch, UseCase, ToolResult` works without
+error. `from orchestrator.tool_registry import ToolRegistry, WebsiteScraperTool` works
+without error. All existing tests green.
 
 **Acceptance criteria:**
-- `orchestrator/schemas.py` exists with all 6 models
+- `orchestrator/schemas.py` exists with all 6 pipeline models plus `ToolResult`
 - All models use `extra="forbid"` — no silent extra fields
+- `orchestrator/tool_registry.py` exists with `Tool` ABC, `ToolRegistry`, `WebsiteScraperTool`
+- `WebsiteScraperTool.fetch()` returns `ToolResult` with same `content` structure as current `company_data`
+- `WebsiteScraperTool` dry-run mode returns `ToolResult` built from `tests/fixtures/sample_company.json`
 - `orchestrator/validators.py` exists with 5 validator functions
 - Retry pattern implemented: validator returns `(None, error_str)` on first fail,
   raises `AgentError` on second
 - `tests/test_schemas.py` covers: valid round-trip, extra field rejection,
-  business rule enforcement per validator
+  business rule enforcement per validator, `ToolResult` schema validation
+- `tests/test_tool_registry.py` covers: `WebsiteScraperTool.fetch()` returns correct `ToolResult` shape,
+  failed fetch returns `ToolResult(success=False)` not an exception, registry `get_all()` returns
+  registered tools, dry-run returns fixture data
 - `pydantic>=2.0` in requirements.txt
 - All existing tests green
 
 **Visible deliverable:**
-`pytest tests/test_schemas.py -q --tb=short` passes with all tests green.
-`python -c "from orchestrator.schemas import UseCase; print(UseCase.__fields__)"` prints
+`pytest tests/test_schemas.py tests/test_tool_registry.py -q --tb=short` passes with all tests green.
+`python -c "from orchestrator.schemas import UseCase, ToolResult; print(ToolResult.__fields__)"` prints
 the field list without error.
 
 **Test certification format:**
@@ -1095,24 +1113,40 @@ the field list without error.
 
 ---
 
-### DISC-40 — [BE] Signal Extractor Agent
+### DISC-40 — [BE] Signal Extractor Agent + Scraper-to-Tool Refactor
 
 **Priority:** P1 — foundation for every subsequent ticket  
 **Execute with:** Primary: backend  
 **Blocked by:** nothing
 
 **User story:**  
-As the pipeline, I need to pre-extract typed, discrete signals from raw scraped
-text before any analysis occurs, so downstream agents receive structured facts
-rather than a raw HTML dump.
+As the pipeline, I need to pre-extract typed, discrete signals from ALL raw tool
+outputs before any analysis occurs, so downstream agents receive structured facts
+regardless of which or how many data sources contributed — and so that adding a
+new data source in Sprint 5 requires zero changes to signal extraction or downstream agents.
 
 **What it builds:**
 
+`tools/website_scraper.py` — refactored from `agents/scraper.py`:
+- Implements `Tool` base class from `orchestrator/tool_registry.py`
+- `tool_id = "website_scraper"`
+- `fetch({"url": str}) -> ToolResult` — same scraping logic, new return type
+- `content` dict is identical to current `company_data`: `{about_text, job_postings, product_text, tech_mentions}`
+- Dry-run: returns `ToolResult` built from `tests/fixtures/sample_company.json`
+- Registered at pipeline startup: `ToolRegistry.register(WebsiteScraperTool())`
+
+`agents/scraper.py` — updated to thin wrapper:
+- `ScraperAgent.run()` now calls `WebsiteScraperTool.fetch()` internally
+- Public interface unchanged — backward compat for any existing test that calls ScraperAgent directly
+- Deprecation comment added: "Scraping logic has moved to tools/website_scraper.py"
+
 `agents/signal_extractor.py` — new agent:
-- Receives `company_data` dict
-- Calls `prompts/signal_extractor.md` with only the scraped content
-- Returns `list[dict]` of typed signals: `{ type, value, source, confidence }`
-- Signal types: `tech_stack`, `data_signals`, `ml_signals`, `intent_signals`, `ops_signals`, `industry_hint`, `scale_hint`
+- Receives `raw_sources: list[ToolResult]` (not `company_data: dict`)
+- Iterates over all `ToolResult` items, extracts signals from each `content` dict
+- Labels each signal's `source` field using the `ToolResult.source_type`
+- Calls `prompts/signal_extractor.md` with tool-sourced content clearly labeled
+- Returns `SignalSet` validated by `validate_signals`
+- Signal types: `tech_stack`, `data_signal`, `ml_signal`, `intent_signal`, `ops_signal`, `industry_hint`, `scale_hint`
 - Dry-run: returns signals from `tests/fixtures/sample_signals.json`
 
 `prompts/signal_extractor.md` — new prompt (v1.0):
@@ -1122,11 +1156,13 @@ rather than a raw HTML dump.
 - Explicit guard: "Do not invent signals. Only cite what appears verbatim in the input."
 
 `orchestrator/state.py` updated:
+- Add `raw_sources: list[dict] | None = None` field  ← new: holds ToolResult dicts from tool layer
 - Add `signals: list[dict] | None = None` field
 - Add `maturity: dict | None = None` field  
 - Add `victory_matches: list[dict] | None = None` field
 - Add `use_cases: list[dict] | None = None` field
 - Existing `rag_context` field kept for backward compatibility during Sprint 4
+- Existing `company_data` field kept for backward compatibility (tools populate raw_sources; company_data deprecated)
 
 `tests/fixtures/sample_signals.json` — new fixture:
 - 8–12 signals covering all types, based on the existing `sample_company.json` content
@@ -1134,17 +1170,21 @@ rather than a raw HTML dump.
 
 **done_when:**  
 Running `python orchestrator/pipeline.py --url https://example.com --dry-run` with
-DISC-40 integrated produces a `state.signals` list with at least 6 typed signals.
-All 55 existing tests still pass.
+DISC-40 integrated produces a `state.raw_sources` list with at least 1 `ToolResult`,
+and `state.signals` with at least 6 typed signals. All existing tests still pass.
 
 **Acceptance criteria:**
+- `tools/website_scraper.py` exists, implements `Tool`, `tool_id = "website_scraper"`
+- `WebsiteScraperTool.fetch()` returns `ToolResult` — does NOT raise on scrape failure
+- `agents/scraper.py` updated to thin wrapper calling `WebsiteScraperTool` — public interface unchanged
 - `agents/signal_extractor.py` exists, follows BaseAgent contract
+- `SignalExtractorAgent` receives `raw_sources: list[ToolResult]` not `company_data: dict`
 - Agent output conforms to `SignalSet` schema from `orchestrator/schemas.py` — validated by `validate_signals`
 - Every `Signal` in the output includes `signal_id` (e.g. "sig-001") and `raw_quote` (verbatim source text)
-- `prompts/signal_extractor.md` exists at version 1.0
-- `orchestrator/state.py` has the four new fields
+- `prompts/signal_extractor.md` exists at version 1.0 — prompt reads from labeled tool sources, not a flat dict
+- `orchestrator/state.py` has `raw_sources` and the four new pipeline state fields
 - `tests/fixtures/sample_signals.json` exists with 8+ signals, each with `signal_id` and `raw_quote`
-- `tests/test_signal_extractor.py` covers: correct types returned, no invented signals (input with no tech mentions returns zero tech_stack signals), dry-run uses fixture, `validate_signals` rejects output with < 3 signals
+- `tests/test_signal_extractor.py` covers: correct types returned, no invented signals (input with no tech mentions returns zero tech_stack signals), dry-run uses fixture, `validate_signals` rejects output with < 3 signals, agent handles `list[ToolResult]` input with 1 item and with 2+ items
 - All existing tests green
 
 **Visible deliverable:**  
@@ -1572,14 +1612,17 @@ Test 6 — Eval scores:
 | ConsultantAgent split into three specialized agents (SignalExtractor, MaturityScorer, UseCaseGenerator) | ADR-008 (new) |
 | VictoryMatcher uses relevance tiers (DIRECT/CALIBRATION/ADJACENT) not cosine rank alone | Covered by ADR-008 |
 | UseCaseGenerator uses gemini-2.5-pro; SignalExtractor and MaturityScorer use gemini-2.5-flash | Covered by ADR-004 update |
-| PipelineState extended with signals, maturity, victory_matches, use_cases fields | ADR-009 (new) |
+| PipelineState extended with raw_sources, signals, maturity, victory_matches, use_cases fields | ADR-009 (new) |
 | LOW/MEDIUM/HARD tier classification is a first-class output type and UI concept | ADR-009 |
+| Tool registry pattern: scraping is a tool concern, signal extraction is an agent concern | ADR-009 |
+| ScraperAgent logic extracted into WebsiteScraperTool; Tool/ToolRegistry as extensibility pattern | ADR-009 |
 
 PM to file ADR-008 and ADR-009 at sprint open, before DISC-39 execution begins.
 
-ADR-009 covers the Pydantic schema contract decision: all inter-agent data must
-flow through typed `orchestrator/schemas.py` models, validated by `orchestrator/validators.py`
-before promotion to pipeline state.
+ADR-009 covers the Pydantic schema contract decision (all inter-agent data flows through
+typed `orchestrator/schemas.py` models, validated by `orchestrator/validators.py`) AND
+the tool registry architecture decision (scraping is a tool concern; adding a new data
+source = adding a new tool, not changing the pipeline or any agents).
 
 ---
 
@@ -1589,12 +1632,85 @@ before promotion to pipeline state.
 - **Follow-up Q&A** — conversational flow deferred to Sprint 5.
 - **50-seed expansion** — 20 wins are sufficient to validate the tier system.
   After Sprint 4 proves the architecture, Sprint 5 can expand the victory set.
-- **Agent registry / config YAML** — the pipeline is not brittle enough to require
-  this before the demo. Sprint 5 if needed.
+- **Agent registry / config YAML** — agent configuration deferred. Sprint 5 if needed.
+  Note: `ToolRegistry` ships in Sprint 4 (DISC-39) — but this is a tool registry for
+  data-fetching tools, not an agent configuration system.
 - **Focus area text box** — useful but not blocking the tier feature. Sprint 5.
 - **Authentication** — ADR-002 defers auth to day-2. Not Sprint 4.
 
 ---
+
+---
+
+## Future Tools (Sprint 5+) — Zero Pipeline Changes Required
+
+The tool registry architecture means every one of these can be added independently,
+in any order, in any sprint. The only constraint: the tool must return a valid `ToolResult`.
+
+### Tool Catalog
+
+| Tool Class | tool_id | Source Type | Data It Fetches | Signals It Enriches |
+|------------|---------|-------------|-----------------|---------------------|
+| `JobBoardTool` | `job_board` | `job_board` | Active job listings from LinkedIn, Indeed, Greenhouse | `ml_signal` (ML Eng roles), `tech_stack` (tools in JDs), `scale_hint` (hiring velocity) |
+| `NewsSearchTool` | `news_search` | `news` | Recent press releases, funding announcements, product news | `intent_signal` (AI strategy language), `scale_hint` (funding = growth), `industry_hint` corroboration |
+| `TechDetectorTool` | `tech_detector` | `tech_detector` | BuiltWith data, public GitHub repos, API doc pages | `tech_stack` (confirmed stack vs claimed), `ops_signal` (CI/CD, cloud) |
+| `CompanyProfileTool` | `company_profile` | `company_profile` | Employee count, funding rounds, HQ, founded year | `scale_hint` (headcount), `industry_hint` (SIC classification), `intent_signal` (growth stage) |
+
+### Implementation Pattern for Each New Tool
+
+```python
+# tools/job_board_tool.py
+class JobBoardTool(Tool):
+    tool_id = "job_board"
+
+    def fetch(self, input_data: dict) -> ToolResult:
+        company_name = input_data.get("company_name", "")
+        url = input_data.get("url", "")
+        # fetch from LinkedIn/Indeed/Greenhouse API or scraping
+        # return ToolResult — never raise
+        try:
+            postings = self._fetch_postings(company_name)
+            return ToolResult(
+                tool_id=self.tool_id,
+                source_type="job_board",
+                content={"postings": postings, "total_count": len(postings)},
+                pages_fetched=[f"linkedin.com/jobs/{company_name}"],
+                fetch_timestamp=datetime.utcnow().isoformat(),
+                success=True,
+            )
+        except Exception as e:
+            return ToolResult(
+                tool_id=self.tool_id,
+                source_type="job_board",
+                content={},
+                pages_fetched=[],
+                fetch_timestamp=datetime.utcnow().isoformat(),
+                success=False,
+                error=str(e),
+            )
+```
+
+Then in pipeline startup:
+```python
+ToolRegistry.register(WebsiteScraperTool())
+ToolRegistry.register(JobBoardTool())   # Sprint 5: add this line
+# everything else — unchanged
+```
+
+### Signal Coverage Improvement by Tool
+
+Each new tool narrows specific uncertainty gaps:
+
+| Gap | Tool That Closes It |
+|-----|---------------------|
+| Tech stack claimed vs used | `TechDetectorTool` (BuiltWith vs website copy) |
+| ML hiring velocity | `JobBoardTool` (active roles count vs single mention) |
+| Scale: headcount is ambiguous from website | `CompanyProfileTool` (exact employee range) |
+| Intent: website copy vs actual news | `NewsSearchTool` (press release language is harder to fake) |
+| Industry classification confidence | `CompanyProfileTool` (SIC code or NAICS vs inference) |
+
+The signal extractor prompt is updated once per new tool type (to interpret that source's
+`content` structure). No other agent changes. No pipeline changes. No schema changes.
 
 ## Sprint 4 Definition of Done
 
