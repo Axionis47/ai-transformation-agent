@@ -1,0 +1,41 @@
+name: tier_classification
+version: "1.0"
+description: >
+  Evaluates whether the LOW_HANGING_FRUIT / MEDIUM_SOLUTION / HARD_EXPERIMENT
+  tier assignment matches the company's maturity score and evidence signals.
+
+scoring:
+  scale: 1-5
+  anchors:
+    1: Tier contradicts maturity score (e.g., HARD_EXPERIMENT for score >= 4.0)
+    2: Plausible tier but unsupported by any evidence signal
+    3: Matches maturity score range but evidence grounding is weak or absent
+    4: Appropriate tier supported by at least one cited evidence signal
+    5: Strongly justified by maturity score AND multiple evidence signals with clear rationale
+
+judge_prompt_template: |
+  You are an expert AI transformation consultant evaluating use case tier classification.
+
+  MATURITY CONTEXT:
+  - Composite score: {composite_score} / 5.0
+  - Composite label: {composite_label}
+
+  USE CASE TIER: {tier}
+
+  EVIDENCE SIGNAL IDs CITED: {evidence_signal_ids}
+  SIGNALS SUMMARY: {signals_summary}
+
+  SCORING RUBRIC:
+  1 = Tier contradicts maturity score (e.g., HARD_EXPERIMENT for a company scoring >= 4.0)
+  2 = Plausible tier but unsupported by any evidence signal
+  3 = Matches maturity score range but evidence grounding is weak
+  4 = Appropriate tier supported by at least one cited evidence signal
+  5 = Strongly justified by maturity score AND multiple evidence signals with clear rationale
+
+  Tier guidance:
+  - LOW_HANGING_FRUIT: composite_score 0-2.5, minimal change management needed
+  - MEDIUM_SOLUTION:   composite_score 2.0-3.5, some process change required
+  - HARD_EXPERIMENT:   composite_score 3.0-5.0, significant capability investment needed
+
+  Respond with exactly one line: SCORE: <integer 1-5>
+  Then provide a brief rationale (2-3 sentences).

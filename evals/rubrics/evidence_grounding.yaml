@@ -1,0 +1,35 @@
+name: evidence_grounding
+version: "1.0"
+description: >
+  Evaluates whether each use case's evidence_signal_ids actually support
+  the claims made in the use case description.
+
+scoring:
+  scale: 1-5
+  anchors:
+    1: No signal IDs cited or all cited signals are unrelated to the use case claims
+    2: Signal IDs are cited but the claims are not supported by their content
+    3: Some signals support claims but notable gaps exist between signals and assertions
+    4: Most claims trace to specific signals with clear logical connection
+    5: Every claim traces to a specific signal with matching raw_quote evidence
+
+judge_prompt_template: |
+  You are an expert AI transformation consultant evaluating evidence grounding quality.
+
+  USE CASE TITLE: {title}
+  USE CASE DESCRIPTION: {description}
+
+  EVIDENCE SIGNAL IDs CITED: {evidence_signal_ids}
+  SIGNALS SUMMARY: {signals_summary}
+
+  WHY THIS COMPANY: {why_this_company}
+
+  SCORING RUBRIC:
+  1 = No signal IDs cited or all cited signals are unrelated to the use case claims
+  2 = Signal IDs are cited but the claims are not supported by their content
+  3 = Some signals support claims but notable gaps exist
+  4 = Most claims trace to specific signals with clear logical connection
+  5 = Every claim traces to a specific signal with a matching raw_quote
+
+  Respond with exactly one line: SCORE: <integer 1-5>
+  Then provide a brief rationale (2-3 sentences).

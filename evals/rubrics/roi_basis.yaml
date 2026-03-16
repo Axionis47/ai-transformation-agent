@@ -1,0 +1,39 @@
+name: roi_basis
+version: "1.0"
+description: >
+  Evaluates whether roi_basis cites a specific win_id from the victory matches,
+  includes gap analysis, and makes quantified claims.
+
+scoring:
+  scale: 1-5
+  anchors:
+    1: No win citation and generic or absent language (e.g., "typical ROI improvement")
+    2: A win or benchmark is mentioned by description but no specific win_id or numbers
+    3: A win is cited with some quantification but no gap analysis
+    4: A specific win_id is cited and gap analysis is referenced
+    5: Specific win_id cited, gap analysis present, and at least one quantified number given
+
+judge_prompt_template: |
+  You are an expert AI transformation consultant evaluating ROI basis quality.
+
+  USE CASE TITLE: {title}
+  ROI ESTIMATE: {roi_estimate}
+  ROI BASIS: {roi_basis}
+
+  VICTORY MATCHES AVAILABLE: {victory_matches_summary}
+
+  SCORING RUBRIC:
+  1 = No win citation, generic language with no numbers or benchmarks
+  2 = A win mentioned by description but no specific win_id or quantified numbers
+  3 = A win cited with some quantification but no gap analysis
+  4 = A specific win_id is cited and gap analysis is referenced
+  5 = Specific win_id cited, gap analysis present, and at least one quantified number given
+
+  Quality signals to look for in roi_basis:
+  - References a win_id (e.g., "win-001")
+  - Includes specific percentages, dollar amounts, or time savings
+  - Mentions gap analysis (e.g., "given current maturity gap")
+  - Distinguishes client-specific context from benchmark
+
+  Respond with exactly one line: SCORE: <integer 1-5>
+  Then provide a brief rationale (2-3 sentences).
