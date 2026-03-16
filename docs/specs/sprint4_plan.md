@@ -66,6 +66,13 @@ class VictoryMatch(BaseModel):
     similarity_score: float
     confidence: float       # floor set by match_tier (0.75 / 0.55 / 0.40)
 
+class DataFlow(BaseModel):
+    data_inputs: list[str]      # "TMS shipment history (18 months)", "GPS telemetry (needed)"
+    model_approach: str          # "XGBoost regression for route scoring"
+    output_consumer: str         # "Dispatchers via TMS planning interface"
+    feedback_loop: str           # "Weekly retraining on actual vs predicted delivery outcomes"
+    value_measurement: str       # "Monthly fuel cost vs prior year baseline"
+
 class UseCase(BaseModel):
     tier: Literal["LOW_HANGING_FRUIT", "MEDIUM_SOLUTION", "HARD_EXPERIMENT"]
     title: str
@@ -78,6 +85,7 @@ class UseCase(BaseModel):
     rag_benchmark: str | None  # win_id or None for HARD_EXPERIMENT
     confidence: float
     why_this_company: str   # specific to this company — not a generic statement
+    data_flow: DataFlow          # AI native data flow — maps client's existing systems to solution
 ```
 
 **Why `signal_id` matters:**
@@ -182,7 +190,7 @@ section outputs internally consistent.
 | DISC-40 | Returns `SignalSet`. Each signal includes `signal_id` and `raw_quote`.        |
 | DISC-41 | Returns `MaturityResult`. `signals_used` per dimension are signal IDs.        |
 | DISC-42 | Returns `list[VictoryMatch]`. `match_tier` required on every record.          |
-| DISC-43 | Returns `list[UseCase]`. `evidence_signal_ids` and `why_this_company` required.|
+| DISC-43 | Returns `list[UseCase]`. `evidence_signal_ids`, `why_this_company`, and `data_flow` required on every item.|
 | DISC-44 | Report writer receives section-scoped context dict. One key per report section.|
 
 DISC-39 must complete before DISC-40 begins. All tickets use the types defined
@@ -814,7 +822,7 @@ confidently wrong output.
 **What it builds:**
 
 `orchestrator/schemas.py` — new file:
-- `Signal`, `SignalSet`, `DimensionScore`, `MaturityResult`, `VictoryMatch`, `UseCase`
+- `Signal`, `SignalSet`, `DimensionScore`, `MaturityResult`, `VictoryMatch`, `DataFlow`, `UseCase`
 - All schemas as defined in the "AI Native Data Flow" section above
 - `model_config = ConfigDict(extra="forbid")` on every model — no silent extra fields
 - Typed literals for `type`, `source`, `match_tier`, `tier`, `effort`, `impact`
@@ -1070,7 +1078,13 @@ the right moment in the discussion.
 - Receives `signals`, `maturity`, `victory_matches`
 - Calls `prompts/use_case_generator.md` with gemini-2.5-pro
 - Returns `use_cases: list[dict]` with tier, title, description, evidence, effort, impact,
-  roi_estimate, roi_basis, rag_benchmark, confidence
+  roi_estimate, roi_basis, rag_benchmark, confidence, data_flow
+- `data_flow` maps client's EXISTING systems to the proposed AI solution:
+  - `data_inputs`: list the client's named data sources from signals (not generic labels)
+  - `model_approach`: concrete approach drawn from victory tech_stack or industry pattern
+  - `output_consumer`: the specific role (not department) that uses the output and how
+  - `feedback_loop`: mechanism by which the model improves post-deployment
+  - `value_measurement`: specific metric, measurement cadence, and baseline comparison
 - First use case is always LOW_HANGING_FRUIT (orchestrator enforces if model doesn't)
 - Minimum 2, maximum 5 use cases
 - Dry-run: returns from `tests/fixtures/sample_use_cases.json`
@@ -1083,6 +1097,42 @@ the right moment in the discussion.
   MEDIUM_SOLUTION must cite a win_id or state calibration basis.
   HARD_EXPERIMENT may cite an ADJACENT_MATCH or state 'no direct match — signal basis.'"
 - Guard: "Do not assign LOW_HANGING_FRUIT if no DIRECT_MATCH victory exists for this use case."
+
+**Data flow generation rules (for the prompt):**
+
+The prompt must instruct the model to construct `data_flow` as follows:
+
+1. `data_inputs` — map the client's EXISTING data assets from signals to model inputs.
+   Use the exact values from `tech_stack` and `data_signals` signal types.
+   Label each input as "(exists)" if confirmed by a signal or "(needed)" if required but
+   not evidenced. Example: "Snowflake shipment history (exists)", "GPS telemetry (needed)".
+
+2. `model_approach` — specify a concrete model type, not a generic category.
+   For LOW_HANGING_FRUIT: use the DIRECT_MATCH victory's `tech_stack.ml_approach` directly.
+   For MEDIUM_SOLUTION: adapt the CALIBRATION_MATCH victory's `tech_stack.ml_approach`
+     and note the adaptation (e.g., "scaled from enterprise XGBoost implementation").
+   For HARD_EXPERIMENT: propose an approach based on ADJACENT_MATCH pattern or
+     industry standard for this use case type; prefix with "proposed: ".
+
+3. `output_consumer` — name the specific ROLE (not department) that uses the output,
+   and the delivery mechanism. Reference the victory record's `client_systems_integrated`
+   for the delivery interface when available.
+   Example: "Procurement manager via TMS carrier selection screen" not "procurement team".
+
+4. `feedback_loop` — describe the mechanism by which the model learns from deployment.
+   Must include: what data is logged, at what cadence, and what triggers retraining.
+   For LOW_HANGING_FRUIT: use the victory's documented feedback pattern.
+   For HARD_EXPERIMENT: state the proposed feedback mechanism explicitly.
+
+5. `value_measurement` — state the specific metric, measurement period, and baseline.
+   Must be measurable by the client's existing reporting (or state what reporting is needed).
+   Example: "Late delivery rate measured monthly vs prior year baseline; alert if < 8% improvement."
+
+**Victory data connection:**
+- `tech_stack.data_sources` from the matched victory → `data_flow.data_inputs` (PROVEN/ACHIEVABLE)
+- `tech_stack.ml_approach` from the matched victory → `data_flow.model_approach` (PROVEN/ACHIEVABLE)
+- `tech_stack.client_systems_integrated` from the matched victory → informs `data_flow.output_consumer`
+- For FRONTIER: use ADJACENT_MATCH tech_stack as a pattern reference, not a blueprint
 
 `agents/consultant.py` retired:
 - Sprint 4 replaces consultant.py with three specialized agents
@@ -1109,11 +1159,14 @@ on LOW_HANGING_FRUIT items is non-null. All existing tests green.
 - `agents/use_case_generator.py` exists, follows BaseAgent contract
 - Agent output conforms to `list[UseCase]` schema — validated by `validate_use_cases`
 - Every `UseCase` includes `evidence_signal_ids` (signal_ids from the input SignalSet) and `why_this_company` (non-generic, company-specific sentence)
+- Every `UseCase` includes a `data_flow` field with all 5 sub-fields populated (non-empty strings)
+- LOW_HANGING_FRUIT use cases: `data_flow.model_approach` traces to the DIRECT_MATCH victory's `tech_stack.ml_approach`
+- FRONTIER use cases: `data_flow.model_approach` is prefixed with "proposed: " — never stated as confirmed
 - `prompts/use_case_generator.md` exists at v1.0
 - `orchestrator/pipeline.py` calls the 8-step sequence (Scrape → Gate → Extract → Score → Match → Generate → Write Report — DISC-39 gate added)
 - `state.use_cases` populated with typed `UseCase` objects
 - `agents/consultant.py` has deprecation comment (not deleted — backward compat)
-- `tests/test_use_case_generator.py` covers: tier assignment logic, LOW_HANGING_FRUIT requires DIRECT_MATCH, HARD_EXPERIMENT confidence floor, ordering rule, `evidence_signal_ids` traceable to input signals
+- `tests/test_use_case_generator.py` covers: tier assignment logic, LOW_HANGING_FRUIT requires DIRECT_MATCH, HARD_EXPERIMENT confidence floor, ordering rule, `evidence_signal_ids` traceable to input signals, `data_flow` present on all use cases, FRONTIER data_flow.model_approach prefixed with "proposed: "
 - All existing tests green, dry-run completes in < 2 seconds
 
 **Visible deliverable:**  
