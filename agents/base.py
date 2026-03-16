@@ -31,10 +31,10 @@ class BaseAgent(ABC):
     def dry_run(self) -> bool:
         return os.getenv("DRY_RUN", "").lower() in ("true", "1", "yes")
 
-    def run(self, state: Any) -> Any | AgentError:
+    def run(self, input_data: dict) -> Any | AgentError:
         """Execute the agent safely. Never raises — returns AgentError on failure."""
         try:
-            return self._run(state)
+            return self._run(input_data)
         except Exception as exc:
             return AgentError(
                 code="UNHANDLED_EXCEPTION",
@@ -44,6 +44,6 @@ class BaseAgent(ABC):
             )
 
     @abstractmethod
-    def _run(self, state: Any) -> Any:
-        """Implement agent logic. May raise — base class catches it."""
+    def _run(self, input_data: dict) -> Any:
+        """Implement agent logic. Receives a plain dict, returns a plain dict."""
         ...
