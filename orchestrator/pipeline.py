@@ -65,6 +65,39 @@ def _fail(state: PipelineState, error: AgentError, start: float,
     return state
 
 
+def _parallel_report_sections(
+    analysis: dict, logger: PipelineLogger
+) -> dict | AgentError:
+    """Generate all 5 report sections concurrently (max 3 workers).
+
+    Returns a dict of section_name -> content.
+    If any section fails, that key is set to None.
+    Falls back to single-call ReportWriterAgent on unexpected executor error.
+    """
+    agent = ReportWriterAgent()
+
+    def _generate(section: str) -> tuple[str, str | None]:
+        result = agent.generate_section(section, analysis)
+        if isinstance(result, AgentError):
+            logger.log("REPORT_WRITER", "section_error",
+                       section=section, code=result.code, message=result.message)
+            return section, None
+        return section, result
+
+    try:
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            futures = {pool.submit(_generate, s): s for s in _REPORT_SECTIONS}
+            report: dict = {}
+            for future in futures:
+                section_name, content = future.result(timeout=_STAGE_TIMEOUT_S)
+                report[section_name] = content
+    except Exception as exc:  # unexpected executor failure — fall back
+        logger.log("REPORT_WRITER", "parallel_fallback", reason=str(exc))
+        return _run_with_timeout(ReportWriterAgent(), {"analysis": analysis})
+
+    return report
+
+
 def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     """Execute the 7-stage AI transformation pipeline."""
     os.environ["DRY_RUN"] = "true" if dry_run else "false"
@@ -190,23 +223,26 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
         "use_cases": state.use_cases,
     }
 
-    # Stage 7: Report generation
+    # Stage 7: Report generation — parallel section writes
     t = time.time()
-    logger.log_agent_call("REPORT_WRITER", prompt_file="prompts/report_writer.md", prompt_version="1.0",
-                          input_summary=report_writer_input(_REPORT_SECTIONS))
-    result = _run_with_timeout(ReportWriterAgent(), {"analysis": {
+    logger.log("REPORT_WRITER", "report_parallel_start", sections=_REPORT_SECTIONS)
+    analysis_payload = {
         "maturity_score": (state.maturity or {}).get("composite_score"),
         "maturity_label": (state.maturity or {}).get("composite_label"),
         "dimensions": (state.maturity or {}).get("dimensions"),
         "signals": state.signals, "use_cases": state.use_cases,
         "victory_matches": state.victory_matches,
-    }})
-    if isinstance(result, AgentError):
-        _log_stage(logger, "REPORT_WRITER", "error", code=result.code, message=result.message)
-        return _fail(state, result, start, logger)
-    state.report = result
+    }
+    report = _parallel_report_sections(analysis_payload, logger)
+    if isinstance(report, AgentError):
+        _log_stage(logger, "REPORT_WRITER", "error", code=report.code, message=report.message)
+        return _fail(state, report, start, logger)
+    state.report = report
     if not dry_run:
         state.cost_usd += _COST_REPORT
+    elapsed_report = round(time.time() - t, 2)
+    logger.log("REPORT_WRITER", "report_parallel_complete",
+               elapsed_seconds=elapsed_report, sections_ok=list(report.keys()))
     logger.log_agent_call("REPORT_WRITER", result=True, start_time=t,
                           prompt_file="prompts/report_writer.md", prompt_version="1.0",
                           output_summary=report_writer_output(state.report, _REPORT_SECTIONS))
