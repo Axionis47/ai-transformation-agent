@@ -12,6 +12,7 @@ import ErrorMessage from "@/components/ErrorMessage";
 import URLInputForm from "@/components/URLInputForm";
 import UseCaseTierSection from "@/components/UseCaseTierSection";
 import TracePanel from "@/components/TracePanel";
+import ReportNav from "@/components/ReportNav";
 
 function buildDimensions(data: AnalyzeSuccess): Record<string, number> | undefined {
   if (data.maturity?.dimensions) {
@@ -139,7 +140,8 @@ export default function AnalyzeForm() {
 
       {state.phase === "success" && (
         <div className="space-y-6">
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <ReportNav />
             <button
               onClick={() => setState({ phase: "idle" })}
               className="neo-flat px-5 py-2 text-xs font-medium text-gray-500 rounded-xl transition-all hover:text-gray-700 active:shadow-neo-btn-pressed focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4f6df5]"
@@ -155,22 +157,39 @@ export default function AnalyzeForm() {
             dimensions={buildDimensions(state.data)}
           />
           <ReportCard
+            id="section-exec-summary"
             title="Executive Summary"
             content={state.data.report.exec_summary}
             wins={state.data.victory_matches}
           />
-          <ReportCard title="Current State" content={state.data.report.current_state} />
+          <ReportCard
+            id="section-current-state"
+            title="Current State"
+            content={state.data.report.current_state}
+          />
           {state.data.use_cases && state.data.use_cases.length > 0 ? (
-            <UseCaseTierSection useCases={state.data.use_cases} />
+            <UseCaseTierSection
+              id="section-use-cases"
+              useCases={state.data.use_cases}
+            />
           ) : (
             <ReportCard
+              id="section-use-cases"
               title="AI Use Cases"
               content={state.data.report.use_cases}
               wins={state.data.victory_matches}
             />
           )}
-          <ReportCard title="ROI Analysis" content={state.data.report.roi_analysis} />
-          <ReportCard title="Transformation Roadmap" content={state.data.report.roadmap} />
+          <ReportCard
+            id="section-roi"
+            title="ROI Analysis"
+            content={state.data.report.roi_analysis}
+          />
+          <ReportCard
+            id="section-roadmap"
+            title="Transformation Roadmap"
+            content={state.data.report.roadmap}
+          />
           <TracePanel runId={state.data.run_id} />
         </div>
       )}
