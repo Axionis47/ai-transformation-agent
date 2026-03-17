@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import type { PageState, AnalyzeSuccess } from "@/lib/types";
 import { parseApiError } from "@/lib/types";
+import { saveAnalysis, getHistory } from "@/lib/history";
+import type { HistoryEntry } from "@/lib/history";
 import ReportCard from "@/components/ReportCard";
 import MaturityBadge from "@/components/MaturityBadge";
 import PipelineProgress from "@/components/PipelineProgress";
@@ -10,17 +12,6 @@ import ErrorMessage from "@/components/ErrorMessage";
 import URLInputForm from "@/components/URLInputForm";
 import UseCaseTierSection from "@/components/UseCaseTierSection";
 import TracePanel from "@/components/TracePanel";
-
-async function runAnalysis(url: string, dryRun: boolean): Promise<{ ok: boolean; body: unknown }> {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-  const res = await fetch(`${apiBase}/v1/analyze`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url, dry_run: dryRun }),
-  });
-  const body = await res.json();
-  return { ok: res.ok, body };
-}
 
 function buildDimensions(data: AnalyzeSuccess): Record<string, number> | undefined {
   if (data.maturity?.dimensions) {
@@ -33,12 +24,34 @@ function buildDimensions(data: AnalyzeSuccess): Record<string, number> | undefin
 
 export default function AnalyzeForm() {
   const [state, setState] = useState<PageState>({ phase: "idle" });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_history, setHistory] = useState<HistoryEntry[]>([]);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    setHistory(getHistory());
+  }, []);
+
+  const handleCancel = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setState({ phase: "idle" });
+  }, []);
 
   async function handleSubmit(url: string, dryRun: boolean) {
+    const controller = new AbortController();
+    abortRef.current = controller;
     setState({ phase: "loading" });
     try {
-      const { ok, body } = await runAnalysis(url, dryRun);
-      if (!ok) {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+      const res = await fetch(`${apiBase}/v1/analyze`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url, dry_run: dryRun }),
+        signal: controller.signal,
+      });
+      const body = await res.json();
+      if (!res.ok) {
         setState({ phase: "error", message: parseApiError(body) });
         return;
       }
@@ -47,8 +60,15 @@ export default function AnalyzeForm() {
         setState({ phase: "error", message: parseApiError(body) });
         return;
       }
-      setState({ phase: "success", data: body as AnalyzeSuccess });
-    } catch {
+      const result = body as AnalyzeSuccess;
+      saveAnalysis(url, result);
+      setHistory(getHistory());
+      setState({ phase: "success", data: result });
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        setState({ phase: "idle" });
+        return;
+      }
       setState({ phase: "error", message: "Could not reach the analysis server. Is it running?" });
     }
   }
@@ -56,7 +76,7 @@ export default function AnalyzeForm() {
   return (
     <div className="space-y-8">
       <URLInputForm onSubmit={handleSubmit} isLoading={state.phase === "loading"} />
-      {state.phase === "loading" && <PipelineProgress />}
+      {state.phase === "loading" && <PipelineProgress onCancel={handleCancel} />}
       {state.phase === "error" && (
         <ErrorMessage message={state.message} onReset={() => setState({ phase: "idle" })} />
       )}
