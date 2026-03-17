@@ -42,20 +42,22 @@ export default function MaturityBadge({
   dimensions,
 }: MaturityBadgeProps) {
   return (
-    <div className="neo-raised p-6 space-y-4">
+    <div className="neo-raised p-5 space-y-4">
       <div className="flex flex-wrap items-center gap-6">
         {score !== undefined ? (
           <div className="flex flex-col items-center">
-            <span className={`text-4xl font-bold px-4 py-2 rounded-neo-sm ${scoreColor(score)}`}>
+            <span className={`text-3xl font-bold px-3 py-1.5 rounded-neo-sm ${scoreColor(score)}`}>
               {score.toFixed(1)}
-              <span className="text-lg font-normal text-gray-400">/5</span>
+              <span className="text-base font-normal text-gray-400">/5</span>
             </span>
-            {label && <span className="mt-2 text-sm font-medium text-gray-600">{label}</span>}
+            {label && (
+              <span className="mt-1.5 text-sm font-medium text-gray-700">{label}</span>
+            )}
             <span className="text-xs text-gray-400 mt-0.5">Maturity Score</span>
           </div>
         ) : (
           <div className="flex flex-col items-center">
-            <span className="text-xl font-semibold text-green-700 bg-green-50 px-4 py-2 rounded-neo-sm">
+            <span className="text-lg font-semibold text-green-700 bg-green-50 px-3 py-1.5 rounded-neo-sm">
               Analysis Complete
             </span>
           </div>
@@ -63,13 +65,13 @@ export default function MaturityBadge({
         <div className="flex gap-6 ml-auto text-sm text-gray-500">
           {elapsedSeconds !== undefined && (
             <div className="flex flex-col items-end">
-              <span className="text-lg font-semibold text-gray-700">{elapsedSeconds.toFixed(1)}s</span>
+              <span className="text-base font-semibold text-gray-700">{elapsedSeconds.toFixed(1)}s</span>
               <span className="text-xs">elapsed</span>
             </div>
           )}
           {costUsd !== undefined && (
             <div className="flex flex-col items-end">
-              <span className="text-lg font-semibold text-gray-700">${costUsd.toFixed(4)}</span>
+              <span className="text-base font-semibold text-gray-700">${costUsd.toFixed(4)}</span>
               <span className="text-xs">cost</span>
             </div>
           )}
