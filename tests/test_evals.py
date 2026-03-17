@@ -142,10 +142,10 @@ class TestSprint6Baseline:
 # ── ci_eval _SPRINT constant ────────────────────────────────────────────────
 
 class TestCiEvalSprint:
-    def test_sprint_constant_is_sprint_6(self) -> None:
+    def test_sprint_constant_is_sprint_7(self) -> None:
         import importlib
         import evals.ci_eval as ci_mod
         importlib.reload(ci_mod)
-        assert ci_mod._SPRINT == "sprint_6", (
-            f"_SPRINT should be 'sprint_6', got {ci_mod._SPRINT!r}"
+        assert ci_mod._SPRINT == "sprint_7", (
+            f"_SPRINT should be 'sprint_7', got {ci_mod._SPRINT!r}"
         )
