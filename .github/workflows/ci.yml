@@ -1,0 +1,79 @@
+name: CI — Tests & Eval Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Tests & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt ruff
+
+      - name: Lint with ruff
+        run: ruff check . --select E,F,W --ignore E501
+
+      - name: Run tests
+        env:
+          DRY_RUN: "true"
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: python -m pytest tests/ -q --tb=short
+
+  eval-gate:
+    name: Eval Regression Gate
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Run eval baseline
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_LOCATION: us-central1
+        run: python evals/ci_eval.py
+
+      - name: Check for regressions
+        run: |
+          python -c "
+          import json, sys
+          data = json.load(open('evals/baselines.json'))
+          s6 = data.get('sprint_6', {}).get('averages', {})
+          s7 = data.get('sprint_7', data.get('sprint_6', {})).get('averages', {})
+          dims = ['tier_classification', 'evidence_grounding', 'roi_basis']
+          failed = []
+          for d in dims:
+              floor = s6.get(d, 0.0)
+              current = s7.get(d, 0.0)
+              if current < floor - 0.1:
+                  failed.append(f'{d}: {current} < floor {floor}')
+          if failed:
+              print('Eval regression detected:')
+              for f in failed:
+                  print(f'  {f}')
+              sys.exit(1)
+          print('All eval dimensions at or above Sprint 6 floor.')
+          "
