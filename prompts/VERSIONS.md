@@ -27,7 +27,8 @@ PM owns this file. Update at every prompt version bump.
 
 | Version | Date | Description | ADR |
 |---------|------|-------------|-----|
-| 1.0 | 2026-03-16 | Initial prompt. Extraction-only agent: seven signal types, confidence bands, verbatim raw_quote rule, no scoring or analysis, industry/scale always required. | — |
+| 1.0 | 2026-03-16 | Initial prompt. Extraction-only agent: seven signal types, confidence bands, verbatim raw_quote rule, no scoring or analysis, industry/scale always required. | -- |
+| 1.1 | 2026-03-17 | Added process_signal, hiring_signal, pain_point extraction rules; clarified intent_signal triggers. | -- |
 
 ## maturity_scorer.md
 
