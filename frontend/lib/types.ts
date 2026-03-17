@@ -53,21 +53,14 @@ export interface TieredUseCase {
 
 export interface VictoryMatch {
   win_id: string;
-  id?: string;
   engagement_title: string;
   match_tier: "DIRECT_MATCH" | "CALIBRATION_MATCH" | "ADJACENT_MATCH";
-  relevance_note?: string;
+  relevance_note: string;
   roi_benchmark: string;
   industry: string;
-  similarity_score?: number;
+  similarity_score: number;
   confidence: number;
-  size_label?: string;
-  primary_metric_label?: string;
-  primary_metric_value?: string;
-  measurement_period?: string;
-  duration_months?: number;
-  maturity_at_engagement?: string;
-  embed_text?: string;
+  gap_analysis?: string;
 }
 
 export interface ReportSections {
@@ -84,22 +77,31 @@ export interface AnalyzeSuccess {
   elapsed_seconds: number;
   cost_usd: number;
   report: ReportSections;
+  maturity: MaturityResult;
+  signals?: SignalSet;
+  victory_matches?: VictoryMatch[];
+  use_cases?: TieredUseCase[];
+  // backward compat — present in older responses
   analysis?: {
     maturity_score?: number;
     maturity_label?: string;
-    dimensions?: {
-      data_infrastructure?: number;
-      ml_ai_capability?: number;
-      strategy_intent?: number;
-      operational_readiness?: number;
-    };
-    [key: string]: unknown;
+    dimensions?: Record<string, unknown>;
+    use_cases?: unknown[];
   };
   rag_context?: VictoryMatch[];
-  signals?: SignalSet;
-  maturity?: MaturityResult;
-  victory_matches?: VictoryMatch[];
-  use_cases?: TieredUseCase[];
+  pages_fetched?: string[];
+  signal_count?: number;
+}
+
+// Backend wraps errors as: { "detail": { "error": { code, message, agent } } }
+export interface AnalyzeErrorBody {
+  detail: {
+    error: {
+      code: string;
+      message: string;
+      agent: string;
+    };
+  };
 }
 
 export interface AnalyzeError {
@@ -128,3 +130,33 @@ export const ERROR_CODE_MAP: Record<string, string> = {
   REPORT_ERROR: "Report generation failed. Please retry.",
   UNKNOWN: "An unexpected error occurred. Please retry.",
 };
+
+/**
+ * Parse an error response from the backend.
+ * Backend sends 422/500 with body: { detail: { error: { code, message, agent } } }
+ * Falls back gracefully if the shape is unexpected.
+ */
+export function parseApiError(body: unknown): string {
+  if (body && typeof body === "object") {
+    const b = body as Record<string, unknown>;
+    // Structured error: { detail: { error: { code, message } } }
+    const detail = b["detail"];
+    if (detail && typeof detail === "object") {
+      const d = detail as Record<string, unknown>;
+      const err = d["error"];
+      if (err && typeof err === "object") {
+        const e = err as Record<string, unknown>;
+        const code = typeof e["code"] === "string" ? e["code"] : "UNKNOWN";
+        return ERROR_CODE_MAP[code] ?? String(e["message"] ?? "Unknown error.");
+      }
+    }
+    // Flat error: { status: "failed", error: { code } }
+    const err = b["error"];
+    if (err && typeof err === "object") {
+      const e = err as Record<string, unknown>;
+      const code = typeof e["code"] === "string" ? e["code"] : "UNKNOWN";
+      return ERROR_CODE_MAP[code] ?? String(e["message"] ?? "Unknown error.");
+    }
+  }
+  return ERROR_CODE_MAP["UNKNOWN"];
+}
