@@ -17,10 +17,17 @@ export default function URLInputForm({ onSubmit, isLoading }: URLInputFormProps)
     onSubmit(url.trim(), dryRun);
   }
 
+  const canSubmit = !isLoading && url.trim().length > 0;
+
   return (
     <form onSubmit={handleSubmit} className="neo-raised p-6 space-y-4">
+      {/* URL input */}
       <div>
-        <label htmlFor="url" className="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          htmlFor="url"
+          className="block text-sm font-semibold mb-2"
+          style={{ color: "#1e2433" }}
+        >
           Company URL
         </label>
         <input
@@ -31,30 +38,36 @@ export default function URLInputForm({ onSubmit, isLoading }: URLInputFormProps)
           onChange={(e) => setUrl(e.target.value)}
           disabled={isLoading}
           required
-          className="neo-inset w-full px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border focus:border-[#4f6df5] rounded-xl border border-transparent transition-colors disabled:opacity-50"
+          className="neo-inset focus-accent w-full px-4 py-3 text-sm transition-all disabled:opacity-50"
+          style={{ color: "#1e2433" }}
         />
       </div>
+
+      {/* CTA button */}
       <button
         type="submit"
-        disabled={isLoading || !url.trim()}
-        className="w-full rounded-xl py-3 text-sm font-semibold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed neo-btn active:shadow-neo-btn-pressed"
-        style={{ background: "#4f6df5" }}
-        onMouseEnter={(e) => { if (!isLoading && url.trim()) (e.currentTarget as HTMLButtonElement).style.background = "#3b5de7"; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#4f6df5"; }}
+        disabled={!canSubmit}
+        className="btn-accent w-full py-3 text-sm font-bold tracking-wide"
       >
-        {isLoading ? "Analyzing\u2026" : "Analyze"}
+        {isLoading ? "Analyzing\u2026" : "Analyze Company"}
       </button>
-      <div className="flex items-center gap-2">
+
+      {/* Dry-run toggle — quieter secondary element */}
+      <div className="flex items-center gap-2 pt-0.5">
         <input
           id="dry-run"
           type="checkbox"
           checked={dryRun}
           onChange={(e) => setDryRun(e.target.checked)}
           disabled={isLoading}
-          className="h-3.5 w-3.5 accent-[#4f6df5]"
+          className="h-3.5 w-3.5 rounded accent-[#4f6df5] disabled:opacity-50"
         />
-        <label htmlFor="dry-run" className="text-xs text-gray-500">
-          Dry run (fixture data — no API cost)
+        <label
+          htmlFor="dry-run"
+          className="text-xs select-none"
+          style={{ color: "#718096" }}
+        >
+          Dry run — use fixture data, no API cost
         </label>
       </div>
     </form>
