@@ -1,210 +1,45 @@
-# UI Component Inventory
+# WIREFRAMES.md
 
-## Status Legend
-- Pending: Not started
-- In Progress: Being built
-- Ready: Works in Storybook
-- Deployed: Live in production
+Last updated: Sprint 6. Written from actual code, not from design specs.
 
-## Components
+---
 
-### Input Components
+## 1. Component Inventory
 
-| Component | Status | Owner | Storybook |
-|-----------|--------|-------|-----------|
-| URLInput | Pending | Frontend | - |
-| AnalyzeButton | Pending | Frontend | - |
+Every component is built and in production. None are pending.
 
-### Status Components
+### Layout
 
-| Component | Status | Owner | Storybook |
-|-----------|--------|-------|-----------|
-| PipelineStatus | Pending | Frontend | - |
-| AgentStatusCard | Pending | Frontend | - |
-| ProgressIndicator | Pending | Frontend | - |
-| ErrorMessage | Pending | Frontend | - |
+| Component | File | What it renders |
+|-----------|------|-----------------|
+| RootLayout | `frontend/app/layout.tsx` | Persistent shell: header, main, footer. Wraps every page. |
 
-### Report Components
+RootLayout details.
+- Header: fixed top bar, blurred glass (`rgba(237,240,245,0.85)` + backdrop blur 8px). "AI" logo badge links to `/`. Right side shows "Tenex Demo".
+- Main: `max-w-2xl mx-auto px-6 py-10`. Renders `{children}`.
+- Footer: full-width border-top. Left: product name. Right: "v1.0 - Tenex Demo".
+- Font: Inter via next/font/google.
+- Body background: `linear-gradient(135deg, #edf0f5, #e8ecf2, #eaecf5)` fixed.
 
-| Component | Status | Owner | Storybook |
-|-----------|--------|-------|-----------|
-| ReportContainer | Pending | Frontend | - |
-| ExecSummaryCard | Pending | Frontend | - |
-| MaturityScoreCard | Pending | Frontend | - |
-| UseCaseCard | Pending | Frontend | - |
-| ROIChart | Pending | Frontend | - |
-| RoadmapTimeline | Pending | Frontend | - |
+### Home Page Components
 
-### Layout Components
+| Component | File | Props | What it renders |
+|-----------|------|-------|-----------------|
+| AnalyzeForm | `frontend/components/AnalyzeForm.tsx` | none | PageState machine: idle, loading, error. Renders URLInputForm, PipelineProgress, ErrorMessage, history list. |
+| URLInputForm | `frontend/components/URLInputForm.tsx` | `onSubmit`, `isLoading` | Neo-raised card with URL input, accent button, dry-run checkbox. |
+| PipelineProgress | `frontend/components/PipelineProgress.tsx` | `onCancel?` | 4 animated steps (Scraping, Querying RAG, Scoring maturity, Writing report). Advances every 18s. Cancel button. |
+| ErrorMessage | `frontend/components/ErrorMessage.tsx` | `message`, `onReset` | Neo-raised card, red left border, red icon, error text, "Try again" button. |
 
-| Component | Status | Owner | Storybook |
-|-----------|--------|-------|-----------|
-| AppShell | Pending | Frontend | - |
-| Header | Pending | Frontend | - |
-| Footer | Pending | Frontend | - |
+### Results Page Components
 
-## Design System
-
-### Neomorphic Tokens
-
-```css
-/* Base colors */
---neo-bg: #e0e5ec;
---neo-shadow-dark: #a3b1c6;
---neo-shadow-light: #ffffff;
-
-/* Elevation */
---neo-raised:
-  6px 6px 12px var(--neo-shadow-dark),
-  -6px -6px 12px var(--neo-shadow-light);
-
---neo-inset:
-  inset 6px 6px 12px var(--neo-shadow-dark),
-  inset -6px -6px 12px var(--neo-shadow-light);
-
-/* Border radius */
---neo-radius-sm: 8px;
---neo-radius-md: 16px;
---neo-radius-lg: 24px;
-```
-
-### Typography
-
-```css
-/* Font stack */
---font-sans: 'Inter', system-ui, sans-serif;
---font-mono: 'JetBrains Mono', monospace;
-
-/* Sizes */
---text-xs: 0.75rem;
---text-sm: 0.875rem;
---text-base: 1rem;
---text-lg: 1.125rem;
---text-xl: 1.25rem;
---text-2xl: 1.5rem;
-```
-
-## Wireframes
-
-### Main Page (URL Input)
-
-```
-┌────────────────────────────────────────────────────────────┐
-│  AI Transformation Discovery                         [?]   │
-├────────────────────────────────────────────────────────────┤
-│                                                            │
-│                                                            │
-│     ┌────────────────────────────────────────────────┐    │
-│     │  Enter company URL...                          │    │
-│     └────────────────────────────────────────────────┘    │
-│                                                            │
-│                   ┌──────────────┐                         │
-│                   │   Analyze    │                         │
-│                   └──────────────┘                         │
-│                                                            │
-│                                                            │
-└────────────────────────────────────────────────────────────┘
-```
-
-### Analysis In Progress
-
-```
-┌────────────────────────────────────────────────────────────┐
-│  Analyzing: example.com                                    │
-├────────────────────────────────────────────────────────────┤
-│                                                            │
-│  ┌──────────────────────────────────────────────────────┐ │
-│  │  [✓] Scraping company pages              2.3s        │ │
-│  │  [▶] Analyzing AI maturity               ...         │ │
-│  │  [ ] Finding similar companies                       │ │
-│  │  [ ] Generating report                               │ │
-│  └──────────────────────────────────────────────────────┘ │
-│                                                            │
-│                  Estimated: 45 seconds                     │
-│                                                            │
-└────────────────────────────────────────────────────────────┘
-```
-
-### Report View
-
-```
-┌────────────────────────────────────────────────────────────┐
-│  AI Transformation Report: Example Corp           [Export] │
-├────────────────────────────────────────────────────────────┤
-│                                                            │
-│  ┌─────────────────────┐  ┌─────────────────────────────┐ │
-│  │  Maturity Score     │  │  Executive Summary          │ │
-│  │                     │  │                             │ │
-│  │      ████░░  3.2    │  │  Example Corp is in the     │ │
-│  │     Emerging        │  │  Emerging stage of AI...    │ │
-│  │                     │  │                             │ │
-│  └─────────────────────┘  └─────────────────────────────┘ │
-│                                                            │
-│  ┌────────────────────────────────────────────────────┐   │
-│  │  Top Use Cases                                      │   │
-│  │  ┌────────────┐ ┌────────────┐ ┌────────────┐      │   │
-│  │  │ Use Case 1 │ │ Use Case 2 │ │ Use Case 3 │      │   │
-│  │  │ High Impact│ │ Med Impact │ │ High Impact│      │   │
-│  │  │ Low Effort │ │ Low Effort │ │ Med Effort │      │   │
-│  │  └────────────┘ └────────────┘ └────────────┘      │   │
-│  └────────────────────────────────────────────────────┘   │
-│                                                            │
-│  ┌────────────────────────────────────────────────────┐   │
-│  │  Implementation Roadmap                             │   │
-│  │  ──●────────●────────●────────●──▶                 │   │
-│  │   Q1       Q2       Q3       Q4                     │   │
-│  └────────────────────────────────────────────────────┘   │
-│                                                            │
-└────────────────────────────────────────────────────────────┘
-```
-
-### Trace Panel (below Report View — Sprint 5)
-
-```
-┌────────────────────────────────────────────────────────────┐
-│  AI Transformation Report: Example Corp           [Export] │
-├────────────────────────────────────────────────────────────┤
-│  ... report sections above ...                             │
-│                                                            │
-│  ┌──────────────────────────────────────────────────────┐ │
-│  │  ▼  Pipeline Trace  (run_id: abc-123)                │ │
-│  ├──────────────────────────────────────────────────────┤ │
-│  │  ┌────────────────────────────────────────────────┐  │ │
-│  │  │ Stage 1: website_scraper          ✓  0.8s      │  │ │
-│  │  │ IN:  { url: "example.com" }                    │  │ │
-│  │  │ OUT: { pages: 3, chars: 8400 }                 │  │ │
-│  │  └────────────────────────────────────────────────┘  │ │
-│  │  ┌────────────────────────────────────────────────┐  │ │
-│  │  │ Stage 2: signal_extractor         ✓  2.1s      │  │ │
-│  │  │ IN:  { pages_count: 3 }                        │  │ │
-│  │  │ OUT: { signal_count: 9 }                       │  │ │
-│  │  └────────────────────────────────────────────────┘  │ │
-│  │  ┌────────────────────────────────────────────────┐  │ │
-│  │  │ Stage 3: maturity_scorer          ✓  3.4s      │  │ │
-│  │  │ IN:  { signal_count: 9 }                       │  │ │
-│  │  │ OUT: { maturity_score: 3.2, label: Emerging }  │  │ │
-│  │  └────────────────────────────────────────────────┘  │ │
-│  │  ┌────────────────────────────────────────────────┐  │ │
-│  │  │ Stage 4: victory_matcher          ✓  2.8s      │  │ │
-│  │  │ Stage 5: use_case_generator       ✓  8.2s      │  │ │
-│  │  │ Stage 6: report_writer            ✓  6.1s      │  │ │
-│  │  └────────────────────────────────────────────────┘  │ │
-│  └──────────────────────────────────────────────────────┘ │
-└────────────────────────────────────────────────────────────┘
-```
-
-Component: `frontend/components/TracePanel.tsx`
-Data source: `GET /v1/trace/{run_id}`
-State: collapsed by default, expands on click
-Error state: shows "Trace unavailable" if run_id not found
-
-### Component Inventory — Sprint 5 Updates
-
-| Component | Status | Storybook |
-|-----------|--------|-----------|
-| URLInput | Ready | - |
-| ReportRenderer | Ready | - |
-| UseCaseCard | Ready | Yes |
-| UseCaseTierSection | Ready | Yes |
-| TracePanel | Ready | Yes |
-| TraceStageRow | Ready | (via TracePanel story) |
+| Component | File | Props | What it renders |
+|-----------|------|-------|-----------------|
+| ResultsView | `frontend/components/ResultsView.tsx` | `data: AnalyzeSuccess` | Full results layout: ReportNav, MaturityBadge, 5 report sections, TracePanel. `page-fade-in` animation. |
+| ReportNav | `frontend/components/ReportNav.tsx` | none | Horizontal pill nav with 5 section links. Active section gets blue fill. Tracks scroll position. |
+| MaturityBadge | `frontend/components/MaturityBadge.tsx` | `score?`, `label?`, `elapsedSeconds?`, `costUsd?`, `dimensions?` | Neo-raised card. Score ring (conic gradient, 80x80px), tier label, percentile pill, Runtime and Cost stat chips, 4-dimension bar grid. |
+| ReportCard | `frontend/components/ReportCard.tsx` | `title`, `content`, `wins?`, `id?` | Neo-raised card. Blue accent bar, title, formatted content (markdown-like), optional EvidencePanel. |
+| EvidencePanel | `frontend/components/EvidencePanel.tsx` | `wins: VictoryMatch[]` | Collapsible inside ReportCard. Shows VictoryMatch cards with win_id, title, tier badge (Direct/Calibration/Adjacent), similarity %, confidence %, relevance note, ROI benchmark, gap analysis. |
+| UseCaseTierSection | `frontend/components/UseCaseTierSection.tsx` | `useCases: TieredUseCase[]`, `id?` | Neo-raised card. Groups use cases into 3 tiers: Proven Solutions (green), Achievable Opportunities (amber), Frontier Experiments (blue). Each tier has a header pill and UseCaseCards. |
+| UseCaseCard | `frontend/components/UseCaseCard.tsx` | `useCase: TieredUseCase` | Neo-flat card with colored left border. Tier/effort/impact tags, title, description, confidence bar, ROI estimate, "Why this company", RAG benchmark, collapsible Data Flow accordion. |
+| TracePanel | `frontend/components/TracePanel.tsx` | `runId: string \| null` | Collapsible developer panel. Fetches `GET /v1/trace/{runId}` lazily on first open. Shows skeleton, error, or TraceStageRows. |
+| TraceStageRow | `frontend/components/TraceStageRow.tsx` | `stage: TraceStage` | Row in TracePanel. Agent tag badge, latency chip, prompt file. Expands to input/output summary tables. |
