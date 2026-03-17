@@ -10,7 +10,8 @@ class Signal(BaseModel):
     signal_id: str = ""
     type: Literal[
         "tech_stack", "data_signal", "ml_signal",
-        "intent_signal", "ops_signal", "industry_hint", "scale_hint"
+        "intent_signal", "ops_signal", "industry_hint", "scale_hint",
+        "process_signal", "hiring_signal", "pain_point"
     ]
     value: str
     source: Literal["about_text", "job_posting", "product_page", "careers_page"]
