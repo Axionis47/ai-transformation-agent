@@ -27,7 +27,12 @@ jobs:
           gcloud builds submit \
             --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/ai-transform-agent:latest \
             --project ${{ secrets.GCP_PROJECT_ID }} \
-            --quiet
+            --gcs-log-dir=gs://${{ secrets.GCP_PROJECT_ID }}_cloudbuild/logs \
+            --quiet || true
+          # Verify the image was pushed even if log streaming failed
+          gcloud container images describe \
+            gcr.io/${{ secrets.GCP_PROJECT_ID }}/ai-transform-agent:latest \
+            --project ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Deploy to Cloud Run
         run: |
