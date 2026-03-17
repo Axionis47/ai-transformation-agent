@@ -1,4 +1,4 @@
-"""Judge client — LLM-as-Judge scoring via Vertex AI Claude (evals only)."""
+"""Judge client — LLM-as-Judge scoring via Vertex AI Gemini (evals only)."""
 
 from __future__ import annotations
 
@@ -11,36 +11,33 @@ import yaml
 
 logger = logging.getLogger(__name__)
 
-_MODEL = "claude-opus-4-6"
+_MODEL = os.getenv("EVAL_JUDGE_MODEL", "gemini-2.5-pro")
 _MAX_TOKENS = 256
 _SCORE_PATTERN = re.compile(r"SCORE:\s*([1-5](?:\.\d+)?)")
 
+# Hardcoded GCP config — no env var exporting needed
+_GCP_PROJECT = "plotpointe"
+_GCP_LOCATION = "us-central1"
+
 
 class JudgeClient:
-    """Score outputs against YAML rubrics using Claude on Vertex AI."""
+    """Score outputs against YAML rubrics using Gemini on Vertex AI."""
 
     def __init__(self) -> None:
-        project_id = os.getenv("GCP_PROJECT_ID", "")
-        region = os.getenv("GCP_LOCATION", "us-east5")
-        if not project_id:
-            logger.warning("JudgeClient: GCP_PROJECT_ID not set — scoring unavailable")
+        try:
+            from vertexai.generative_models import GenerativeModel  # noqa
+            from google.cloud import aiplatform
+            aiplatform.init(
+                project=os.getenv("GCP_PROJECT_ID", _GCP_PROJECT),
+                location=os.getenv("GCP_LOCATION", _GCP_LOCATION),
+            )
+            self._available = True
+        except Exception as exc:
+            logger.warning("JudgeClient: Vertex AI init failed: %s", exc)
             self._available = False
-            self._client: Any = None
-        else:
-            try:
-                import anthropic  # noqa: PLC0415
-                self._client = anthropic.AnthropicVertex(
-                    project_id=project_id,
-                    region=region,
-                )
-                self._available = True
-            except ImportError:
-                logger.warning("JudgeClient: anthropic package not installed — scoring unavailable")
-                self._available = False
-                self._client = None
 
     def score(self, rubric_path: str, output: dict[str, Any]) -> float:
-        """Score output against a rubric. Returns 0.0 on any error or unavailability."""
+        """Score output against a rubric. Returns 0.0 on error."""
         if not self._available:
             logger.warning("JudgeClient: unavailable, returning 0.0 for %s", rubric_path)
             return 0.0
@@ -64,20 +61,18 @@ class JudgeClient:
             return 0.0
 
         try:
-            response = self._client.messages.create(
-                model=_MODEL,
-                max_tokens=_MAX_TOKENS,
-                temperature=0,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            text = response.content[0].text
+            from vertexai.generative_models import GenerationConfig, GenerativeModel
+            model = GenerativeModel(_MODEL)
+            config = GenerationConfig(max_output_tokens=_MAX_TOKENS, temperature=0)
+            response = model.generate_content(prompt, generation_config=config)
+            text = response.text
         except Exception as exc:
             logger.warning("JudgeClient: API call failed: %s", exc)
             return 0.0
 
         match = _SCORE_PATTERN.search(text)
         if not match:
-            logger.warning("JudgeClient: no SCORE pattern found in response: %s", text[:120])
+            logger.warning("JudgeClient: no SCORE pattern in response: %s", text[:120])
             return 0.0
 
         return min(5.0, max(1.0, float(match.group(1))))

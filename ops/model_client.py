@@ -23,7 +23,7 @@ class VertexProvider(ModelClient):
     """Google Vertex AI provider wrapping the Gemini SDK."""
 
     def __init__(self) -> None:
-        self._project = os.getenv("GCP_PROJECT_ID", "")
+        self._project = os.getenv("GCP_PROJECT_ID", "plotpointe")
         self._location = os.getenv("GCP_LOCATION", "us-central1")
         self._default_model = os.getenv("VERTEX_MODEL", "gemini-2.5-pro")
         self._fast_model = os.getenv("VERTEX_FAST_MODEL", "gemini-2.5-flash")
