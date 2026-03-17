@@ -2,7 +2,11 @@
 
 const STEPS = ["Scraping", "Querying RAG", "Scoring maturity", "Writing report"];
 
-export default function PipelineProgress() {
+interface PipelineProgressProps {
+  onCancel?: () => void;
+}
+
+export default function PipelineProgress({ onCancel }: PipelineProgressProps) {
   return (
     <div className="neo-flat p-6 text-center">
       <p className="text-sm font-medium animate-pulse" style={{ color: "#4f6df5" }}>
@@ -18,6 +22,14 @@ export default function PipelineProgress() {
           </span>
         ))}
       </div>
+      {onCancel && (
+        <button
+          onClick={onCancel}
+          className="mt-5 neo-flat px-5 py-2 text-xs font-medium text-gray-500 rounded-xl transition-all hover:text-gray-700 active:shadow-neo-btn-pressed focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4f6df5]"
+        >
+          Cancel
+        </button>
+      )}
     </div>
   );
 }
