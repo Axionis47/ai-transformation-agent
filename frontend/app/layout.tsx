@@ -20,8 +20,30 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="min-h-screen" style={{ background: "#e8ecf1" }}>
-        <main className="max-w-2xl mx-auto px-6 py-12">{children}</main>
+      <body className="min-h-screen bg-neo-gradient">
+        {/* Persistent header bar */}
+        <header className="w-full border-b border-white/60" style={{ background: "rgba(237,240,245,0.85)", backdropFilter: "blur(8px)" }}>
+          <div className="max-w-2xl mx-auto px-6 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span
+                className="inline-flex items-center justify-center w-7 h-7 rounded-neo-sm text-white text-xs font-bold"
+                style={{ background: "linear-gradient(135deg, #5a76f6, #4463ef)" }}
+              >
+                AI
+              </span>
+              <span className="text-sm font-semibold" style={{ color: "#1e2433" }}>
+                Discovery Agent
+              </span>
+            </div>
+            <span className="text-xs font-medium" style={{ color: "#718096" }}>
+              Tenex Demo
+            </span>
+          </div>
+        </header>
+
+        <main className="max-w-2xl mx-auto px-6 py-10">
+          {children}
+        </main>
       </body>
     </html>
   );
