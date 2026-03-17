@@ -3,31 +3,39 @@
 @tailwind utilities;
 
 :root {
-  --neo-bg: #e0e5ec;
-  --neo-shadow-dark: #a3b1c6;
+  --neo-bg: #e8ecf1;
+  --neo-shadow-dark: #bec8d4;
   --neo-shadow-light: #ffffff;
+  --accent: #4f6df5;
+  --accent-hover: #3b5de7;
 }
 
 body {
   background-color: var(--neo-bg);
-  color: #2d3748;
-  font-family: 'Inter', system-ui, sans-serif;
+  color: #1a202c;
+  font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
 }
 
 @layer utilities {
   .neo-raised {
-    box-shadow: 6px 6px 12px #a3b1c6, -6px -6px 12px #ffffff;
-    background: #e0e5ec;
-    border-radius: 16px;
+    box-shadow: 5px 5px 10px #bec8d4, -5px -5px 10px #ffffff;
+    background: #e8ecf1;
+    border-radius: 12px;
   }
   .neo-flat {
-    box-shadow: 3px 3px 6px #a3b1c6, -3px -3px 6px #ffffff;
-    background: #e0e5ec;
-    border-radius: 16px;
+    box-shadow: 2px 2px 5px #bec8d4, -2px -2px 5px #ffffff;
+    background: #e8ecf1;
+    border-radius: 12px;
   }
   .neo-inset {
-    box-shadow: inset 6px 6px 12px #a3b1c6, inset -6px -6px 12px #ffffff;
-    background: #e0e5ec;
-    border-radius: 16px;
+    box-shadow: inset 2px 2px 5px #bec8d4, inset -2px -2px 5px #ffffff;
+    background: #e8ecf1;
+    border-radius: 12px;
+  }
+  .neo-btn {
+    box-shadow: 3px 3px 7px #bec8d4, -3px -3px 7px #ffffff;
+  }
+  .neo-btn:active {
+    box-shadow: inset 2px 2px 4px #bec8d4, inset -2px -2px 4px #ffffff;
   }
 }
