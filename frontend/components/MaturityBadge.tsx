@@ -1,26 +1,19 @@
 "use client";
 
-interface DimensionScores {
-  data_infrastructure?: number;
-  ml_ai_capability?: number;
-  strategy_intent?: number;
-  operational_readiness?: number;
-}
+const DIMENSION_LABELS: { key: string; label: string }[] = [
+  { key: "data_infrastructure", label: "Data Infra" },
+  { key: "ml_ai_capability", label: "ML/AI" },
+  { key: "strategy_intent", label: "Strategy" },
+  { key: "operational_readiness", label: "Ops Ready" },
+];
 
 interface MaturityBadgeProps {
   score?: number;
   label?: string;
   elapsedSeconds?: number;
   costUsd?: number;
-  dimensions?: DimensionScores;
+  dimensions?: Record<string, number>;
 }
-
-const DIMENSION_LABELS: { key: keyof DimensionScores; label: string }[] = [
-  { key: "data_infrastructure", label: "Data Infra" },
-  { key: "ml_ai_capability", label: "ML/AI" },
-  { key: "strategy_intent", label: "Strategy" },
-  { key: "operational_readiness", label: "Ops Ready" },
-];
 
 function scoreColor(score: number): string {
   if (score < 2) return "text-red-600 bg-red-50";
