@@ -1,153 +1,163 @@
-# System State — Sprint 6
+# System State
 
-> Sai reads this at the start of every sprint. 5-minute overview of what exists.
+What works, what doesn't, and how to test it. Updated 2026-03-17.
 
-## Current Sprint: 6 (Ship It — Parallel Writes, Extended Scraper, Deploy Prep)
+## Current Sprint
+
+Sprint 7 - Documentation. No code changes this sprint.
 
 ---
 
-### What Works (Sai Can Test)
+## What Works (You Can Test These)
 
 | Feature | Status | How to Test |
 |---------|--------|-------------|
-| Full pipeline dry-run (7 stages) | Working | `python orchestrator/pipeline.py --dry-run` |
 | POST /v1/analyze endpoint | Working | `curl -X POST http://localhost:8000/v1/analyze -H "Content-Type: application/json" -d '{"url":"https://example.com"}'` |
-| GET /v1/trace/{run_id} endpoint | Working | `curl http://localhost:8000/v1/trace/<run_id>` (run_id returned from /analyze) |
-| GET /health endpoint | Working | `curl http://localhost:8000/health` — returns `pipeline: "ready"`, `version: "sprint6"` |
-| Maturity scoring (0-5) with dimension breakdown | Working | Run pipeline, check `analysis.maturity_score` in response |
+| GET /v1/trace/{run_id} | Working | `curl http://localhost:8000/v1/trace/<run_id>` (run_id from /analyze response) |
+| GET /health | Working | `curl http://localhost:8000/health` - returns status, version, model_provider, pipeline |
+| Full pipeline dry-run (7 stages) | Working | `python3 orchestrator/pipeline.py --dry-run --url https://example.com` |
+| Maturity scoring (0-5, dimension breakdown) | Working | Run pipeline, check `analysis.maturity_score` in response |
 | Victory matching with gap analysis | Working | Check `use_cases[].gap_analysis` in pipeline output |
-| Use case generation with tier classification | Working | Check `use_cases[].tier` field (DIRECT/CALIBRATION/ADJACENT) |
-| 5-section report rendering in UI | Working | Run frontend, submit URL, report renders below the form |
+| Use case generation with tier classification | Working | Check `use_cases[].tier` (DIRECT / CALIBRATION / ADJACENT) |
+| 5-section report rendering in UI | Working | Submit URL in frontend, report renders at /analysis/[runId] |
 | UseCaseCard with maturity-tier coloring | Working | Green = DIRECT, amber = CALIBRATION, blue = ADJACENT |
 | TracePanel (collapsible pipeline trace) | Working | Click "Show Pipeline Trace" below report |
-| Tool registry (WebsiteScraperTool) | Working | Scraper stage uses registry.get("website_scraper") |
+| Section navigation bar (sticky) | Working | Visible when scrolling report results page |
+| Home link in header | Working | Header logo link returns to / from any page |
+| Tool registry (WebsiteScraperTool) | Working | Scraper stage uses `registry.get("website_scraper")` |
 | Stage I/O logging to JSONL | Working | Logs appear in `logs/runs/{run_id}.jsonl` after a run |
 | Parallel report section writes | Working | Stage 7 uses ThreadPoolExecutor(max_workers=3); per-section failure isolated |
-| Extended scraper — product/solutions pages | Working | Scraper fetches /about, /careers, /products, /solutions, /platform; skips 404s |
-| `pages_fetched` and `signal_count` in API response | Working | Check response JSON from /v1/analyze |
-| Dockerfile at repo root | Ready | `docker build -t ai-transform-agent .` |
-| Cloud Run deploy target (infra/deploy_target.py) | Implemented | Deploy via `gcloud run deploy` — requires GCP credentials |
-| 140 tests passing | Green | `pytest tests/ -q --tb=short` |
+| Extended scraper - /about /careers /products /solutions /platform | Working | pages_fetched field in API response lists which pages returned content |
+| pages_fetched and signal_count in API response | Working | Check JSON from POST /v1/analyze |
+| Dockerfile at repo root | Ready to build | `docker build -t ai-transform-agent .` |
+| Cloud Run deploy target | Implemented | `infra/deploy_target.py` wraps gcloud - requires GCP credentials to execute |
+| 140 tests passing | Green | `python3 -m pytest tests/ -q --tb=short` |
+| CI/CD on GitHub Actions | Configured | CI on PRs to main; CD triggers after CI passes |
 
 ---
 
-### How to Start the System
+## How to Start
+
+### Backend
 
 ```bash
-# Backend
 pip install -r requirements.txt
-uvicorn infra.app:app --reload --port 8000
+uvicorn app:app --reload --port 8000
+```
 
-# Frontend (separate terminal)
+The entry point is `app.py` at the repo root. Not `infra/app.py`.
+
+### Frontend
+
+```bash
 cd frontend && npm install && npm run dev
-# → http://localhost:3000
+# Opens http://localhost:3000
+```
 
-# Dry-run pipeline (zero API calls)
-python orchestrator/pipeline.py --dry-run
+### Dry Run (no API calls, uses fixtures)
 
-# Run test suite
-pytest tests/ -q --tb=short
+```bash
+python3 orchestrator/pipeline.py --dry-run --url https://example.com
+```
 
-# Docker build (deploy prep)
+### Run Tests
+
+```bash
+python3 -m pytest tests/ -q --tb=short
+```
+
+140 tests, all passing. Takes about 33 seconds locally.
+
+### Docker
+
+```bash
 docker build -t ai-transform-agent .
 docker run -p 8080:8080 --env-file .env ai-transform-agent
 ```
 
+Dockerfile uses `uvicorn app:app` on port 8080.
+
 ---
 
-### Deploy Instructions (Cloud Run)
+## Deploy
 
+CD workflow (`.github/workflows/cd.yml`) deploys to Cloud Run automatically after CI passes on `main`.
+
+Manual deploy:
 ```bash
-# Prerequisites: GCP credentials, gcloud CLI authenticated
-# Sai approved deploy on DISC-57 — approval on record
-
-# Build and push image
 gcloud builds submit --tag gcr.io/$GCP_PROJECT_ID/ai-transform-agent
-
-# Deploy to Cloud Run
 gcloud run deploy ai-transform-agent \
   --image gcr.io/$GCP_PROJECT_ID/ai-transform-agent \
-  --platform managed \
   --region us-central1 \
   --allow-unauthenticated \
   --port 8080
-
-# Verify health
-curl https://<cloud-run-url>/health
 ```
 
-Note: Live deploy requires Sai to execute from a GCP-authenticated shell.
-`infra/deploy_target.py` wraps the gcloud commands — call `deploy_target.deploy()`.
+Live URL: not yet deployed. Requires Sai to run from a GCP-authenticated shell or CI secrets to be set.
 
 ---
 
-### What Is Not Yet Built (Sprint 7 Items)
+## What Is Not Built Yet
 
 | Feature | Notes |
 |---------|-------|
-| Real eval scores | `claude-sonnet-4-20250514` returned HTTP 404 on Vertex AI for project `plotpointe` in `us-east5` — model not enabled. See Eval Scores section. |
-| LinkedInJobScraper (second tool) | Cut from Sprint 6 — dry-run only, no demo value; carries to Sprint 7 |
-| Low-signal graceful degradation UI warning | Cut from Sprint 6 — signal_count field now exists in API; frontend banner deferred to Sprint 7 |
-| Live Cloud Run URL | Dockerfile and deploy target implemented; live deploy pending GCP credentials and Sai execution |
+| Live Cloud Run URL | Dockerfile and deploy target done; live deploy requires GCP credentials |
+| LinkedInJobScraper (second tool) | Cut from Sprint 6; no demo value yet |
+| Low-signal warning banner in UI | signal_count field exists in API; frontend banner not built |
 | Authentication / API key gating | Deferred per ADR-002 |
+| E2E timing validation on live URL | Can't measure until Cloud Run is deployed |
 
 ---
 
-### Eval Scores — Sprint 6
+## Eval Scores
 
-Eval scoring attempted via `evals/ci_eval.py`. Judge client was updated to use
-`anthropic.AnthropicVertex` (no ANTHROPIC_API_KEY required). However, model
-`claude-sonnet-4-20250514` returned HTTP 404 on Vertex AI for project `plotpointe`
-in region `us-east5` — the model is not enabled in this project/region combination.
+From `evals/baselines.json`. Sprint 6 scores are real - judge ran against `anthropic.AnthropicVertex`.
 
-| Dimension | Sprint 6 Score | Threshold | Status |
-|-----------|---------------|-----------|--------|
-| tier_classification | 0.0 | >= 3.8 | Unscored — model not enabled |
-| evidence_grounding | 0.0 | >= 3.8 | Unscored — model not enabled |
-| roi_basis | 0.0 | >= 3.8 | Unscored — model not enabled |
+| Dimension | Sprint 6 Average | Threshold | Status |
+|-----------|-----------------|-----------|--------|
+| tier_classification | 3.67 | >= 3.8 | Below threshold |
+| evidence_grounding | 3.20 | >= 3.8 | Below threshold |
+| roi_basis | 3.07 | >= 3.8 | Below threshold |
 
-`scoring_status: "pending_deploy"` in baselines.json.
+All three dimensions are below the 3.8 threshold. Prompt engineering iteration is needed in Sprint 7 or Sprint 8 to close this gap.
 
-**Sprint 7 resolution options (PM recommendation — Sai decides):**
-1. Enable Claude model access: GCP Console → Model Garden → Claude → Enable API
-2. Switch judge to Gemini (already available on Vertex, lower quality as judge)
-3. Use a different Vertex region where Claude is enabled (e.g. `us-central1`)
+Sprint 5 scores were 0.0 (ANTHROPIC_API_KEY not set - placeholder run). Sprint 6 was the first real scored eval.
 
 ---
 
-### Test Progression
+## Test Count
 
-| Sprint | Test Count | Delta |
-|--------|------------|-------|
+| Sprint | Count | Delta |
+|--------|-------|-------|
 | Sprint 4 | 79 | baseline |
 | Sprint 5 | 117 | +38 |
 | Sprint 6 | 140 | +23 |
 
-Zero regressions. All 140 tests pass.
+Test files: 20 files in `tests/`. Run command: `python3 -m pytest tests/ -q --tb=short`.
 
 ---
 
-### Cost Per Run
+## Cost Per Run
 
 | Mode | Cost |
 |------|------|
 | Dry-run (fixtures only) | $0.00 |
 | Live pipeline (Vertex AI) | ~$0.011 |
 | Live pipeline + eval judge | ~$0.05 |
-| Hard limit (budget_config.yaml) | $0.50 |
+| Hard limit (ops/budget_config.yaml) | $0.50 |
 
 ---
 
-### Decisions Locked
+## Decisions Locked
 
-| ADR | Decision |
-|-----|----------|
+| ADR | What Was Decided |
+|-----|-----------------|
 | ADR-001 | Infrastructure: Cloud Run + Vertex AI + ChromaDB |
-| ADR-002 | No auth for MVP — defer |
+| ADR-002 | No auth for MVP - deferred |
 | ADR-003 | ChromaDB in-container as vector store |
 | ADR-004 | Vertex primary, Ollama fallback, Anthropic evals-only |
 | ADR-005 | Secrets via GCP Secret Manager |
-| ADR-006 | Analysis Specification v1.0 (5-dimension maturity scoring) |
+| ADR-006 | Analysis Specification v1.0 - 5-dimension maturity scoring |
 | ADR-007 | Victory data schema and RAG seed strategy |
 | ADR-008 | Tool registry as orchestrator-level abstraction |
 | ADR-009 | Parallel report section generation via ThreadPoolExecutor |
@@ -155,53 +165,12 @@ Zero regressions. All 140 tests pass.
 
 ---
 
-### Sprint 6 Files Added
+## Known Issues
 
-```
-agents/report_writer.py           ← generate_section() added for per-section writes
-orchestrator/pipeline.py          ← Stage 7 uses ThreadPoolExecutor(max_workers=3)
-evals/judge_client.py             ← switched to anthropic.AnthropicVertex
-evals/ci_eval.py                  ← updated to _SPRINT = "sprint_6"
-evals/baselines.json              ← sprint_6 key added (scores 0.0, pending_deploy)
-infra/app.py                      ← AnalyzeSuccess model extended with pages_fetched, signal_count
-infra/deploy_target.py            ← fully implemented with gcloud CLI commands
-infra/health_check.py             ← returns pipeline: "ready", version: "sprint6"
-Dockerfile                        ← python:3.11-slim, uvicorn on port 8080
-.dockerignore                     ← excludes secrets, logs, frontend, .git
-requirements.txt                  ← google-auth>=2.29.0 added
-docs/decisions/ADR-009.md         ← parallel report write decision
-docs/decisions/ADR-010.md         ← Cloud Run deploy target decision
-docs/decisions/INDEX.md           ← ADR-009 and ADR-010 indexed
-```
-
----
-
-### Blockers
-
-| Item | Status |
-|------|--------|
-| Eval judge model not accessible on Vertex AI (`us-east5`, project `plotpointe`) | Tier 2 — PM surfacing to Sai with recommendation (see Eval Scores section) |
-
----
-
-### Sprint 6 Tickets and Outcomes
-
-| Ticket | Title | Status | Notes |
-|--------|-------|--------|-------|
-| DISC-54 | Parallel Report Writes | Done | ThreadPoolExecutor(3), per-section isolation |
-| DISC-53 | Extended Scraper + Judge Client Fix | Done | pages_fetched + signal_count in API; judge on AnthropicVertex |
-| DISC-52 | Eval Baseline | Done | sprint_6 key added; scores 0.0 due to model-not-enabled on Vertex |
-| DISC-57 | Cloud Run Deploy Prep | Done | Dockerfile, deploy_target.py, health check; Sai approved |
-| DISC-55 | LinkedInJobScraper | Cut to Sprint 7 | No demo value in Sprint 6 |
-| DISC-56 | Low-signal warning banner | Cut to Sprint 7 | signal_count field now in API; frontend work deferred |
-
----
-
-### Next Sprint Goals (Sprint 7)
-
-1. Resolve eval scoring — enable Claude on Vertex or switch judge to Gemini (Sai decides)
-2. Execute live Cloud Run deploy — Sai runs gcloud from authenticated shell
-3. LinkedInJobScraper — dry-run tool registration (carried from Sprint 6)
-4. Low-signal warning banner in UI (carried from Sprint 6)
-5. Prompt engineering iteration — improve report quality using real eval scores as gate
-6. E2E timing measurement — validate 90s SLA on live Cloud Run URL
+| Issue | Detail |
+|-------|--------|
+| Eval scores below threshold | All 3 dimensions below 3.8. Sprint 6 was first real run; scores need improvement via prompt iteration |
+| Old docs referenced wrong startup command | Previous SYSTEM_STATE.md said `uvicorn infra.app:app`. Correct command is `uvicorn app:app`. The entry point is `app.py` at the repo root, not inside `infra/` |
+| `evals/ci_eval.py` still writes to `sprint_6` key | The `_SPRINT` constant is hardcoded to `"sprint_6"` - needs a bump to `sprint_7` before next eval run |
+| Stale `page 2.tsx` in repo | `frontend/app/page 2.tsx` exists as an untracked file - likely a copy artifact, not used |
+| No live deploy URL | Demo requires live URL; Cloud Run deploy has not been executed yet |
