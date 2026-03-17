@@ -1,6 +1,5 @@
 """Tests for rag/ingest.py — seed loading, idempotency, and dry-run skip."""
 
-import os
 
 
 def test_ingest_loads_seeds(monkeypatch, tmp_path):

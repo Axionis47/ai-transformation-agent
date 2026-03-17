@@ -1,8 +1,6 @@
 """Unit tests for SignalExtractorAgent."""
 from __future__ import annotations
 
-import os
-import pytest
 
 
 def test_dry_run_returns_signals(monkeypatch):

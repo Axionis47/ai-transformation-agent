@@ -20,7 +20,7 @@ from ops.logger import PipelineLogger, get_logger
 from orchestrator.gates import scraper_quality_gate
 from orchestrator.stage_io import (
     maturity_input, maturity_output, rag_input, rag_output,
-    report_writer_input, report_writer_output, scraper_input, scraper_output,
+    report_writer_output, scraper_input, scraper_output,
     signal_input, signal_output, use_case_input, use_case_output,
     victory_input, victory_output,
 )

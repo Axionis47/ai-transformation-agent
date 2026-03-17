@@ -6,9 +6,8 @@ import json
 import time
 from pathlib import Path
 
-import pytest
 
-from ops.logger import PipelineLogger, _truncate, _truncate_summary, get_logger
+from ops.logger import PipelineLogger, _truncate, _truncate_summary
 
 
 # ---------------------------------------------------------------------------

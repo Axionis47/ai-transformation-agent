@@ -6,8 +6,6 @@ from pydantic import ValidationError
 
 from agents.base import AgentError
 from orchestrator.schemas import (
-    DataFlow,
-    DimensionScore,
     MaturityResult,
     Signal,
     SignalSet,

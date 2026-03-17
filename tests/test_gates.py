@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
 
 from orchestrator.gates import scraper_quality_gate
 

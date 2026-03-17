@@ -4,12 +4,10 @@ from __future__ import annotations
 
 import json
 import time
-from pathlib import Path
 
 from agents.base import AgentError, BaseAgent
-from ops.logger import get_logger
 from orchestrator.pipeline import _run_with_timeout, run_pipeline
-from orchestrator.state import PipelineState, PipelineStatus
+from orchestrator.state import PipelineStatus
 
 
 class _SlowAgent(BaseAgent):

@@ -1,6 +1,5 @@
 """Tests for orchestrator/tool_registry.py and tools/website_scraper.py."""
 
-import os
 import pytest
 
 from agents.base import AgentError

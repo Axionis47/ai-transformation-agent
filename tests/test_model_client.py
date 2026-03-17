@@ -1,6 +1,5 @@
 """Tests for ops/model_client.py — MockProvider dry-run and factory."""
 
-import os
 
 from ops.model_client import MockProvider, VertexProvider, get_model_client
 

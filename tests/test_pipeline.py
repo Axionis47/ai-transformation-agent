@@ -1,6 +1,5 @@
 """Tests for orchestrator/pipeline.py — dry-run end-to-end."""
 
-import os
 from unittest.mock import MagicMock, patch
 
 from orchestrator.pipeline import _parallel_report_sections, run_pipeline

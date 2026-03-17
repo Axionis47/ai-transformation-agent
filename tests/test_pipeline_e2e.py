@@ -1,5 +1,4 @@
 """End-to-end dry-run test for the 7-stage Sprint 4 pipeline."""
-import os
 
 from orchestrator.pipeline import run_pipeline
 from orchestrator.state import PipelineStatus
