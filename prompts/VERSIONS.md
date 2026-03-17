@@ -35,6 +35,7 @@ PM owns this file. Update at every prompt version bump.
 | Version | Date | Description | ADR |
 |---------|------|-------------|-----|
 | 1.0 | 2026-03-16 | Initial prompt. Scores four dimensions from typed signals (not raw text), 0.5-increment composite, Developing ceiling guard, signals_used must reference real signal_ids. | — |
+| 1.1 | 2026-03-17 | Added pain_point absence handling rule -- no penalty when pain points not publicly disclosed. | — |
 
 ## use_case_generator.md
 
