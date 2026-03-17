@@ -11,3 +11,9 @@ export default meta;
 type Story = StoryObj<typeof PipelineProgress>;
 
 export const Default: Story = {};
+
+export const WithCancel: Story = {
+  args: {
+    onCancel: () => console.log("cancelled"),
+  },
+};
