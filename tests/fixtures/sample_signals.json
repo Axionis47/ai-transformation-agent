@@ -67,7 +67,40 @@
       "source": "job_posting",
       "confidence": 0.9,
       "raw_quote": "PostgreSQL, Redis"
+    },
+    {
+      "signal_id": "sig-009",
+      "type": "process_signal",
+      "value": "route optimization",
+      "source": "about_text",
+      "confidence": 0.9,
+      "raw_quote": "end-to-end supply chain visibility, route optimization"
+    },
+    {
+      "signal_id": "sig-010",
+      "type": "process_signal",
+      "value": "shipment tracking",
+      "source": "about_text",
+      "confidence": 0.9,
+      "raw_quote": "shipment tracking and carrier performance monitoring"
+    },
+    {
+      "signal_id": "sig-011",
+      "type": "hiring_signal",
+      "value": "Senior Data Engineer",
+      "source": "job_posting",
+      "confidence": 0.95,
+      "raw_quote": "Senior Data Engineer — Build and maintain our data lake on BigQuery"
+    },
+    {
+      "signal_id": "sig-012",
+      "type": "intent_signal",
+      "value": "investing in intelligent logistics tools",
+      "source": "about_text",
+      "confidence": 0.85,
+      "raw_quote": "investing in data infrastructure to support our next generation of intelligent logistics tools"
     }
   ],
-  "extraction_notes": "Strong data infrastructure signals. No ML/AI roles or deployed models detected."
+  "signal_count": 12,
+  "extraction_notes": "Strong data infrastructure signals. No ML/AI roles or deployed models detected. Process automation opportunities visible in route optimization and shipment tracking."
 }
