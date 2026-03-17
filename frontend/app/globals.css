@@ -3,39 +3,118 @@
 @tailwind utilities;
 
 :root {
-  --neo-bg: #e8ecf1;
-  --neo-shadow-dark: #bec8d4;
+  --neo-bg: #edf0f5;
+  --neo-bg-gradient: linear-gradient(135deg, #edf0f5 0%, #e8ecf2 60%, #eaecf5 100%);
+  --neo-shadow-dark: #c4cad6;
   --neo-shadow-light: #ffffff;
   --accent: #4f6df5;
   --accent-hover: #3b5de7;
+  --accent-active: #2f4fd4;
 }
 
 body {
-  background-color: var(--neo-bg);
-  color: #1a202c;
+  background: var(--neo-bg-gradient);
+  background-attachment: fixed;
+  color: #1e2433;
   font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @layer utilities {
+  /* Elevated card — raised from surface */
   .neo-raised {
-    box-shadow: 5px 5px 10px #bec8d4, -5px -5px 10px #ffffff;
-    background: #e8ecf1;
-    border-radius: 12px;
+    box-shadow:
+      6px 6px 14px #c4cad6,
+      -6px -6px 14px #ffffff;
+    background: #edf0f5;
+    border-radius: 16px;
   }
+
+  /* Flat surface — slight depth */
   .neo-flat {
-    box-shadow: 2px 2px 5px #bec8d4, -2px -2px 5px #ffffff;
-    background: #e8ecf1;
-    border-radius: 12px;
+    box-shadow:
+      3px 3px 8px #c4cad6,
+      -3px -3px 8px #ffffff;
+    background: #edf0f5;
+    border-radius: 16px;
   }
+
+  /* Inset — inputs and recessed areas */
   .neo-inset {
-    box-shadow: inset 2px 2px 5px #bec8d4, inset -2px -2px 5px #ffffff;
-    background: #e8ecf1;
+    box-shadow:
+      inset 3px 3px 7px #c4cad6,
+      inset -3px -3px 7px #ffffff;
+    background: #edf0f5;
     border-radius: 12px;
   }
+
+  /* Button base */
   .neo-btn {
-    box-shadow: 3px 3px 7px #bec8d4, -3px -3px 7px #ffffff;
+    box-shadow:
+      4px 4px 10px #c4cad6,
+      -4px -4px 10px #ffffff;
   }
+
   .neo-btn:active {
-    box-shadow: inset 2px 2px 4px #bec8d4, inset -2px -2px 4px #ffffff;
+    box-shadow:
+      inset 2px 2px 6px rgba(0,0,0,0.15),
+      inset -2px -2px 4px rgba(255,255,255,0.6);
+  }
+
+  /* Focus ring utility */
+  .focus-accent {
+    outline: none;
+  }
+
+  .focus-accent:focus-visible {
+    outline: none;
+    box-shadow:
+      inset 3px 3px 7px #c4cad6,
+      inset -3px -3px 7px #ffffff,
+      0 0 0 3px rgba(79, 109, 245, 0.35);
+  }
+
+  /* Accent button: strong, pressable, prominent */
+  .btn-accent {
+    background: linear-gradient(135deg, #5a76f6 0%, #4f6df5 50%, #4463ef 100%);
+    color: #ffffff;
+    box-shadow:
+      4px 4px 12px rgba(79, 109, 245, 0.4),
+      -2px -2px 8px rgba(255,255,255,0.8),
+      inset 0 1px 0 rgba(255,255,255,0.2);
+    border-radius: 12px;
+    transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+  }
+
+  .btn-accent:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4f6df5 0%, #3b5de7 50%, #3050d8 100%);
+    box-shadow:
+      5px 5px 16px rgba(79, 109, 245, 0.5),
+      -2px -2px 8px rgba(255,255,255,0.9),
+      inset 0 1px 0 rgba(255,255,255,0.15);
+    transform: translateY(-1px);
+  }
+
+  .btn-accent:active:not(:disabled) {
+    background: linear-gradient(135deg, #3b5de7 0%, #2f4fd4 100%);
+    box-shadow:
+      inset 3px 3px 8px rgba(0,0,0,0.2),
+      inset -2px -2px 6px rgba(255,255,255,0.1);
+    transform: translateY(0);
+  }
+
+  .btn-accent:focus-visible {
+    outline: none;
+    box-shadow:
+      4px 4px 12px rgba(79, 109, 245, 0.4),
+      -2px -2px 8px rgba(255,255,255,0.8),
+      0 0 0 3px rgba(79, 109, 245, 0.4);
+  }
+
+  .btn-accent:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
   }
 }
