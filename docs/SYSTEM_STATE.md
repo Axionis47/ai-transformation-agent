@@ -14,6 +14,7 @@
 | POST /v1/analyze endpoint | Working | `curl -X POST http://localhost:8000/v1/analyze -H "Content-Type: application/json" -d '{"url":"https://example.com"}'` |
 | GET /v1/trace/{run_id} endpoint | Working | `curl http://localhost:8000/v1/trace/<run_id>` (run_id returned from /analyze) |
 | GET /health endpoint | Working | `curl http://localhost:8000/health` — returns `pipeline: "ready"`, `version: "sprint6"` |
+| Signal schema — 10 types (tech, data, ml, intent, ops, industry, scale, process, hiring, pain_point) | Working | Schema validates all 10 types; dry-run extracts 12 signals across 9 types |
 | Maturity scoring (0-5) with dimension breakdown | Working | Run pipeline, check `analysis.maturity_score` in response |
 | Victory matching with gap analysis | Working | Check `use_cases[].gap_analysis` in pipeline output |
 | Use case generation with tier classification | Working | Check `use_cases[].tier` field (DIRECT/CALIBRATION/ADJACENT) |
@@ -122,8 +123,9 @@ in region `us-east5` — the model is not enabled in this project/region combina
 | Sprint 4 | 79 | baseline |
 | Sprint 5 | 117 | +38 |
 | Sprint 6 | 140 | +23 |
+| Post-sprint | 124 | recount after cleanup |
 
-Zero regressions. All 140 tests pass.
+Zero regressions. All tests pass.
 
 ---
 
