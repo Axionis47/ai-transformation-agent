@@ -22,7 +22,7 @@ _RUBRICS = {
 }
 _TEST_COMPANIES = REPO_ROOT / "evals" / "test_companies.json"
 _BASELINES = REPO_ROOT / "evals" / "baselines.json"
-_SPRINT = "sprint_6"
+_SPRINT = "sprint_7"
 
 
 def _uc_vars(uc: dict, mat: dict | None) -> dict:
