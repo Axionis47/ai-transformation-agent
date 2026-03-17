@@ -39,36 +39,35 @@
     "run_date": "2026-03-16",
     "companies": {
       "CargoLogik": {
-        "tier_classification": 0.0,
-        "evidence_grounding": 0.0,
-        "roi_basis": 0.0
+        "tier_classification": 3.67,
+        "evidence_grounding": 3.33,
+        "roi_basis": 3.33
       },
       "MedFlow Health": {
-        "tier_classification": 0.0,
-        "evidence_grounding": 0.0,
-        "roi_basis": 0.0
+        "tier_classification": 3.67,
+        "evidence_grounding": 3.33,
+        "roi_basis": 3.0
       },
       "ShopStream": {
-        "tier_classification": 0.0,
-        "evidence_grounding": 0.0,
-        "roi_basis": 0.0
+        "tier_classification": 3.67,
+        "evidence_grounding": 3.0,
+        "roi_basis": 3.0
       },
       "FinVault": {
-        "tier_classification": 0.0,
-        "evidence_grounding": 0.0,
-        "roi_basis": 0.0
+        "tier_classification": 3.67,
+        "evidence_grounding": 3.33,
+        "roi_basis": 3.0
       },
       "Apex Consulting": {
-        "tier_classification": 0.0,
-        "evidence_grounding": 0.0,
-        "roi_basis": 0.0
+        "tier_classification": 3.67,
+        "evidence_grounding": 3.0,
+        "roi_basis": 3.0
       }
     },
     "averages": {
-      "tier_classification": 0.0,
-      "evidence_grounding": 0.0,
-      "roi_basis": 0.0
-    },
-    "note": "claude-opus-4-6 on Vertex AI returned HTTP 429 quota-exhausted for all scoring calls \u2014 scores are 0.0 failure artifacts, not quality measurements. Requires GCP quota increase for anthropic-claude-opus-4-6 before real baseline can be established."
+      "tier_classification": 3.67,
+      "evidence_grounding": 3.2,
+      "roi_basis": 3.07
+    }
   }
 }
