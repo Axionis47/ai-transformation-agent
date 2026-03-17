@@ -22,13 +22,11 @@ const SAMPLE_WINS: VictoryMatch[] = [
     engagement_title: "Logistics AI Maturity Uplift",
     industry: "Logistics",
     match_tier: "DIRECT_MATCH",
-    roi_benchmark: "18%",
+    relevance_note: "Near-identical tech stack and operational scale.",
+    roi_benchmark: "18% fulfillment accuracy improvement in 6 months",
+    similarity_score: 0.91,
     confidence: 0.88,
-    size_label: "Mid-market",
-    primary_metric_label: "Fulfillment accuracy",
-    primary_metric_value: "+18%",
-    measurement_period: "6 months post-deployment",
-    maturity_at_engagement: "Developing",
+    gap_analysis: "Client lacked real-time warehouse telemetry at engagement start.",
   },
 ];
 
