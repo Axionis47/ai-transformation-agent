@@ -105,3 +105,45 @@ def _score_library_b(record: dict, signals_industry: str, signals_scale: str,
     size_match = 0.2 if signals_scale.lower() == company_type.lower() else 0.0
 
     return round(industry_score + signal_overlap + size_match, 3)
+
+
+def _build_delivered(record: dict, score: float, composite_score: float) -> MatchResult:
+    results = record.get("results", {})
+    pm_dict = results.get("primary_metric", {}) if isinstance(results, dict) else {}
+    pm = ProvenMetrics(
+        primary_label=pm_dict.get("label", ""),
+        primary_value=pm_dict.get("value", ""),
+        measurement_period=results.get("measurement_period", "") if isinstance(results, dict) else "",
+    )
+    profile = record.get("company_profile", {}) if isinstance(record.get("company_profile"), dict) else {}
+    win_maturity = record.get("maturity_at_engagement", "")
+    win_float = _MATURITY_LEVELS.index(win_maturity) + 1.0 if win_maturity in _MATURITY_LEVELS else 0.0
+    gap = abs(composite_score - win_float)
+    gap_text: str | None = None
+    template = record.get("gap_analysis_template", "")
+    if record.get("industry_benchmark") and template:
+        gap_text = f"Industry benchmark: {record['industry_benchmark']}. Maturity gap: {gap:.1f} points."
+        if record.get("success_threshold"):
+            gap_text += f" {record['success_threshold']}"
+        gap_text += f" {template.format(gap=f'{gap:.1f}')}"
+    tech = record.get("tech_stack", {})
+    return MatchResult(
+        result_id=f"mr-{uuid.uuid4().hex[:6]}",
+        source_library="tenex_delivered",
+        match_tier="DELIVERED",
+        confidence=_map_confidence(score, 0.80, 0.95, 0.75, 1.2),
+        similarity_score=round(score, 3),
+        source_id=record.get("id", ""),
+        source_title=record.get("engagement_title", ""),
+        source_industry=record.get("industry", ""),
+        relevance_note=f"Industry: {record.get('industry','')}, Maturity: {win_maturity}, Score: {score:.2f}",
+        proven_metrics=pm,
+        client_profile_summary=(
+            f"{profile.get('size_label','')} {record.get('industry','')} company, "
+            f"{profile.get('size_employees','')} employees, {profile.get('geography','')}"
+        ).strip(", "),
+        engagement_duration=record.get("engagement_details", {}).get("duration_months")
+        if isinstance(record.get("engagement_details"), dict) else None,
+        tech_approach=tech.get("ml_approach", "") if isinstance(tech, dict) else "",
+        gap_analysis=gap_text,
+    )
