@@ -149,3 +149,26 @@ class TestCiEvalSprint:
         assert ci_mod._SPRINT == "sprint_8", (
             f"_SPRINT should be 'sprint_8', got {ci_mod._SPRINT!r}"
         )
+
+
+# ── ci_eval _RUBRICS has 6 keys ─────────────────────────────────────────────
+
+class TestCiEvalRubrics:
+    def test_rubrics_dict_has_six_keys(self) -> None:
+        import importlib
+        import evals.ci_eval as ci_mod
+        importlib.reload(ci_mod)
+        assert len(ci_mod._RUBRICS) == 6, (
+            f"_RUBRICS should have 6 keys, got {len(ci_mod._RUBRICS)}: {list(ci_mod._RUBRICS)}"
+        )
+
+    def test_rubrics_dict_has_all_expected_keys(self) -> None:
+        import importlib
+        import evals.ci_eval as ci_mod
+        importlib.reload(ci_mod)
+        expected = (
+            "tier_classification", "evidence_grounding", "roi_basis",
+            "match_quality_delivered", "match_quality_adaptation", "match_quality_ambitious",
+        )
+        for key in expected:
+            assert key in ci_mod._RUBRICS, f"_RUBRICS missing key: {key}"
