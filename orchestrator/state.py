@@ -34,6 +34,8 @@ class PipelineState(BaseModel):
     maturity: dict[str, Any] | None = None
     victory_matches: list[dict[str, Any]] | None = None
     use_cases: list[dict[str, Any]] | None = None
+    # Sprint 8 — three-tier matching results (keys: delivered, adaptation, ambitious)
+    match_results: dict[str, list[dict[str, Any]]] | None = None
 
     # Scraper metadata
     pages_fetched: list[str] | None = None

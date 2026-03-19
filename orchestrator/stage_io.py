@@ -52,8 +52,24 @@ def rag_input(signals: dict[str, Any] | None, company_data: Any) -> dict[str, An
     return {"industry": industry, "query_text_preview": preview}
 
 
-def rag_output(rag_context: list | None) -> dict[str, Any]:
+def rag_output(rag_context: dict | list | None) -> dict[str, Any]:
+    if isinstance(rag_context, dict):
+        return {
+            "delivered_count": len(rag_context.get("delivered_results", [])),
+            "industry_count": len(rag_context.get("industry_results", [])),
+        }
     return {"match_count": len(rag_context) if rag_context else 0}
+
+
+def matching_output(match_results: dict[str, list] | None) -> dict[str, Any]:
+    """Log per-tier match counts from the three-channel matching layer."""
+    if not match_results:
+        return {"delivered": 0, "adaptation": 0, "ambitious": 0}
+    return {
+        "delivered": len(match_results.get("delivered", [])),
+        "adaptation": len(match_results.get("adaptation", [])),
+        "ambitious": len(match_results.get("ambitious", [])),
+    }
 
 
 def victory_input(rag_context: list | None, maturity: dict[str, Any] | None) -> dict[str, Any]:

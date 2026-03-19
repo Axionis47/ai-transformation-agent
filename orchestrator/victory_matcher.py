@@ -1,7 +1,8 @@
-"""Victory matcher — deterministic relevance scoring for RAG results."""
+"""Victory matcher — thin wrapper around matching_layer for backwards compatibility."""
 from __future__ import annotations
 
-from orchestrator.schemas import VictoryMatch
+from orchestrator.matching_layer import match as _match
+from orchestrator.schemas import MatchResult, VictoryMatch
 
 
 _MATURITY_FLOAT: dict[str, float] = {
@@ -116,6 +117,20 @@ def match_victories(
     tier_order = {"DIRECT_MATCH": 0, "CALIBRATION_MATCH": 1, "ADJACENT_MATCH": 2}
     matches.sort(key=lambda m: (tier_order.get(m.match_tier, 3), -m.similarity_score))
     return matches
+
+
+def get_full_match_results(
+    signals: dict,
+    maturity: dict,
+    delivered_results: list[dict],
+    industry_results: list[dict],
+) -> dict[str, list[MatchResult]]:
+    """Return three-tier MatchResult dict using the matching layer.
+
+    Keys: "delivered", "adaptation", "ambitious".
+    Use this for new code; match_victories() is kept for backwards compat.
+    """
+    return _match(signals, maturity, delivered_results, industry_results)
 
 
 def _proximity_score(value: str, target: str, levels: list[str], max_score: float) -> float:
