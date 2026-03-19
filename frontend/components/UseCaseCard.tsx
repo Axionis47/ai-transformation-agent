@@ -95,15 +95,22 @@ export default function UseCaseCard({ useCase }: UseCaseCardProps) {
         </div>
       </div>
 
-      {/* ROI estimate */}
+      {/* ROI estimate — prefix varies by tier */}
       <div
         className="rounded-xl px-4 py-3 border"
         style={{ background: "#f8f9ff", borderColor: "#e0e7ff" }}
       >
         <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1">
-          ROI Estimate
+          {useCase.tier === "LOW_HANGING_FRUIT"
+            ? "Proven ROI"
+            : useCase.tier === "MEDIUM_SOLUTION"
+            ? "Adapted ROI"
+            : "Estimated ROI"}
         </p>
         <p className="text-sm font-semibold" style={{ color: "#4f6df5" }}>
+          {useCase.tier === "HARD_EXPERIMENT" && (
+            <span className="text-xs font-normal text-gray-400 mr-1">Estimated:</span>
+          )}
           {useCase.roi_estimate}
         </p>
         {useCase.roi_basis && (
@@ -123,12 +130,120 @@ export default function UseCaseCard({ useCase }: UseCaseCardProps) {
         </div>
       )}
 
-      {/* RAG benchmark */}
-      {useCase.rag_benchmark && (
-        <p className="text-[11px] text-gray-400">
-          <span className="font-medium text-gray-500">Benchmark: </span>
-          {useCase.rag_benchmark}
-        </p>
+      {/* DELIVERED tier evidence: win ID badge + proven metric + client profile */}
+      {useCase.tier === "LOW_HANGING_FRUIT" && (
+        <div className="space-y-2">
+          {useCase.win_id && (
+            <div className="flex items-center gap-2">
+              <span
+                className="text-[11px] font-bold px-2 py-0.5 rounded border"
+                style={{ background: "#f0fdf4", color: "#16a34a", borderColor: "#bbf7d0" }}
+              >
+                {useCase.win_id}
+              </span>
+              <span className="text-[11px] text-gray-400">proven engagement</span>
+            </div>
+          )}
+          {useCase.proven_metric && (
+            <p className="text-sm font-semibold" style={{ color: "#16a34a" }}>
+              Proven: {useCase.proven_metric}
+            </p>
+          )}
+          {useCase.client_profile_match && (
+            <p className="text-[11px] text-gray-500">
+              <span className="font-medium">Similar: </span>
+              {useCase.client_profile_match}
+            </p>
+          )}
+          {useCase.rag_benchmark && (
+            <p className="text-[11px] text-gray-400">
+              <span className="font-medium text-gray-500">Benchmark: </span>
+              {useCase.rag_benchmark}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* ADAPTATION tier evidence: base win reference + adaptation notes + adjusted ROI */}
+      {useCase.tier === "MEDIUM_SOLUTION" && (
+        <div className="space-y-2">
+          {useCase.base_win_id && (
+            <div className="flex items-center gap-2">
+              <span
+                className="text-[11px] font-bold px-2 py-0.5 rounded border"
+                style={{ background: "#fffbeb", color: "#d97706", borderColor: "#fde68a" }}
+              >
+                Based on {useCase.base_win_id}
+              </span>
+            </div>
+          )}
+          {useCase.adaptation_notes && (
+            <div className="rounded-xl px-3 py-2 border" style={{ background: "#fffbeb", borderColor: "#fde68a" }}>
+              <p className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: "#d97706" }}>
+                Adaptation notes
+              </p>
+              <p className="text-xs leading-relaxed" style={{ color: "#92400e" }}>
+                {useCase.adaptation_notes}
+              </p>
+            </div>
+          )}
+          {useCase.adjusted_roi_range && (
+            <p className="text-[11px] text-gray-500">
+              <span className="font-medium">Adjusted ROI: </span>
+              {useCase.adjusted_roi_range}
+            </p>
+          )}
+          {useCase.rag_benchmark && (
+            <p className="text-[11px] text-gray-400">
+              <span className="font-medium text-gray-500">Benchmark: </span>
+              {useCase.rag_benchmark}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* AMBITIOUS tier evidence: industry examples + source citations */}
+      {useCase.tier === "HARD_EXPERIMENT" && (
+        <div className="space-y-2">
+          {useCase.industry_examples && useCase.industry_examples.length > 0 && (
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1">
+                Industry examples
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {useCase.industry_examples.map((ex) => (
+                  <span
+                    key={ex}
+                    className="text-[11px] font-medium px-2 py-0.5 rounded-full border"
+                    style={{ background: "#eff6ff", color: "#4f6df5", borderColor: "#bfdbfe" }}
+                  >
+                    {ex}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {useCase.source_citations && useCase.source_citations.length > 0 && (
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1">
+                Sources
+              </p>
+              <ul className="space-y-0.5">
+                {useCase.source_citations.map((src) => (
+                  <li key={src} className="text-[11px] text-gray-500">
+                    {src}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {useCase.rag_benchmark && (
+            <p className="text-[11px] text-gray-400">
+              <span className="font-medium text-gray-500">Industry ref: </span>
+              {useCase.rag_benchmark}
+            </p>
+          )}
+        </div>
       )}
 
       {/* Data flow accordion */}
