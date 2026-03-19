@@ -2,7 +2,7 @@ import AnalyzeForm from "@/components/AnalyzeForm";
 
 export default function HomePage() {
   return (
-    <div className="space-y-7">
+    <div className="max-w-2xl mx-auto space-y-7">
       {/* Hero section */}
       <div className="text-center space-y-4 pt-2">
         {/* Subtle badge */}
