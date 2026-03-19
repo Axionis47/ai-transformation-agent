@@ -45,6 +45,42 @@
   CHROMADB (in-container)      ANTHROPIC (evals only, JudgeClient)
 ```
 
+## Two-Library, Three-Track Matching
+
+```
+COMPANY ANALYSIS PIPELINE              SOLUTIONS LIBRARIES
+
+  Stage 4: RAG Query ----retrieval----> tenex_delivered (Library A)
+                     (separate          industry_cases  (Library B)
+                      queries)
+
+  ========== MATCHING LAYER (orchestrator/matching_layer.py) ==========
+
+  Inputs:  SignalSet + MaturityResult
+           list[dict] from tenex_delivered
+           list[dict] from industry_cases
+
+  TRACK 1 -- DELIVERED     confidence 0.80-0.95    Library A score >= 0.75
+  TRACK 2 -- ADAPTATION    confidence 0.55-0.79    Library A score 0.45-0.74
+  TRACK 3 -- AMBITIOUS     confidence 0.40-0.65    Library B score >= 0.30
+
+  One Library A record appears in at most one track.
+  Library B records only appear in AMBITIOUS.
+  =====================================================================
+
+  Stage 6: UseCaseGeneratorAgent -- per-tier synthesis (3 model calls max)
+    DELIVERED -> tier1_delivered.md prompt (cite exact win_id, proven metrics)
+    ADAPTATION -> tier2_adaptation.md prompt (cite base win, explain gap)
+    AMBITIOUS  -> tier3_ambitious.md prompt (cite external company or source)
+```
+
+Separation contracts:
+- The analysis pipeline produces `SignalSet + MaturityResult`.
+- `rag/ingest_solution.py` feeds Library A (`tenex_delivered` collection).
+- `rag/ingest_industry_case.py` feeds Library B (`industry_cases` collection).
+- `orchestrator/matching_layer.py` is the only bridge between libraries and the pipeline.
+- No analysis agent reads either library directly.
+
 ## Pipeline Flow (7 Stages)
 
 ```
