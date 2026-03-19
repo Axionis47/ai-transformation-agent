@@ -71,37 +71,37 @@
     }
   },
   "sprint_7": {
-    "run_date": "2026-03-17",
+    "run_date": "2026-03-19",
     "companies": {
       "CargoLogik": {
-        "tier_classification": 3.67,
-        "evidence_grounding": 4.33,
+        "tier_classification": 5.0,
+        "evidence_grounding": 4.67,
         "roi_basis": 3.67
       },
       "MedFlow Health": {
-        "tier_classification": 3.67,
-        "evidence_grounding": 4.33,
+        "tier_classification": 5.0,
+        "evidence_grounding": 4.0,
         "roi_basis": 3.67
       },
       "ShopStream": {
-        "tier_classification": 3.67,
-        "evidence_grounding": 5.0,
-        "roi_basis": 3.67
-      },
-      "FinVault": {
-        "tier_classification": 3.67,
-        "evidence_grounding": 4.67,
+        "tier_classification": 5.0,
+        "evidence_grounding": 4.33,
         "roi_basis": 4.0
       },
+      "FinVault": {
+        "tier_classification": 5.0,
+        "evidence_grounding": 4.33,
+        "roi_basis": 3.67
+      },
       "Apex Consulting": {
-        "tier_classification": 3.67,
-        "evidence_grounding": 5.0,
+        "tier_classification": 5.0,
+        "evidence_grounding": 4.67,
         "roi_basis": 4.0
       }
     },
     "averages": {
-      "tier_classification": 3.67,
-      "evidence_grounding": 4.67,
+      "tier_classification": 5.0,
+      "evidence_grounding": 4.4,
       "roi_basis": 3.8
     }
   }
