@@ -1,0 +1,42 @@
+name: report_roi_analysis
+version: "1.0"
+description: >
+  Evaluates whether the ROI analysis section provides credible, math-backed financial
+  projections for a CFO or board-level reviewer. Checks for explicit math, ranges
+  instead of point estimates, payback period, and benchmark citations.
+
+scoring:
+  scale: 1-5
+  anchors:
+    1: No numbers, pure qualitative statements
+    2: Has numbers but no math shown, point estimates instead of ranges
+    3: Ranges present but math is implicit, no payback period
+    4: Math shown as volume times percentage equals result, ranges used, payback period stated, total annual impact included
+    5: Math shown for each use case, all ranges and no point estimates, payback period with basis, total annual impact range, implementation cost estimate, benchmark cited for at least one figure
+
+judge_prompt_template: |
+  You are an expert AI transformation consultant evaluating an ROI analysis section
+  written for a CFO or board-level reviewer.
+
+  ROI ANALYSIS SECTION:
+  {roi_analysis}
+
+  CONTEXT:
+  - Use cases summary: {use_cases_summary}
+  - Maturity label: {maturity_label}
+
+  SCORING RUBRIC:
+  1 = No numbers, pure qualitative statements
+  2 = Has numbers but no math shown, point estimates instead of ranges
+  3 = Ranges present but math is implicit, no payback period
+  4 = Math shown (volume x percentage = result), ranges used, payback period stated, total annual impact
+  5 = Math shown for each use case, all ranges (no point estimates), payback period with basis,
+      total annual impact range, implementation cost estimate, benchmark cited for at least one figure
+
+  Point estimate example (bad): "saves $500K annually"
+  Range example (good): "saves $400K-600K annually"
+  Math example (good): "At 2M monthly shipments, a 10% reduction = 200K fewer costly routes"
+  Payback period must state a time range and the basis for the estimate.
+
+  Respond with exactly one line: SCORE: <integer 1-5>
+  Then provide a brief rationale (2-3 sentences).

@@ -1,0 +1,41 @@
+name: report_roadmap
+version: "1.0"
+description: >
+  Evaluates whether the roadmap section provides a realistic, sequenced implementation
+  plan for a pragmatic engineering manager. Checks for phased structure, specific
+  deliverables, roles, measurable outcomes, and alignment with company capability.
+
+scoring:
+  scale: 1-5
+  anchors:
+    1: Vague timeline with no specific deliverables
+    2: Has phases but deliverables are generic such as implement AI
+    3: 3 phases with some specifics but missing measurable outcomes or who builds it
+    4: 3 phases each with specific deliverable plus role plus measurable outcome, phases build sequentially
+    5: 3+ phases each with named deliverable plus specific role plus quantified success metric, Phase 1 matches lowest-effort use case, phases build on each other and are not parallel, does not exceed company current capability
+
+judge_prompt_template: |
+  You are an expert AI transformation consultant evaluating a roadmap section
+  written for a pragmatic engineering manager who has shipped ML products.
+
+  ROADMAP SECTION:
+  {roadmap}
+
+  CONTEXT:
+  - Maturity label: {maturity_label}
+  - Composite score: {composite_score}
+
+  SCORING RUBRIC:
+  1 = Vague timeline with no specific deliverables
+  2 = Has phases but deliverables are generic ("implement AI")
+  3 = 3 phases with some specifics but missing measurable outcomes or who builds it
+  4 = 3 phases, each with specific deliverable + role + measurable outcome, phases build sequentially
+  5 = 3+ phases, each with named deliverable + specific role + quantified success metric,
+      Phase 1 matches lowest-effort use case, phases build on each other (not parallel),
+      does not exceed company's current capability
+
+  For Beginner or Developing maturity (score < 2.5): Phase 1 should be one person, one model,
+  one metric. Penalise any roadmap that recommends capability beyond the company's current level.
+
+  Respond with exactly one line: SCORE: <integer 1-5>
+  Then provide a brief rationale (2-3 sentences).

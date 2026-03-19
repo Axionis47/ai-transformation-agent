@@ -1,0 +1,40 @@
+name: report_use_cases
+version: "1.0"
+description: >
+  Evaluates whether the use cases section provides structured, evidence-backed
+  recommendations for a CTO or technical decision-maker. Checks for company-specific
+  relevance, evidence signal references, structured format, and ranking by impact.
+
+scoring:
+  scale: 1-5
+  anchors:
+    1: Use cases are generic and could apply to any company
+    2: Company-relevant but no evidence cited, no effort/impact ranking
+    3: Evidence signal IDs mentioned but not explained, some structure present
+    4: Structured format per use case with title, effort, impact, evidence, and ROI, ranked by impact
+    5: Each use case has title plus effort plus impact plus evidence plus ROI estimate plus benchmark, ranked lowest-effort highest-impact first, 3-5 use cases, no fabricated use cases
+
+judge_prompt_template: |
+  You are an expert AI transformation consultant evaluating a use cases section
+  written for a CTO or technical decision-maker.
+
+  USE CASES SECTION:
+  {use_cases_section}
+
+  CONTEXT:
+  - Signals summary: {signals_summary}
+  - Victory matches summary: {victory_matches_summary}
+
+  SCORING RUBRIC:
+  1 = Use cases are generic and could apply to any company
+  2 = Company-relevant but no evidence cited, no effort/impact ranking
+  3 = Evidence signal IDs mentioned but not explained, some structure present
+  4 = Structured format per use case (title, effort, impact, evidence, ROI), ranked by impact
+  5 = Each use case has title + effort + impact + evidence + ROI estimate + benchmark,
+      ranked lowest-effort highest-impact first, 3-5 use cases, no fabricated use cases
+
+  Fabricated use case: a use case not supported by any signal from the company analysis.
+  Count use cases present. Check each one has: effort level, impact level, evidence reference, ROI estimate.
+
+  Respond with exactly one line: SCORE: <integer 1-5>
+  Then provide a brief rationale (2-3 sentences).
