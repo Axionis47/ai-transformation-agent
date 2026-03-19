@@ -102,10 +102,6 @@ def use_case_output(use_cases: list[dict[str, Any]]) -> dict[str, Any]:
     return {"use_case_count": len(use_cases), "tiers": tiers}
 
 
-def report_writer_input(sections: list[str]) -> dict[str, Any]:
-    return {"section_count": len(sections)}
-
-
 def report_writer_output(report: dict[str, Any] | None, sections: list[str]) -> dict[str, Any]:
     present = [s for s in sections if report and report.get(s)]
     total_chars = sum(len(str(v)) for v in (report or {}).values())
