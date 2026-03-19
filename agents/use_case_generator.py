@@ -16,13 +16,6 @@ _TIER_PROMPTS: dict[str, Path] = {
     "adaptation": Path(__file__).resolve().parent.parent / "prompts" / "tier2_adaptation.md",
     "ambitious": Path(__file__).resolve().parent.parent / "prompts" / "tier3_ambitious.md",
 }
-_TIER_ORDER = ["LOW_HANGING_FRUIT", "MEDIUM_SOLUTION", "HARD_EXPERIMENT"]
-_TIER_TO_KEY = {
-    "delivered": "LOW_HANGING_FRUIT",
-    "adaptation": "MEDIUM_SOLUTION",
-    "ambitious": "HARD_EXPERIMENT",
-}
-
 
 class UseCaseGeneratorAgent(BaseAgent):
     agent_tag = "USE_CASE_GENERATOR"
