@@ -1,0 +1,50 @@
+name: match_quality_adaptation
+version: "1.0"
+description: >
+  Evaluates whether the ADAPTATION tier match correctly identified a Library A
+  record as an adjacent (not direct) match and produced a valid gap analysis.
+  Checks that the base solution is plausibly related, adaptation_notes explain
+  what changes, and the adjusted ROI is lower than the base win ROI.
+
+scoring:
+  scale: 1-5
+  anchors:
+    1: No base solution cited, or solution is completely unrelated
+    2: Base solution cited but no adaptation reasoning
+    3: Base solution matches partially, some adaptation notes present
+    4: Base solution is plausibly adjacent, adaptation_notes explain gap, adjusted ROI is lower than base
+    5: Clear adjacent match, detailed adaptation notes, gap_from_base computed, discount factor stated in ROI
+
+judge_prompt_template: |
+  You are an expert AI transformation consultant evaluating match quality for an ADAPTATION tier recommendation.
+
+  COMPANY CONTEXT:
+  - Company industry: {company_industry}
+
+  ADAPTATION MATCH RECORD:
+  - Match tier: {match_tier}
+  - Source ID: {source_id}
+  - Source title: {source_title}
+  - Source industry: {source_industry}
+  - Confidence: {confidence}
+  - Relevance note: {relevance_note}
+  - Adaptation notes: {adaptation_notes}
+  - Gap from base: {gap_from_base}
+
+  SCORING RUBRIC:
+  1 = No base solution cited, or solution is completely unrelated
+  2 = Base solution cited but no adaptation reasoning
+  3 = Base solution matches partially, some adaptation notes present
+  4 = Base solution is plausibly adjacent, adaptation_notes explain gap, adjusted ROI is lower than base
+  5 = Clear adjacent match, detailed adaptation notes, gap_from_base computed, discount factor stated in ROI
+
+  Evaluation criteria for ADAPTATION tier:
+  - source_id must be a valid win-NNN reference from Library A
+  - confidence must be within 0.55-0.79 (ADAPTATION band)
+  - adaptation_notes must explain what stays the same and what changes
+  - gap_from_base should be a numeric maturity distance value
+  - Score 5 requires: explicit discount factor in ROI estimate, gap_from_base present,
+    and adaptation_notes are specific enough to act on
+
+  Respond with exactly one line: SCORE: <integer 1-5>
+  Then provide a brief rationale (2-3 sentences).
