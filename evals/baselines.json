@@ -104,5 +104,58 @@
       "evidence_grounding": 4.4,
       "roi_basis": 3.8
     }
+  },
+  "sprint_8": {
+    "run_date": "2026-03-19",
+    "companies": {
+      "CargoLogik": {
+        "tier_classification": 3.67,
+        "evidence_grounding": 4.67,
+        "roi_basis": 4.33,
+        "match_quality_delivered": 3.0,
+        "match_quality_adaptation": 4.0,
+        "match_quality_ambitious": 4.0
+      },
+      "MedFlow Health": {
+        "tier_classification": 3.67,
+        "evidence_grounding": 4.0,
+        "roi_basis": 4.67,
+        "match_quality_delivered": 3.0,
+        "match_quality_adaptation": 4.0,
+        "match_quality_ambitious": 4.0
+      },
+      "ShopStream": {
+        "tier_classification": 3.67,
+        "evidence_grounding": 4.33,
+        "roi_basis": 4.33,
+        "match_quality_delivered": 3.0,
+        "match_quality_adaptation": 4.0,
+        "match_quality_ambitious": 4.0
+      },
+      "FinVault": {
+        "tier_classification": 3.67,
+        "evidence_grounding": 4.67,
+        "roi_basis": 4.33,
+        "match_quality_delivered": 3.0,
+        "match_quality_adaptation": 4.0,
+        "match_quality_ambitious": 4.0
+      },
+      "Apex Consulting": {
+        "tier_classification": 3.67,
+        "evidence_grounding": 4.33,
+        "roi_basis": 4.33,
+        "match_quality_delivered": 3.0,
+        "match_quality_adaptation": 4.0,
+        "match_quality_ambitious": 4.0
+      }
+    },
+    "averages": {
+      "tier_classification": 3.67,
+      "evidence_grounding": 4.4,
+      "roi_basis": 4.4,
+      "match_quality_delivered": 3.0,
+      "match_quality_adaptation": 4.0,
+      "match_quality_ambitious": 4.0
+    }
   }
 }
