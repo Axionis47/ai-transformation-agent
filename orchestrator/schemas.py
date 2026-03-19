@@ -40,6 +40,45 @@ class MaturityResult(BaseModel):
     composite_rationale: str = ""
 
 
+class ProvenMetrics(BaseModel):
+    primary_label: str = ""
+    primary_value: str = ""
+    measurement_period: str = ""
+
+
+class MatchResult(BaseModel):
+    """Three-tier matching output — one schema covering DELIVERED, ADAPTATION, AMBITIOUS."""
+
+    result_id: str = ""
+    source_library: Literal["tenex_delivered", "industry_cases"] = "tenex_delivered"
+    match_tier: Literal["DELIVERED", "ADAPTATION", "AMBITIOUS"]
+    confidence: float = 0.5
+    similarity_score: float = 0.0
+    source_id: str = ""
+    source_title: str = ""
+    source_industry: str = ""
+    relevance_note: str = ""
+    # DELIVERED tier fields
+    proven_metrics: ProvenMetrics | None = None
+    client_profile_summary: str = ""
+    engagement_duration: int | None = None
+    tech_approach: str = ""
+    gap_analysis: str | None = None
+    # ADAPTATION tier fields
+    base_solution_id: str = ""
+    adaptation_notes: str = ""
+    gap_from_base: float = 0.0
+    estimated_scope_delta: str = ""
+    adjusted_roi_range: str = ""
+    # AMBITIOUS tier fields
+    industry_examples: list[str] = []
+    source_citations: list[str] = []
+    deployment_scale: str = ""
+    implementation_maturity: str = ""
+    experimental_roi_range: str = ""
+
+
+# Deprecated — kept for backwards compatibility. Use MatchResult for new code.
 class VictoryMatch(BaseModel):
     win_id: str
     engagement_title: str
