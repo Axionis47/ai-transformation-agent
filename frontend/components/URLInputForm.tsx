@@ -77,7 +77,7 @@ export default function URLInputForm({ onSubmit, isLoading }: URLInputFormProps)
             Dry run — use fixture data
           </span>
         </label>
-        <span className="font-mono text-xs text-red">avg. 87s</span>
+        <span className="font-mono text-xs text-ink-light">dry run is instant</span>
       </div>
 
     </form>

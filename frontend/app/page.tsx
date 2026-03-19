@@ -4,26 +4,32 @@ const PIPELINE_STAGES = [
   {
     num: "01",
     title: "SCRAPE",
-    desc: "Fetches company pages, careers listings, and public data",
-    time: "~12s",
+    desc: "Fetches company pages, careers listings, and public content via HTTP",
   },
   {
     num: "02",
-    title: "ANALYZE",
-    desc: "Extracts AI readiness signals from scraped content",
-    time: "~18s",
+    title: "EXTRACT",
+    desc: "LLM extracts AI readiness signals and classifies by dimension",
   },
   {
     num: "03",
     title: "SCORE",
-    desc: "Scores maturity across four dimensions",
-    time: "~15s",
+    desc: "LLM scores maturity across four dimensions using extracted signals",
   },
   {
     num: "04",
+    title: "MATCH",
+    desc: "RAG retrieves similar engagements from the victory library",
+  },
+  {
+    num: "05",
+    title: "PRIORITIZE",
+    desc: "LLM generates tiered use cases grounded in matched victories",
+  },
+  {
+    num: "06",
     title: "REPORT",
-    desc: "Writes five-section transformation roadmap",
-    time: "~25s",
+    desc: "LLM writes five report sections in parallel",
   },
 ];
 
@@ -50,12 +56,13 @@ export default function HomePage() {
         {/* Right column: two body paragraphs */}
         <div className="reveal-up delay-350 space-y-4">
           <p className="font-body text-ink-medium text-base leading-relaxed">
-            Enter any company URL. Our four-agent pipeline scrapes public data,
-            extracts signals, scores AI maturity, and writes a transformation
-            roadmap in under 90 seconds.
+            Enter any company URL. A six-stage pipeline scrapes public data,
+            extracts signals, scores AI maturity across four dimensions, matches
+            against past engagements, and writes a transformation roadmap.
           </p>
           <p className="font-body text-ink-medium text-base leading-relaxed">
-            What used to cost $50K and take six weeks now runs for four cents.
+            Traditional discovery takes weeks and costs five figures.
+            This runs in under two minutes.
           </p>
         </div>
 
@@ -76,41 +83,31 @@ export default function HomePage() {
           The Pipeline
         </h2>
 
-        {/* 4-col on desktop, 2x2 on tablet, 1-col on mobile */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+        {/* 3-col on desktop, 2-col on tablet, 1-col on mobile */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
           {PIPELINE_STAGES.map((stage, i) => (
             <div
               key={stage.title}
               className={[
                 "py-6 pr-8",
-                i < 3 ? "md:border-r border-rule" : "",
-                i === 0 ? "sm:border-r border-rule" : "",
-                i === 2 ? "sm:border-r border-rule" : "",
-                i < 2 ? "border-b sm:border-b-0 md:border-b-0 border-rule" : "",
-              ].join(" ")}
+                (i % 3 !== 2) ? "md:border-r border-rule" : "",
+                (i % 2 === 0) ? "sm:border-r md:border-r-0 border-rule" : "",
+                (i % 3 !== 2) ? "" : "",
+                i < 3 ? "border-b border-rule md:border-b" : "",
+              ].filter(Boolean).join(" ")}
             >
-              {/* Ghost number */}
               <span
                 className="font-headline font-black block leading-none mb-3"
                 style={{ fontSize: "3.5rem", color: "var(--ink-faint)" }}
               >
                 {stage.num}
               </span>
-
-              {/* Stage title */}
               <p className="font-label font-bold uppercase tracking-widest text-sm text-ink mb-2">
                 {stage.title}
               </p>
-
-              {/* Description */}
-              <p className="font-body text-ink-medium text-sm leading-relaxed mb-4">
+              <p className="font-body text-ink-medium text-sm leading-relaxed">
                 {stage.desc}
               </p>
-
-              {/* Timing tag */}
-              <span className="font-mono text-xs text-red">
-                {stage.time}
-              </span>
             </div>
           ))}
         </div>
