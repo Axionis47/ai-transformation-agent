@@ -11,18 +11,18 @@
     "company_profile": {
       "size_employees": 520,
       "size_label": "mid-market",
-      "annual_revenue_usd": "$70M\u2013$90M",
+      "annual_revenue_usd": "$70M–$90M",
       "geography": "US Midwest",
       "business_model": "Regional less-than-truckload carrier operating 38 distribution hubs across 6 states"
     },
-    "problem_statement": "The carrier dispatched routes manually using a combination of dispatcher experience and a legacy TMS that had not been updated since 2014. Route planners spent 3\u20134 hours per day on manual adjustments to handle exceptions, weather, and driver availability. Fuel costs had risen 18% year-over-year while on-time delivery rates had dropped from 91% to 87% as the network grew.",
+    "problem_statement": "The carrier dispatched routes manually using a combination of dispatcher experience and a legacy TMS that had not been updated since 2014. Route planners spent 3–4 hours per day on manual adjustments to handle exceptions, weather, and driver availability. Fuel costs had risen 18% year-over-year while on-time delivery rates had dropped from 91% to 87% as the network grew.",
     "solution_summary": "Tenex built an ML-based route optimisation engine ingesting GPS telemetry, delivery time windows, driver shift constraints, and historical traffic patterns from the prior 18 months. The model used XGBoost regression to predict optimal route sequences and flag at-risk deliveries 4 hours before estimated late. It was deployed as a REST API integrated into the existing TMS, surfacing ranked route suggestions to dispatchers in the planning interface.",
     "results": {
       "primary_metric": {
         "label": "Fuel Cost Reduction",
         "value": "14%",
         "baseline": "$2.1M annual fuel spend across 420 active vehicles",
-        "outcome": "$1.8M annual fuel spend \u2014 $294K annual cost avoidance"
+        "outcome": "$1.8M annual fuel spend — $294K annual cost avoidance"
       },
       "secondary_metrics": [
         {
@@ -71,11 +71,15 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": true,
-    "lessons_learned": "Dispatcher buy-in was the critical path \u2014 spend week 2 doing side-by-side sessions before showing model outputs. The model accuracy at launch was good enough but dispatcher trust took 6 weeks to build.",
-    "embed_text": "Logistics \u2014 Mid-market regional LTL carrier, 520 employees, ~$80M revenue, US Midwest\n\nProblem: The carrier dispatched routes manually using dispatcher experience and a 2014 legacy TMS. Route planners spent 3\u20134 hours per day on manual adjustments. Fuel costs rose 18% year-over-year and on-time delivery dropped from 91% to 87% as the network expanded to 38 hubs.\n\nSolution: Tenex built an ML route optimisation engine ingesting GPS telemetry, delivery time windows, driver constraints, and historical traffic. XGBoost regression predicts optimal route sequences and flags at-risk deliveries 4 hours before estimated late. Deployed as REST API integrated into existing TMS.\n\nApproach: XGBoost regression using GPS telemetry, ERP order data, real-time traffic feeds\n\nResults: Fuel Cost Reduction: 14% ($294K annual savings on $2.1M spend) (4 months post-deployment). On-time delivery rate: 87% to 94%. Dispatcher planning time: 3.5 hours/day to 45 minutes/day.",
+    "lessons_learned": "Dispatcher buy-in was the critical path — spend week 2 doing side-by-side sessions before showing model outputs. The model accuracy at launch was good enough but dispatcher trust took 6 weeks to build.",
+    "embed_text": "Logistics — Mid-market regional LTL carrier, 520 employees, ~$80M revenue, US Midwest\n\nProblem: The carrier dispatched routes manually using dispatcher experience and a 2014 legacy TMS. Route planners spent 3–4 hours per day on manual adjustments. Fuel costs rose 18% year-over-year and on-time delivery dropped from 91% to 87% as the network expanded to 38 hubs.\n\nSolution: Tenex built an ML route optimisation engine ingesting GPS telemetry, delivery time windows, driver constraints, and historical traffic. XGBoost regression predicts optimal route sequences and flags at-risk deliveries 4 hours before estimated late. Deployed as REST API integrated into existing TMS.\n\nApproach: XGBoost regression using GPS telemetry, ERP order data, real-time traffic feeds\n\nResults: Fuel Cost Reduction: 14% ($294K annual savings on $2.1M spend) (4 months post-deployment). On-time delivery rate: 87% to 94%. Dispatcher planning time: 3.5 hours/day to 45 minutes/day.",
     "industry_benchmark": "14% fuel cost reduction on $2.1M annual fleet spend",
     "success_threshold": "Most applicable when a TMS is in place and the dispatch team can adopt route suggestions within 30 days of deployment.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 route optimisation ROI is achievable in 3\u20135 months with existing GPS telemetry and TMS API access."
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — route optimisation ROI is achievable in 3–5 months with existing GPS telemetry and TMS API access.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "predictive_model"
   },
   {
     "id": "win-002",
@@ -89,18 +93,18 @@
     "company_profile": {
       "size_employees": 145,
       "size_label": "startup",
-      "annual_revenue_usd": "$18M\u2013$25M",
+      "annual_revenue_usd": "$18M–$25M",
       "geography": "US (nationally distributed client base)",
       "business_model": "B2B SaaS platform serving supply chain managers at mid-market shippers; ~300 client accounts"
     },
     "problem_statement": "Supply chain managers using the platform selected carriers manually from a vendor list, relying on static rate cards and personal relationships. The platform had 18 months of shipment performance data across 80+ carriers but no tooling to surface it systematically. Clients were leaving for competitors that offered carrier recommendations, and the product team had no ML capability.",
-    "solution_summary": "Tenex built a carrier performance scoring module using 18 months of historical shipment data \u2014 on-time rates, damage claims, cost variance, and communication response times. A weighted scoring model (not ML \u2014 a deliberate choice given data volume) ranked carriers per lane and weight class. The module was embedded directly in the SaaS platform as a new 'Carrier Intelligence' tab surfacing ranked recommendations with evidence.",
+    "solution_summary": "Tenex built a carrier performance scoring module using 18 months of historical shipment data — on-time rates, damage claims, cost variance, and communication response times. A weighted scoring model (not ML — a deliberate choice given data volume) ranked carriers per lane and weight class. The module was embedded directly in the SaaS platform as a new 'Carrier Intelligence' tab surfacing ranked recommendations with evidence.",
     "results": {
       "primary_metric": {
         "label": "Per-shipment carrier cost savings",
         "value": "12% average reduction",
         "baseline": "$147 average cost per shipment across 150,000 annual shipments",
-        "outcome": "$129 average cost per shipment \u2014 $2.7M annual savings across client base"
+        "outcome": "$129 average cost per shipment — $2.7M annual savings across client base"
       },
       "secondary_metrics": [
         {
@@ -136,7 +140,7 @@
         "Claims data",
         "Carrier response time logs"
       ],
-      "ml_approach": "Weighted scoring model with lane-specific calibration; no neural models \u2014 data volume insufficient",
+      "ml_approach": "Weighted scoring model with lane-specific calibration; no neural models — data volume insufficient",
       "infrastructure": [
         "AWS RDS (existing)",
         "AWS Lambda for scoring API",
@@ -149,11 +153,15 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": true,
-    "lessons_learned": "Clients needed to see which carriers scored poorly and why \u2014 transparency in scoring was more important than accuracy. Build explainability before precision.",
-    "embed_text": "Logistics \u2014 Startup B2B SaaS platform for supply chain managers, 145 employees, ~$22M revenue, US national\n\nProblem: Supply chain managers selected carriers manually from static rate cards. The platform had 18 months of shipment performance data across 80+ carriers but no tooling to surface it. Clients were churning to competitors with carrier recommendations.\n\nSolution: Tenex built a carrier performance scoring module using historical shipment data \u2014 on-time rates, damage claims, cost variance. Weighted scoring model ranks carriers per lane and weight class. Embedded as 'Carrier Intelligence' tab in the SaaS platform.\n\nApproach: Weighted scoring model using shipment history, carrier invoice data, claims records\n\nResults: Per-shipment carrier cost savings: 12% average ($2.7M annual savings across client base) (6 months post-deployment). Client NPS: +18 points. On-time delivery improvement: 4.2 percentage points.",
+    "lessons_learned": "Clients needed to see which carriers scored poorly and why — transparency in scoring was more important than accuracy. Build explainability before precision.",
+    "embed_text": "Logistics — Startup B2B SaaS platform for supply chain managers, 145 employees, ~$22M revenue, US national\n\nProblem: Supply chain managers selected carriers manually from static rate cards. The platform had 18 months of shipment performance data across 80+ carriers but no tooling to surface it. Clients were churning to competitors with carrier recommendations.\n\nSolution: Tenex built a carrier performance scoring module using historical shipment data — on-time rates, damage claims, cost variance. Weighted scoring model ranks carriers per lane and weight class. Embedded as 'Carrier Intelligence' tab in the SaaS platform.\n\nApproach: Weighted scoring model using shipment history, carrier invoice data, claims records\n\nResults: Per-shipment carrier cost savings: 12% average ($2.7M annual savings across client base) (6 months post-deployment). Client NPS: +18 points. On-time delivery improvement: 4.2 percentage points.",
     "industry_benchmark": "12% average per-shipment carrier cost reduction across 150,000 annual shipments",
     "success_threshold": "Most applicable when the platform holds at least 12 months of shipment performance data across 50+ carriers and has product engineering capacity for feature integration.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 carrier scoring ROI realises within 6 months when shipment history and carrier invoice data are already centralised."
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — carrier scoring ROI realises within 6 months when shipment history and carrier invoice data are already centralised.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "scoring_model"
   },
   {
     "id": "win-003",
@@ -167,18 +175,18 @@
     "company_profile": {
       "size_employees": 380,
       "size_label": "mid-market",
-      "annual_revenue_usd": "$55M\u2013$75M",
+      "annual_revenue_usd": "$55M–$75M",
       "geography": "US Southeast",
       "business_model": "Temperature-controlled food distribution serving ~600 restaurant and grocery accounts"
     },
     "problem_statement": "The distributor ran 240 refrigerated delivery routes daily but had no early warning system for delays. Drivers called dispatch when they fell behind, often with less than 30 minutes notice. Spoilage claims from late deliveries cost $1.4M annually, and restaurant clients were threatening contract cancellations after three consecutive holiday season failures.",
-    "solution_summary": "Tenex built a delay prediction model that scored each active delivery every 15 minutes against predicted arrival time. The model used a gradient boosted classifier trained on GPS position, traffic data, weather, driver fatigue patterns (shift hours elapsed), and vehicle maintenance history. Dispatchers received alerts 2+ hours before predicted SLA breach \u2014 enough time to re-route, send a backup vehicle, or proactively call the client.",
+    "solution_summary": "Tenex built a delay prediction model that scored each active delivery every 15 minutes against predicted arrival time. The model used a gradient boosted classifier trained on GPS position, traffic data, weather, driver fatigue patterns (shift hours elapsed), and vehicle maintenance history. Dispatchers received alerts 2+ hours before predicted SLA breach — enough time to re-route, send a backup vehicle, or proactively call the client.",
     "results": {
       "primary_metric": {
         "label": "Reduction in late deliveries",
         "value": "63% fewer late deliveries",
         "baseline": "~820 late deliveries per month across all routes",
-        "outcome": "~300 late deliveries per month \u2014 63% reduction"
+        "outcome": "~300 late deliveries per month — 63% reduction"
       },
       "secondary_metrics": [
         {
@@ -230,10 +238,14 @@
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": false,
     "lessons_learned": "Real-time streaming infrastructure was the hard part, not the model. Budget 40% of the engagement for the data pipeline before touching ML.",
-    "embed_text": "Logistics \u2014 Mid-market temperature-controlled food distributor, 380 employees, ~$65M revenue, US Southeast\n\nProblem: The distributor ran 240 refrigerated routes daily with no early warning for delays. Drivers called dispatch with under 30 minutes notice. Spoilage claims cost $1.4M annually and restaurant clients threatened cancellations after holiday season failures.\n\nSolution: Delay prediction model scoring each delivery every 15 minutes using GPS, traffic, weather, driver fatigue, and vehicle maintenance data. LightGBM classifier alerts dispatchers 2+ hours before predicted SLA breach \u2014 enough time to reroute or call the client.\n\nApproach: LightGBM gradient boosted classifier using real-time GPS stream, weather, traffic, driver shift data\n\nResults: Late delivery reduction: 63% (from ~820 to ~300 per month) (6 months post-deployment). Spoilage claims: $1.4M to $520K annually. Proactive client notifications: 8% to 71%.",
+    "embed_text": "Logistics — Mid-market temperature-controlled food distributor, 380 employees, ~$65M revenue, US Southeast\n\nProblem: The distributor ran 240 refrigerated routes daily with no early warning for delays. Drivers called dispatch with under 30 minutes notice. Spoilage claims cost $1.4M annually and restaurant clients threatened cancellations after holiday season failures.\n\nSolution: Delay prediction model scoring each delivery every 15 minutes using GPS, traffic, weather, driver fatigue, and vehicle maintenance data. LightGBM classifier alerts dispatchers 2+ hours before predicted SLA breach — enough time to reroute or call the client.\n\nApproach: LightGBM gradient boosted classifier using real-time GPS stream, weather, traffic, driver shift data\n\nResults: Late delivery reduction: 63% (from ~820 to ~300 per month) (6 months post-deployment). Spoilage claims: $1.4M to $520K annually. Proactive client notifications: 8% to 71%.",
     "industry_benchmark": "63% reduction in late deliveries (from ~820 to ~300 per month) and $880K annual spoilage claim avoidance",
     "success_threshold": "Most applicable when real-time GPS telemetry is streaming per delivery and dispatchers have operational authority to reroute or deploy backup vehicles.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 delay prediction value depends on streaming infrastructure readiness; budget 40% of engagement for data pipeline before modelling."
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — delay prediction value depends on streaming infrastructure readiness; budget 40% of engagement for data pipeline before modelling.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "classification"
   },
   {
     "id": "win-004",
@@ -247,18 +259,18 @@
     "company_profile": {
       "size_employees": 310,
       "size_label": "mid-market",
-      "annual_revenue_usd": "$40M\u2013$60M",
+      "annual_revenue_usd": "$40M–$60M",
       "geography": "US (SMB merchant clients nationwide)",
       "business_model": "Payment processing platform serving ~4,500 SMB merchants; processes ~2M transactions per month"
     },
-    "problem_statement": "The processor's fraud system was a rules engine with 47 static rules, last updated 18 months prior. Fraud losses ran at 0.31% of transaction volume \u2014 above the industry benchmark of 0.18%. More damaging, the false positive rate of 3.2% was blocking legitimate transactions from merchants' best customers, generating chargeback disputes and merchant support tickets at a rate that required 6 FTE to manage.",
-    "solution_summary": "Tenex built an ML fraud scoring layer that ran alongside the existing rules engine rather than replacing it. A gradient boosting model scored each transaction in under 80 milliseconds using 40 engineered features: velocity patterns, device fingerprints, geographic anomalies, merchant category context, and cross-merchant behavior. Scores above 0.85 were hard-blocked; scores 0.6\u20130.85 triggered a step-up challenge. The rules engine remained as a backstop.",
+    "problem_statement": "The processor's fraud system was a rules engine with 47 static rules, last updated 18 months prior. Fraud losses ran at 0.31% of transaction volume — above the industry benchmark of 0.18%. More damaging, the false positive rate of 3.2% was blocking legitimate transactions from merchants' best customers, generating chargeback disputes and merchant support tickets at a rate that required 6 FTE to manage.",
+    "solution_summary": "Tenex built an ML fraud scoring layer that ran alongside the existing rules engine rather than replacing it. A gradient boosting model scored each transaction in under 80 milliseconds using 40 engineered features: velocity patterns, device fingerprints, geographic anomalies, merchant category context, and cross-merchant behavior. Scores above 0.85 were hard-blocked; scores 0.6–0.85 triggered a step-up challenge. The rules engine remained as a backstop.",
     "results": {
       "primary_metric": {
         "label": "Fraud caught rate",
         "value": "31% more fraud intercepted vs rules-only baseline",
         "baseline": "0.31% fraud loss rate on $240M annual transaction volume ($744K annual fraud losses)",
-        "outcome": "0.21% fraud loss rate ($504K annual losses \u2014 $240K annual avoidance)"
+        "outcome": "0.21% fraud loss rate ($504K annual losses — $240K annual avoidance)"
       },
       "secondary_metrics": [
         {
@@ -308,11 +320,15 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": true,
-    "lessons_learned": "Running ML alongside the rules engine (not replacing it) was the right call \u2014 it de-risked the launch and gave the fraud team confidence to gradually expand the ML decision boundary.",
-    "embed_text": "Financial Services \u2014 Mid-market payment processor, 310 employees, ~$50M revenue, US national, 2M transactions/month\n\nProblem: Rules-based fraud engine with 47 static rules had 0.31% fraud loss rate (above 0.18% benchmark). False positive rate of 3.2% blocked legitimate transactions and required 6 FTE to manage disputes.\n\nSolution: ML fraud scoring layer running alongside existing rules engine. XGBoost model scores each transaction in under 80ms using 40 features: velocity patterns, device fingerprints, geographic anomalies, merchant category context. Scores above 0.85 hard-blocked; 0.6\u20130.85 triggers step-up challenge.\n\nApproach: XGBoost classifier with real-time Redis velocity cache using transaction history and device fingerprint data\n\nResults: Fraud caught: 31% more vs rules-only baseline ($240K annual avoidance) (90 days post-deployment). False positive rate: 3.2% to 1.1%. Chargeback disputes: down 44%.",
+    "lessons_learned": "Running ML alongside the rules engine (not replacing it) was the right call — it de-risked the launch and gave the fraud team confidence to gradually expand the ML decision boundary.",
+    "embed_text": "Financial Services — Mid-market payment processor, 310 employees, ~$50M revenue, US national, 2M transactions/month\n\nProblem: Rules-based fraud engine with 47 static rules had 0.31% fraud loss rate (above 0.18% benchmark). False positive rate of 3.2% blocked legitimate transactions and required 6 FTE to manage disputes.\n\nSolution: ML fraud scoring layer running alongside existing rules engine. XGBoost model scores each transaction in under 80ms using 40 features: velocity patterns, device fingerprints, geographic anomalies, merchant category context. Scores above 0.85 hard-blocked; 0.6–0.85 triggers step-up challenge.\n\nApproach: XGBoost classifier with real-time Redis velocity cache using transaction history and device fingerprint data\n\nResults: Fraud caught: 31% more vs rules-only baseline ($240K annual avoidance) (90 days post-deployment). False positive rate: 3.2% to 1.1%. Chargeback disputes: down 44%.",
     "industry_benchmark": "31% more fraud intercepted vs rules-only baseline; false positive rate reduced from 3.2% to 1.1%",
     "success_threshold": "Most applicable when at least 18 months of transaction history is available and the team can tolerate a 30-day A/B validation period before full production rollout.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 layering ML alongside an existing rules engine reduces deployment risk and shortens time-to-value to 90 days."
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — layering ML alongside an existing rules engine reduces deployment risk and shortens time-to-value to 90 days.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "classification"
   },
   {
     "id": "win-005",
@@ -326,18 +342,18 @@
     "company_profile": {
       "size_employees": 180,
       "size_label": "mid-market",
-      "annual_revenue_usd": "$25M\u2013$40M",
+      "annual_revenue_usd": "$25M–$40M",
       "geography": "US Mid-Atlantic",
       "business_model": "Non-bank business lender offering term loans and lines of credit to SMBs; ~$300M loan book"
     },
-    "problem_statement": "The lender's credit decision process relied on a scorecard built in 2018 using 12 variables from credit bureau pulls. Underwriters spent 45\u201360 minutes per application manually reviewing bank statements, tax returns, and industry data. Default rates had climbed from 2.1% to 3.4% over 24 months, suggesting the scorecard was no longer predictive for the current borrower mix.",
-    "solution_summary": "Tenex built a gradient boosted credit scoring model using 47 features including the original bureau variables, enriched with bank statement cash flow patterns, industry-level default rates by SIC code, and business age relative to loan amount. The model was integrated into the loan origination workflow \u2014 underwriters received a score with the top 5 driving factors before opening the application, reducing cognitive load and anchoring bias.",
+    "problem_statement": "The lender's credit decision process relied on a scorecard built in 2018 using 12 variables from credit bureau pulls. Underwriters spent 45–60 minutes per application manually reviewing bank statements, tax returns, and industry data. Default rates had climbed from 2.1% to 3.4% over 24 months, suggesting the scorecard was no longer predictive for the current borrower mix.",
+    "solution_summary": "Tenex built a gradient boosted credit scoring model using 47 features including the original bureau variables, enriched with bank statement cash flow patterns, industry-level default rates by SIC code, and business age relative to loan amount. The model was integrated into the loan origination workflow — underwriters received a score with the top 5 driving factors before opening the application, reducing cognitive load and anchoring bias.",
     "results": {
       "primary_metric": {
         "label": "Default rate reduction",
         "value": "22% reduction in default rate",
         "baseline": "3.4% default rate on $300M loan book ($10.2M annual defaults)",
-        "outcome": "2.65% default rate ($7.95M annual defaults \u2014 $2.25M annual improvement)"
+        "outcome": "2.65% default rate ($7.95M annual defaults — $2.25M annual improvement)"
       },
       "secondary_metrics": [
         {
@@ -387,11 +403,15 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": false,
-    "lessons_learned": "Fair lending compliance review added 6 weeks \u2014 budget for it up front. SHAP explainability was not optional; regulators required it and underwriters needed it to trust the model.",
-    "embed_text": "Financial Services \u2014 Mid-market non-bank business lender, 180 employees, ~$32M revenue, US Mid-Atlantic, $300M loan book\n\nProblem: 2018 scorecard with 12 bureau variables had become non-predictive. Default rate climbed from 2.1% to 3.4%. Underwriters spent 45\u201360 minutes per application on manual review of bank statements and tax returns.\n\nSolution: Gradient boosted credit scoring model using 47 features including bureau data, bank statement cash flow patterns, and industry default rates by SIC code. Integrated into loan origination workflow \u2014 underwriters receive score and top 5 driving factors before opening application.\n\nApproach: XGBoost with SHAP explainability using bureau data, Plaid bank statement data, tax return structured data\n\nResults: Default rate: 3.4% to 2.65% (22% reduction, $2.25M annual improvement) (12 months post-deployment). Underwriting time: 52 minutes to 28 minutes. Application throughput: +50%.",
+    "lessons_learned": "Fair lending compliance review added 6 weeks — budget for it up front. SHAP explainability was not optional; regulators required it and underwriters needed it to trust the model.",
+    "embed_text": "Financial Services — Mid-market non-bank business lender, 180 employees, ~$32M revenue, US Mid-Atlantic, $300M loan book\n\nProblem: 2018 scorecard with 12 bureau variables had become non-predictive. Default rate climbed from 2.1% to 3.4%. Underwriters spent 45–60 minutes per application on manual review of bank statements and tax returns.\n\nSolution: Gradient boosted credit scoring model using 47 features including bureau data, bank statement cash flow patterns, and industry default rates by SIC code. Integrated into loan origination workflow — underwriters receive score and top 5 driving factors before opening application.\n\nApproach: XGBoost with SHAP explainability using bureau data, Plaid bank statement data, tax return structured data\n\nResults: Default rate: 3.4% to 2.65% (22% reduction, $2.25M annual improvement) (12 months post-deployment). Underwriting time: 52 minutes to 28 minutes. Application throughput: +50%.",
     "industry_benchmark": "22% reduction in default rate (3.4% to 2.65%) delivering $2.25M annual improvement on a $300M loan book",
     "success_threshold": "Most applicable when the lender has 3+ years of originated loan and default outcome data and compliance has capacity to conduct a fair lending review of the model.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 credit risk model ROI requires a full 12-month credit cycle to measure; budget 6 weeks for fair lending compliance review."
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — credit risk model ROI requires a full 12-month credit cycle to measure; budget 6 weeks for fair lending compliance review.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "classification"
   },
   {
     "id": "win-006",
@@ -406,18 +426,18 @@
     "company_profile": {
       "size_employees": 420,
       "size_label": "mid-market",
-      "annual_revenue_usd": "$60M\u2013$80M",
+      "annual_revenue_usd": "$60M–$80M",
       "geography": "US Northeast",
       "business_model": "Community bank with $1.8B in assets, 22 branches, focus on commercial and small business banking"
     },
-    "problem_statement": "The bank's AML system generated 1,200\u20131,400 alerts per month from rules-based transaction monitoring. Compliance analysts spent 70% of their time investigating alerts that turned out to be false positives \u2014 primarily salary payments, rent, and recurring vendor payments flagged by legacy rules. Three analysts were spending their entire work week on alert review with no time for higher-value compliance work. Regulatory pressure was increasing.",
+    "problem_statement": "The bank's AML system generated 1,200–1,400 alerts per month from rules-based transaction monitoring. Compliance analysts spent 70% of their time investigating alerts that turned out to be false positives — primarily salary payments, rent, and recurring vendor payments flagged by legacy rules. Three analysts were spending their entire work week on alert review with no time for higher-value compliance work. Regulatory pressure was increasing.",
     "solution_summary": "Tenex built an ML alert triage layer that scored each alert for true positive probability before it reached a compliance analyst. A random forest model used 35 features: transaction context, counterparty relationship history, account behavior baseline, and time-series deviation from normal. High-confidence false positives (score < 0.15) were auto-closed with audit trail; medium scores queued for expedited review; high scores were escalated immediately.",
     "results": {
       "primary_metric": {
         "label": "False positive alert reduction",
         "value": "68% reduction in analyst-reviewed alerts",
         "baseline": "1,300 alerts/month requiring analyst review",
-        "outcome": "416 alerts/month requiring review \u2014 884 auto-closed per month with audit trail"
+        "outcome": "416 alerts/month requiring review — 884 auto-closed per month with audit trail"
       },
       "secondary_metrics": [
         {
@@ -430,7 +450,7 @@
         },
         {
           "label": "True positive rate preserved",
-          "value": "No reduction in SAR filing rate \u2014 same number of true cases identified"
+          "value": "No reduction in SAR filing rate — same number of true cases identified"
         }
       ],
       "measurement_period": "6 months post-deployment",
@@ -467,11 +487,15 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": true,
-    "lessons_learned": "On-premise deployment was non-negotiable due to data residency rules \u2014 never assume cloud deployment for regulated financial institutions. Add 4 weeks for regulatory review of the model outputs.",
-    "embed_text": "Financial Services \u2014 Community bank, 420 employees, $1.8B assets, US Northeast, 22 branches\n\nProblem: Rules-based AML system generated 1,300 alerts/month. 70% were false positives \u2014 salary payments and recurring vendor payments. Three compliance analysts spent entire weeks on alert review with no time for higher-value work.\n\nSolution: ML alert triage layer scoring each alert for true positive probability before analyst review. Random forest using 35 features: transaction context, counterparty history, account behavior baseline. High-confidence false positives auto-closed with audit trail.\n\nApproach: Random forest classifier with explainable outputs using transaction history and counterparty relationship data, on-premise deployment\n\nResults: False positive alerts: 68% reduction (1,300 to 416/month requiring review) (6 months post-deployment). SAR filing time: 18 days to 7 days. Analyst capacity freed: 2.1 FTE equivalent.",
+    "lessons_learned": "On-premise deployment was non-negotiable due to data residency rules — never assume cloud deployment for regulated financial institutions. Add 4 weeks for regulatory review of the model outputs.",
+    "embed_text": "Financial Services — Community bank, 420 employees, $1.8B assets, US Northeast, 22 branches\n\nProblem: Rules-based AML system generated 1,300 alerts/month. 70% were false positives — salary payments and recurring vendor payments. Three compliance analysts spent entire weeks on alert review with no time for higher-value work.\n\nSolution: ML alert triage layer scoring each alert for true positive probability before analyst review. Random forest using 35 features: transaction context, counterparty history, account behavior baseline. High-confidence false positives auto-closed with audit trail.\n\nApproach: Random forest classifier with explainable outputs using transaction history and counterparty relationship data, on-premise deployment\n\nResults: False positive alerts: 68% reduction (1,300 to 416/month requiring review) (6 months post-deployment). SAR filing time: 18 days to 7 days. Analyst capacity freed: 2.1 FTE equivalent.",
     "industry_benchmark": "68% reduction in analyst-reviewed AML alerts (1,300 to 416 per month) with no reduction in true SAR filing rate",
     "success_threshold": "Most applicable when at least 30 months of transaction history with prior SAR filing labels is available and on-premise deployment is feasible within the OT network.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 AML triage automation frees analyst capacity within 6 months; add 4 weeks for regulatory review of model outputs."
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — AML triage automation frees analyst capacity within 6 months; add 4 weeks for regulatory review of model outputs.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "classification"
   },
   {
     "id": "win-007",
@@ -486,18 +510,18 @@
     "company_profile": {
       "size_employees": 640,
       "size_label": "mid-market",
-      "annual_revenue_usd": "$85M\u2013$110M",
+      "annual_revenue_usd": "$85M–$110M",
       "geography": "US Southwest",
       "business_model": "Urgent care clinic network operating 28 locations; ~1.2M patient visits annually"
     },
     "problem_statement": "Patients arriving at clinics completed paper intake forms that nursing staff manually reviewed to assign triage priority. Average time from patient arrival to triage assignment was 22 minutes, with significant variance depending on staff experience. High-acuity patients were not consistently prioritized, and the clinics faced patient satisfaction scores well below the network benchmark on wait time.",
-    "solution_summary": "Tenex built an NLP-based triage assistance system that parsed patient intake text and symptom descriptions to generate an acuity score and flag red-flag indicators. A fine-tuned clinical BERT model classified chief complaints into ESI (Emergency Severity Index) levels 1\u20135 with confidence scores. The system displayed recommendations to triage nurses, who retained final clinical decision authority. It did not replace clinical judgment \u2014 it accelerated it.",
+    "solution_summary": "Tenex built an NLP-based triage assistance system that parsed patient intake text and symptom descriptions to generate an acuity score and flag red-flag indicators. A fine-tuned clinical BERT model classified chief complaints into ESI (Emergency Severity Index) levels 1–5 with confidence scores. The system displayed recommendations to triage nurses, who retained final clinical decision authority. It did not replace clinical judgment — it accelerated it.",
     "results": {
       "primary_metric": {
         "label": "Reduction in average wait time to triage assignment",
         "value": "35% reduction",
         "baseline": "22 minutes average arrival-to-triage at participating locations",
-        "outcome": "14 minutes average \u2014 8 minutes saved per patient visit"
+        "outcome": "14 minutes average — 8 minutes saved per patient visit"
       },
       "secondary_metrics": [
         {
@@ -547,11 +571,15 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": true,
-    "lessons_learned": "HIPAA compliance review and IRB process added 8 weeks \u2014 start these in parallel with data engineering, not after. Clinical staff adoption was the success factor; build training sessions into the project plan.",
-    "embed_text": "Healthcare \u2014 Mid-market urgent care network, 640 employees, ~$95M revenue, US Southwest, 28 locations, 1.2M annual visits\n\nProblem: Manual paper intake triage took 22 minutes average from arrival to acuity assignment. High variance by staff experience. High-acuity patients not consistently prioritized. Patient satisfaction scores below network benchmark on wait times.\n\nSolution: NLP triage assistance system parsing patient intake text to generate acuity score and red-flag indicators. Fine-tuned ClinicalBERT classifies chief complaints into ESI levels 1\u20135. Displayed to nurses as recommendations \u2014 clinical decision authority retained.\n\nApproach: Fine-tuned ClinicalBERT using 2 years EHR intake notes with ICD-10 coded discharge diagnoses as ground truth\n\nResults: Wait time to triage: 35% reduction (22 minutes to 14 minutes) (3 months post-deployment across 12 locations). Triage accuracy: 74% to 92%. Patient satisfaction: +14 points.",
+    "lessons_learned": "HIPAA compliance review and IRB process added 8 weeks — start these in parallel with data engineering, not after. Clinical staff adoption was the success factor; build training sessions into the project plan.",
+    "embed_text": "Healthcare — Mid-market urgent care network, 640 employees, ~$95M revenue, US Southwest, 28 locations, 1.2M annual visits\n\nProblem: Manual paper intake triage took 22 minutes average from arrival to acuity assignment. High variance by staff experience. High-acuity patients not consistently prioritized. Patient satisfaction scores below network benchmark on wait times.\n\nSolution: NLP triage assistance system parsing patient intake text to generate acuity score and red-flag indicators. Fine-tuned ClinicalBERT classifies chief complaints into ESI levels 1–5. Displayed to nurses as recommendations — clinical decision authority retained.\n\nApproach: Fine-tuned ClinicalBERT using 2 years EHR intake notes with ICD-10 coded discharge diagnoses as ground truth\n\nResults: Wait time to triage: 35% reduction (22 minutes to 14 minutes) (3 months post-deployment across 12 locations). Triage accuracy: 74% to 92%. Patient satisfaction: +14 points.",
     "industry_benchmark": "35% reduction in arrival-to-triage wait time (22 to 14 minutes) with triage accuracy improving from 74% to 92%",
     "success_threshold": "Most applicable when the clinic network has 2+ years of EHR intake notes with ICD-10 coded discharge diagnoses available as ground truth labels and Epic FHIR integration is feasible.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 HIPAA compliance review and IRB process add 8 weeks; run these in parallel with data engineering to stay on schedule."
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — HIPAA compliance review and IRB process add 8 weeks; run these in parallel with data engineering to stay on schedule.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "classification"
   },
   {
     "id": "win-008",
@@ -566,18 +594,18 @@
     "company_profile": {
       "size_employees": 3200,
       "size_label": "enterprise",
-      "annual_revenue_usd": "$480M\u2013$550M",
+      "annual_revenue_usd": "$480M–$550M",
       "geography": "US Midwest",
       "business_model": "Regional health system operating 4 hospitals and 22 outpatient clinics; ~18,000 inpatient discharges annually"
     },
-    "problem_statement": "The health system's 30-day readmission rate was 14.8%, well above the national benchmark of 11.2% for their patient mix. CMS penalty exposure was $2.1M annually. Care managers did not have a risk stratification tool \u2014 they used clinical intuition to identify high-risk patients at discharge, which was inconsistent across units and shifts. High-risk patients who needed intensive post-discharge follow-up were not reliably identified before leaving the hospital.",
-    "solution_summary": "Tenex built a readmission risk prediction model that scored every inpatient 24 hours before anticipated discharge. The model used 62 features from the EHR: diagnosis codes, comorbidities, medication burden, prior readmission history, social determinants of health (housing, transportation), and lab value trajectories. A gradient boosted model produced a 0\u2013100 risk score with the top 5 risk factors. The care management team used scores to prioritize discharge planning conversations and post-discharge call schedules.",
+    "problem_statement": "The health system's 30-day readmission rate was 14.8%, well above the national benchmark of 11.2% for their patient mix. CMS penalty exposure was $2.1M annually. Care managers did not have a risk stratification tool — they used clinical intuition to identify high-risk patients at discharge, which was inconsistent across units and shifts. High-risk patients who needed intensive post-discharge follow-up were not reliably identified before leaving the hospital.",
+    "solution_summary": "Tenex built a readmission risk prediction model that scored every inpatient 24 hours before anticipated discharge. The model used 62 features from the EHR: diagnosis codes, comorbidities, medication burden, prior readmission history, social determinants of health (housing, transportation), and lab value trajectories. A gradient boosted model produced a 0–100 risk score with the top 5 risk factors. The care management team used scores to prioritize discharge planning conversations and post-discharge call schedules.",
     "results": {
       "primary_metric": {
         "label": "30-day readmission rate reduction",
         "value": "19% relative reduction",
         "baseline": "14.8% 30-day readmission rate on 18,000 annual discharges (2,664 readmissions/year)",
-        "outcome": "12.0% rate (2,160 readmissions/year \u2014 504 fewer readmissions annually)"
+        "outcome": "12.0% rate (2,160 readmissions/year — 504 fewer readmissions annually)"
       },
       "secondary_metrics": [
         {
@@ -590,7 +618,7 @@
         },
         {
           "label": "Model AUC on prospective validation",
-          "value": "0.78 \u2014 outperforming LACE score (0.64) used previously"
+          "value": "0.78 — outperforming LACE score (0.64) used previously"
         }
       ],
       "measurement_period": "12 months post-deployment",
@@ -628,11 +656,15 @@
     },
     "maturity_at_engagement": "Emerging",
     "follow_on_engagement": true,
-    "lessons_learned": "Social determinants of health variables were the most predictive features the client did not expect \u2014 transportation and housing instability mattered more than most clinical variables. Collecting this data at intake should be part of the system design.",
-    "embed_text": "Healthcare \u2014 Enterprise regional health system, 3,200 employees, ~$510M revenue, US Midwest, 4 hospitals, 18,000 inpatient discharges annually\n\nProblem: 30-day readmission rate of 14.8% vs 11.2% national benchmark. CMS penalty exposure $2.1M annually. Care managers used clinical intuition to identify high-risk patients at discharge \u2014 inconsistent across units and shifts.\n\nSolution: Readmission risk prediction model scoring every inpatient 24 hours before discharge using 62 features from EHR: diagnoses, comorbidities, medication burden, readmission history, social determinants. Risk score and top 5 factors displayed to care management team for discharge planning prioritization.\n\nApproach: XGBoost with SHAP explainability using 3 years Epic EHR data, CMS claims data, and social determinants screening data\n\nResults: 30-day readmission rate: 14.8% to 12.0% (19% relative reduction, 504 fewer readmissions/year) (12 months post-deployment). CMS penalty reduction: $1.4M annually.",
+    "lessons_learned": "Social determinants of health variables were the most predictive features the client did not expect — transportation and housing instability mattered more than most clinical variables. Collecting this data at intake should be part of the system design.",
+    "embed_text": "Healthcare — Enterprise regional health system, 3,200 employees, ~$510M revenue, US Midwest, 4 hospitals, 18,000 inpatient discharges annually\n\nProblem: 30-day readmission rate of 14.8% vs 11.2% national benchmark. CMS penalty exposure $2.1M annually. Care managers used clinical intuition to identify high-risk patients at discharge — inconsistent across units and shifts.\n\nSolution: Readmission risk prediction model scoring every inpatient 24 hours before discharge using 62 features from EHR: diagnoses, comorbidities, medication burden, readmission history, social determinants. Risk score and top 5 factors displayed to care management team for discharge planning prioritization.\n\nApproach: XGBoost with SHAP explainability using 3 years Epic EHR data, CMS claims data, and social determinants screening data\n\nResults: 30-day readmission rate: 14.8% to 12.0% (19% relative reduction, 504 fewer readmissions/year) (12 months post-deployment). CMS penalty reduction: $1.4M annually.",
     "industry_benchmark": "19% relative reduction in 30-day readmission rate (14.8% to 12.0%) delivering $1.4M annual CMS penalty reduction",
     "success_threshold": "Most applicable when the health system has 3+ years of structured Epic EHR data, social determinants screening data at intake, and a care management team with capacity to act on risk scores.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 readmission prediction ROI requires 12-month post-deployment measurement; social determinants data at intake is the highest-impact feature investment."
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — readmission prediction ROI requires 12-month post-deployment measurement; social determinants data at intake is the highest-impact feature investment.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "classification"
   },
   {
     "id": "win-009",
@@ -647,18 +679,18 @@
     "company_profile": {
       "size_employees": 210,
       "size_label": "mid-market",
-      "annual_revenue_usd": "$30M\u2013$45M",
+      "annual_revenue_usd": "$30M–$45M",
       "geography": "US (national SaaS)",
       "business_model": "HealthTech SaaS platform helping physician practices manage insurance prior authorizations; ~1,800 practice clients"
     },
-    "problem_statement": "The platform's 1,800 medical practice clients submitted prior authorization requests manually \u2014 staff typed clinical justifications into payer portals or faxed forms. Average time from request submission to approval was 4.2 days. Practices were losing 8\u201312% of prescribed procedures to authorization denials, many of which were administratively avoidable. The platform had the clinical data but no intelligence layer to help practices submit stronger, faster requests.",
-    "solution_summary": "Tenex built an AI-assisted prior authorization drafting system that generated clinical justification narratives from structured EHR data. An LLM (Gemini Pro) was fine-tuned on 24 months of approved prior auth submissions across the platform's client base, learning which clinical arguments correlated with first-pass approval by payer and procedure type. The system generated a draft justification that practice staff reviewed and submitted \u2014 reducing the drafting step from 25 minutes to under 5 minutes.",
+    "problem_statement": "The platform's 1,800 medical practice clients submitted prior authorization requests manually — staff typed clinical justifications into payer portals or faxed forms. Average time from request submission to approval was 4.2 days. Practices were losing 8–12% of prescribed procedures to authorization denials, many of which were administratively avoidable. The platform had the clinical data but no intelligence layer to help practices submit stronger, faster requests.",
+    "solution_summary": "Tenex built an AI-assisted prior authorization drafting system that generated clinical justification narratives from structured EHR data. An LLM (Gemini Pro) was fine-tuned on 24 months of approved prior auth submissions across the platform's client base, learning which clinical arguments correlated with first-pass approval by payer and procedure type. The system generated a draft justification that practice staff reviewed and submitted — reducing the drafting step from 25 minutes to under 5 minutes.",
     "results": {
       "primary_metric": {
         "label": "Average authorization approval time",
         "value": "From 4.2 days to 18 hours average",
         "baseline": "4.2 days average from submission to approval across all payers and procedure types",
-        "outcome": "18 hours average \u2014 3.4-day reduction per authorization"
+        "outcome": "18 hours average — 3.4-day reduction per authorization"
       },
       "secondary_metrics": [
         {
@@ -671,7 +703,7 @@
         },
         {
           "label": "Revenue recovered from previously denied procedures",
-          "value": "Estimated $18K\u2013$24K per 100-physician practice annually"
+          "value": "Estimated $18K–$24K per 100-physician practice annually"
         }
       ],
       "measurement_period": "4 months post-deployment across 140 pilot practices",
@@ -707,11 +739,15 @@
     },
     "maturity_at_engagement": "Emerging",
     "follow_on_engagement": true,
-    "lessons_learned": "The LLM's value came from knowing what payer-specific language correlated with approvals \u2014 this required careful labeling of the training data by payer and procedure combination. A generic fine-tune without this structure produced mediocre results.",
-    "embed_text": "Healthcare / HealthTech \u2014 Mid-market SaaS platform for medical practice prior authorization management, 210 employees, ~$38M revenue, US national, 1,800 practice clients\n\nProblem: Practices submitted prior authorizations manually \u2014 staff typed clinical justifications into payer portals. Average approval time 4.2 days. 8\u201312% of procedures lost to administratively avoidable denials. Platform had clinical data but no intelligence layer.\n\nSolution: AI-assisted prior authorization drafting system generating clinical justification narratives from EHR data. LLM fine-tuned on 24 months of approved submissions by payer and procedure type. Staff review draft in under 5 minutes instead of 25 minutes.\n\nApproach: Gemini Pro fine-tuned on approved prior auth narratives with retrieval-augmented generation using payer-specific criteria\n\nResults: Approval time: 4.2 days to 18 hours average (4 months post-deployment across 140 practices). First-pass approval rate: 71% to 88%. Staff time per request: 25 minutes to 4.5 minutes.",
+    "lessons_learned": "The LLM's value came from knowing what payer-specific language correlated with approvals — this required careful labeling of the training data by payer and procedure combination. A generic fine-tune without this structure produced mediocre results.",
+    "embed_text": "Healthcare / HealthTech — Mid-market SaaS platform for medical practice prior authorization management, 210 employees, ~$38M revenue, US national, 1,800 practice clients\n\nProblem: Practices submitted prior authorizations manually — staff typed clinical justifications into payer portals. Average approval time 4.2 days. 8–12% of procedures lost to administratively avoidable denials. Platform had clinical data but no intelligence layer.\n\nSolution: AI-assisted prior authorization drafting system generating clinical justification narratives from EHR data. LLM fine-tuned on 24 months of approved submissions by payer and procedure type. Staff review draft in under 5 minutes instead of 25 minutes.\n\nApproach: Gemini Pro fine-tuned on approved prior auth narratives with retrieval-augmented generation using payer-specific criteria\n\nResults: Approval time: 4.2 days to 18 hours average (4 months post-deployment across 140 practices). First-pass approval rate: 71% to 88%. Staff time per request: 25 minutes to 4.5 minutes.",
     "industry_benchmark": "Prior authorization approval time reduced from 4.2 days to 18 hours; first-pass approval rate improved from 71% to 88%",
     "success_threshold": "Most applicable when the platform holds 18+ months of prior auth submissions with payer outcomes labeled by payer and procedure type, and has LLM fine-tuning infrastructure on Vertex AI.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 LLM-assisted prior auth drafting value compounds as payer-specific training data accumulates; payer+procedure labeling is the critical data investment."
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — LLM-assisted prior auth drafting value compounds as payer-specific training data accumulates; payer+procedure labeling is the critical data investment.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "predictive_model"
   },
   {
     "id": "win-010",
@@ -726,18 +762,18 @@
     "company_profile": {
       "size_employees": 890,
       "size_label": "mid-market",
-      "annual_revenue_usd": "$120M\u2013$160M",
+      "annual_revenue_usd": "$120M–$160M",
       "geography": "US (3 fulfillment centers: Ohio, Nevada, Georgia)",
       "business_model": "Third-party fulfillment provider handling warehouse, pick-pack, and shipping for ~180 e-commerce brands"
     },
-    "problem_statement": "The provider planned warehouse staffing weekly using a manual process: operations managers reviewed the prior week's order volume, applied a seasonal adjustment factor from a spreadsheet, and called the staffing agency with headcount requests. During peak seasons (November\u2013December, Prime-like events), they consistently overstaffed in weeks before the peak and understaffed during the actual peak. The mismatch cost $3.8M annually in combined overtime and idle labor costs.",
+    "problem_statement": "The provider planned warehouse staffing weekly using a manual process: operations managers reviewed the prior week's order volume, applied a seasonal adjustment factor from a spreadsheet, and called the staffing agency with headcount requests. During peak seasons (November–December, Prime-like events), they consistently overstaffed in weeks before the peak and understaffed during the actual peak. The mismatch cost $3.8M annually in combined overtime and idle labor costs.",
     "solution_summary": "Tenex built a demand forecasting model predicting daily order volume per fulfillment center 3 weeks out. The model used 3 years of order history, client promotional calendars, national retail event data, and weather patterns affecting shipping demand. Prophet with XGBoost residual correction was used for the time-series component; the forecast drove a workforce planning recommendation tool that operations managers used to generate staffing requests.",
     "results": {
       "primary_metric": {
         "label": "Reduction in labor cost variance (combined overtime and idle time)",
         "value": "25% reduction in overstaffing costs",
         "baseline": "$3.8M annual combined labor variance cost across 3 fulfillment centers",
-        "outcome": "$2.85M annual cost \u2014 $950K annual savings"
+        "outcome": "$2.85M annual cost — $950K annual savings"
       },
       "secondary_metrics": [
         {
@@ -787,11 +823,15 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": false,
-    "lessons_learned": "Client promotional calendars were the highest-impact feature \u2014 events the client knew about but had never formally connected to demand signals. Build the data partnership with clients before the model.",
-    "embed_text": "Retail \u2014 Mid-market third-party e-commerce fulfillment provider, 890 employees, ~$140M revenue, US (3 centers), 180 brand clients\n\nProblem: Manual weekly staffing planning using prior-week volumes and spreadsheet seasonal factors. Consistently overstaffed before peaks and understaffed during them. Labor cost variance of $3.8M annually from combined overtime and idle time.\n\nSolution: Demand forecasting model predicting daily order volume per fulfillment center 3 weeks out. Prophet with XGBoost residual correction using 3 years order history, client promotional calendars, retail event data, weather. Forecast drives workforce planning recommendation tool.\n\nApproach: Facebook Prophet with XGBoost residual correction using order history, promotional calendars, and retail event data\n\nResults: Overstaffing costs: 25% reduction ($950K annual savings) (12 months including 2 peak seasons). Stockout events: 90% reduction. Forecast accuracy: 11.4% MAPE vs 28% prior.",
+    "lessons_learned": "Client promotional calendars were the highest-impact feature — events the client knew about but had never formally connected to demand signals. Build the data partnership with clients before the model.",
+    "embed_text": "Retail — Mid-market third-party e-commerce fulfillment provider, 890 employees, ~$140M revenue, US (3 centers), 180 brand clients\n\nProblem: Manual weekly staffing planning using prior-week volumes and spreadsheet seasonal factors. Consistently overstaffed before peaks and understaffed during them. Labor cost variance of $3.8M annually from combined overtime and idle time.\n\nSolution: Demand forecasting model predicting daily order volume per fulfillment center 3 weeks out. Prophet with XGBoost residual correction using 3 years order history, client promotional calendars, retail event data, weather. Forecast drives workforce planning recommendation tool.\n\nApproach: Facebook Prophet with XGBoost residual correction using order history, promotional calendars, and retail event data\n\nResults: Overstaffing costs: 25% reduction ($950K annual savings) (12 months including 2 peak seasons). Stockout events: 90% reduction. Forecast accuracy: 11.4% MAPE vs 28% prior.",
     "industry_benchmark": "25% reduction in labor cost variance ($950K annual savings) with forecast MAPE improving from 28% to 11.4%",
     "success_threshold": "Most applicable when 2+ years of order history is available at daily fulfillment center level and client promotional calendars can be shared in a structured format.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 demand forecasting ROI peaks in the first peak season post-deployment; promotional calendar integration is the highest-impact feature."
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — demand forecasting ROI peaks in the first peak season post-deployment; promotional calendar integration is the highest-impact feature.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "predictive_model"
   },
   {
     "id": "win-011",
@@ -806,18 +846,18 @@
     "company_profile": {
       "size_employees": 340,
       "size_label": "mid-market",
-      "annual_revenue_usd": "$45M\u2013$65M",
+      "annual_revenue_usd": "$45M–$65M",
       "geography": "US (12 stores + e-commerce)",
       "business_model": "Specialty outdoor and sporting goods retailer with loyalty program; ~280,000 active loyalty members"
     },
-    "problem_statement": "The retailer's loyalty program had 280,000 members but no way to identify which customers were drifting toward inactivity before they churned. Email campaigns were sent to all members uniformly, resulting in high unsubscribe rates and low conversion. Customer acquisition cost was $42 per new loyalty member, making retention economically critical \u2014 but the marketing team had no signal to act on until a customer had already left.",
-    "solution_summary": "Tenex built a customer churn prediction model using 2 years of purchase history, loyalty point activity, email engagement, and seasonal purchase patterns. A gradient boosted classifier scored each customer monthly for 90-day churn probability. Customers in the 60\u201380% risk band received a targeted retention offer; the 80%+ band triggered a personal outreach from store associates. The marketing team used the model output in their existing ESP without changing their workflow.",
+    "problem_statement": "The retailer's loyalty program had 280,000 members but no way to identify which customers were drifting toward inactivity before they churned. Email campaigns were sent to all members uniformly, resulting in high unsubscribe rates and low conversion. Customer acquisition cost was $42 per new loyalty member, making retention economically critical — but the marketing team had no signal to act on until a customer had already left.",
+    "solution_summary": "Tenex built a customer churn prediction model using 2 years of purchase history, loyalty point activity, email engagement, and seasonal purchase patterns. A gradient boosted classifier scored each customer monthly for 90-day churn probability. Customers in the 60–80% risk band received a targeted retention offer; the 80%+ band triggered a personal outreach from store associates. The marketing team used the model output in their existing ESP without changing their workflow.",
     "results": {
       "primary_metric": {
         "label": "Loyalty member churn rate reduction",
         "value": "18% reduction in annual churn rate",
         "baseline": "31% annual churn rate among loyalty members (86,800 churning members/year)",
-        "outcome": "25.4% annual churn rate \u2014 15,680 fewer churning members/year"
+        "outcome": "25.4% annual churn rate — 15,680 fewer churning members/year"
       },
       "secondary_metrics": [
         {
@@ -830,7 +870,7 @@
         },
         {
           "label": "Retention campaign ROI",
-          "value": "8.4x \u2014 $1 spent on targeted offers returned $8.40 in retained revenue"
+          "value": "8.4x — $1 spent on targeted offers returned $8.40 in retained revenue"
         }
       ],
       "measurement_period": "12 months post-deployment",
@@ -867,11 +907,15 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": false,
-    "lessons_learned": "The 60\u201380% risk band was the most valuable intervention segment \u2014 customers at 80%+ were often already gone mentally and offers did not convert. Target the drifting segment, not the already-churned.",
-    "embed_text": "Retail \u2014 Mid-market specialty outdoor and sporting goods retailer, 340 employees, ~$55M revenue, US (12 stores + e-commerce), 280,000 loyalty members\n\nProblem: 280,000 loyalty members but no early signal for customers drifting toward inactivity. Uniform email campaigns to all members drove high unsubscribes. No way to act until customer already churned. Customer acquisition cost $42 per new loyalty member.\n\nSolution: Churn prediction model scoring 280,000 customers monthly for 90-day churn probability using 2 years purchase history, loyalty activity, and email engagement. 60\u201380% risk band receives targeted retention offer; 80%+ triggers personal store associate outreach.\n\nApproach: LightGBM gradient boosted classifier with RFM feature engineering using purchase history and loyalty data\n\nResults: Loyalty churn rate: 18% reduction (31% to 25.4%) (12 months post-deployment). CLV increase for targeted cohort: 22%. Retention campaign ROI: 8.4x.",
+    "lessons_learned": "The 60–80% risk band was the most valuable intervention segment — customers at 80%+ were often already gone mentally and offers did not convert. Target the drifting segment, not the already-churned.",
+    "embed_text": "Retail — Mid-market specialty outdoor and sporting goods retailer, 340 employees, ~$55M revenue, US (12 stores + e-commerce), 280,000 loyalty members\n\nProblem: 280,000 loyalty members but no early signal for customers drifting toward inactivity. Uniform email campaigns to all members drove high unsubscribes. No way to act until customer already churned. Customer acquisition cost $42 per new loyalty member.\n\nSolution: Churn prediction model scoring 280,000 customers monthly for 90-day churn probability using 2 years purchase history, loyalty activity, and email engagement. 60–80% risk band receives targeted retention offer; 80%+ triggers personal store associate outreach.\n\nApproach: LightGBM gradient boosted classifier with RFM feature engineering using purchase history and loyalty data\n\nResults: Loyalty churn rate: 18% reduction (31% to 25.4%) (12 months post-deployment). CLV increase for targeted cohort: 22%. Retention campaign ROI: 8.4x.",
     "industry_benchmark": "18% reduction in annual loyalty churn rate (31% to 25.4%) with retention campaign ROI of 8.4x",
     "success_threshold": "Most applicable when at least 2 years of purchase and loyalty activity data is available and the marketing team uses an ESP that supports score-based audience segmentation.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 churn prediction ROI is realised within 12 months when the 60\u201380% risk band is targeted with personalised offers, not blanket campaigns."
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — churn prediction ROI is realised within 12 months when the 60–80% risk band is targeted with personalised offers, not blanket campaigns.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "classification"
   },
   {
     "id": "win-012",
@@ -886,18 +930,18 @@
     "company_profile": {
       "size_employees": 780,
       "size_label": "mid-market",
-      "annual_revenue_usd": "$110M\u2013$150M",
+      "annual_revenue_usd": "$110M–$150M",
       "geography": "US Midwest (2 plants)",
       "business_model": "Tier 2 automotive parts manufacturer producing stamped metal components and plastic assemblies for OEM customers"
     },
-    "problem_statement": "Quality inspection on 3 production lines relied on manual visual inspection by trained inspectors at end-of-line stations. Each inspector reviewed approximately 240 parts per hour and could sustain focus for 45\u201360 minutes before accuracy degraded. Defect escape rate (defects reaching OEM customers) was 0.4%, generating $2.2M in annual warranty claims and two customer quality incidents in the past 18 months that threatened contract renewal.",
-    "solution_summary": "Tenex deployed a computer vision inspection system using industrial cameras mounted at end-of-line stations on the 3 highest-volume lines. A CNN model was trained on 14,000 labeled images (defects hand-classified by quality engineers over 6 weeks). The model classified each part as pass, fail, or review-required in under 200 milliseconds. Parts flagged as review-required went to a human inspector; clear failures were automatically rejected. The system ran at 420 parts per hour \u2014 75% faster than manual inspection.",
+    "problem_statement": "Quality inspection on 3 production lines relied on manual visual inspection by trained inspectors at end-of-line stations. Each inspector reviewed approximately 240 parts per hour and could sustain focus for 45–60 minutes before accuracy degraded. Defect escape rate (defects reaching OEM customers) was 0.4%, generating $2.2M in annual warranty claims and two customer quality incidents in the past 18 months that threatened contract renewal.",
+    "solution_summary": "Tenex deployed a computer vision inspection system using industrial cameras mounted at end-of-line stations on the 3 highest-volume lines. A CNN model was trained on 14,000 labeled images (defects hand-classified by quality engineers over 6 weeks). The model classified each part as pass, fail, or review-required in under 200 milliseconds. Parts flagged as review-required went to a human inspector; clear failures were automatically rejected. The system ran at 420 parts per hour — 75% faster than manual inspection.",
     "results": {
       "primary_metric": {
         "label": "Defect detection improvement over manual inspection",
         "value": "30% more defects caught vs manual baseline",
         "baseline": "0.4% defect escape rate to OEM customers ($2.2M annual warranty claims)",
-        "outcome": "0.11% defect escape rate \u2014 $1.6M annual warranty claim reduction"
+        "outcome": "0.11% defect escape rate — $1.6M annual warranty claim reduction"
       },
       "secondary_metrics": [
         {
@@ -947,11 +991,15 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": true,
-    "lessons_learned": "Image labeling quality directly determined model accuracy \u2014 6 weeks of quality engineer time on labeling was the right investment. Rushing this step produces a model that cannot be trusted at the defect types that matter most.",
-    "embed_text": "Manufacturing \u2014 Mid-market Tier 2 automotive parts manufacturer, 780 employees, ~$130M revenue, US Midwest, 2 plants, 3 production lines\n\nProblem: Manual visual inspection at 240 parts/hour with focus degradation after 60 minutes. Defect escape rate 0.4% generating $2.2M annual warranty claims. Two OEM customer quality incidents in 18 months threatened contract renewal.\n\nSolution: Computer vision inspection system with industrial cameras at end-of-line stations on 3 highest-volume lines. CNN model (ResNet-50 fine-tuned) classifies each part as pass, fail, or review-required in under 200ms. Runs at 420 parts/hour \u2014 faster than manual.\n\nApproach: ResNet-50 CNN fine-tuned on 14,000 labeled images with edge inference on NVIDIA Jetson devices\n\nResults: Defect detection: 30% more caught vs manual baseline (escape rate 0.4% to 0.11%, $1.6M warranty claim reduction) (12 months post-deployment). Throughput: 75% faster. Customer quality incidents: zero in 12 months.",
+    "lessons_learned": "Image labeling quality directly determined model accuracy — 6 weeks of quality engineer time on labeling was the right investment. Rushing this step produces a model that cannot be trusted at the defect types that matter most.",
+    "embed_text": "Manufacturing — Mid-market Tier 2 automotive parts manufacturer, 780 employees, ~$130M revenue, US Midwest, 2 plants, 3 production lines\n\nProblem: Manual visual inspection at 240 parts/hour with focus degradation after 60 minutes. Defect escape rate 0.4% generating $2.2M annual warranty claims. Two OEM customer quality incidents in 18 months threatened contract renewal.\n\nSolution: Computer vision inspection system with industrial cameras at end-of-line stations on 3 highest-volume lines. CNN model (ResNet-50 fine-tuned) classifies each part as pass, fail, or review-required in under 200ms. Runs at 420 parts/hour — faster than manual.\n\nApproach: ResNet-50 CNN fine-tuned on 14,000 labeled images with edge inference on NVIDIA Jetson devices\n\nResults: Defect detection: 30% more caught vs manual baseline (escape rate 0.4% to 0.11%, $1.6M warranty claim reduction) (12 months post-deployment). Throughput: 75% faster. Customer quality incidents: zero in 12 months.",
     "industry_benchmark": "30% more defects caught vs manual inspection; defect escape rate reduced from 0.4% to 0.11%, delivering $1.6M annual warranty claim reduction",
     "success_threshold": "Most applicable when quality engineers can invest 6 weeks in image labeling and end-of-line stations have physical space and network connectivity for industrial camera installation.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 computer vision inspection ROI is achievable in 7 months; image labeling quality is the single largest determinant of model accuracy."
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — computer vision inspection ROI is achievable in 7 months; image labeling quality is the single largest determinant of model accuracy.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "classification"
   },
   {
     "id": "win-013",
@@ -966,23 +1014,23 @@
     "company_profile": {
       "size_employees": 1100,
       "size_label": "enterprise",
-      "annual_revenue_usd": "$200M\u2013$260M",
+      "annual_revenue_usd": "$200M–$260M",
       "geography": "US (manufacturing in Ohio; customer base nationally distributed)",
       "business_model": "Industrial equipment OEM manufacturing compressors and pumps for process industries; sells maintenance contracts alongside hardware"
     },
-    "problem_statement": "The company's 4,200 installed compressors and pumps at customer sites were serviced on fixed 6-month PM schedules regardless of actual usage or condition. Service technicians discovered that 34% of PM visits found nothing wrong, while 18% of field failures occurred between PM visits \u2014 the worst outcome for customer relationships. Service contract margins were eroding as technician travel costs rose with fuel prices.",
+    "problem_statement": "The company's 4,200 installed compressors and pumps at customer sites were serviced on fixed 6-month PM schedules regardless of actual usage or condition. Service technicians discovered that 34% of PM visits found nothing wrong, while 18% of field failures occurred between PM visits — the worst outcome for customer relationships. Service contract margins were eroding as technician travel costs rose with fuel prices.",
     "solution_summary": "Tenex built a predictive maintenance system using IoT sensor data already streaming from the installed base (vibration, temperature, pressure, runtime hours). A multivariate LSTM model predicted time-to-failure for each unit with a 30-day forecast horizon. Units predicted to fail within 30 days triggered a proactive service dispatch; low-risk units had PM visits extended to 9 months. The system reduced total service visits by 22% while cutting field failures in half.",
     "results": {
       "primary_metric": {
         "label": "Reduction in unplanned field failures",
         "value": "31% reduction in emergency service calls",
         "baseline": "~756 emergency service calls annually (18% of 4,200 units experiencing failure between PM visits)",
-        "outcome": "~522 emergency calls annually \u2014 234 fewer per year"
+        "outcome": "~522 emergency calls annually — 234 fewer per year"
       },
       "secondary_metrics": [
         {
           "label": "Planned PM visits eliminated (low-risk units extended)",
-          "value": "22% reduction in total service dispatches \u2014 $1.8M annual service cost reduction"
+          "value": "22% reduction in total service dispatches — $1.8M annual service cost reduction"
         },
         {
           "label": "Customer equipment uptime",
@@ -1027,11 +1075,15 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": true,
-    "lessons_learned": "Historical service records were rich but inconsistent \u2014 technicians used free text failure descriptions that required 4 weeks of NLP classification to create usable training labels. Invest in structured failure capture in the field before the next engagement.",
-    "embed_text": "Manufacturing \u2014 Enterprise industrial equipment OEM, 1,100 employees, ~$230M revenue, US, 4,200 installed units at customer sites\n\nProblem: Fixed 6-month PM schedules regardless of actual condition. 34% of visits found nothing wrong; 18% of field failures occurred between PM visits. Service margins eroding as technician travel costs rose.\n\nSolution: Predictive maintenance system using existing IoT sensor data (vibration, temperature, pressure, runtime). Multivariate LSTM predicts time-to-failure per unit with 30-day forecast horizon. Units predicted to fail within 30 days trigger proactive dispatch; low-risk units extended to 9-month PM cycle.\n\nApproach: Multivariate LSTM using real-time IoT telemetry and 8 years of historical service records\n\nResults: Unplanned field failures: 31% reduction (756 to 522 emergency calls annually) (12 months post-deployment). Total service dispatches: 22% reduction ($1.8M service cost savings). Contract renewal rate: 78% to 89%.",
+    "lessons_learned": "Historical service records were rich but inconsistent — technicians used free text failure descriptions that required 4 weeks of NLP classification to create usable training labels. Invest in structured failure capture in the field before the next engagement.",
+    "embed_text": "Manufacturing — Enterprise industrial equipment OEM, 1,100 employees, ~$230M revenue, US, 4,200 installed units at customer sites\n\nProblem: Fixed 6-month PM schedules regardless of actual condition. 34% of visits found nothing wrong; 18% of field failures occurred between PM visits. Service margins eroding as technician travel costs rose.\n\nSolution: Predictive maintenance system using existing IoT sensor data (vibration, temperature, pressure, runtime). Multivariate LSTM predicts time-to-failure per unit with 30-day forecast horizon. Units predicted to fail within 30 days trigger proactive dispatch; low-risk units extended to 9-month PM cycle.\n\nApproach: Multivariate LSTM using real-time IoT telemetry and 8 years of historical service records\n\nResults: Unplanned field failures: 31% reduction (756 to 522 emergency calls annually) (12 months post-deployment). Total service dispatches: 22% reduction ($1.8M service cost savings). Contract renewal rate: 78% to 89%.",
     "industry_benchmark": "31% reduction in emergency service calls with 22% reduction in total planned PM visits, delivering $1.8M annual service cost reduction",
     "success_threshold": "Most applicable when IoT sensor telemetry is already streaming from the installed base and field service technicians can participate in structured failure mode labeling interviews.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 predictive maintenance value requires 30-day forecast horizon validation across at least one failure cycle before production dispatch trust is established."
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — predictive maintenance value requires 30-day forecast horizon validation across at least one failure cycle before production dispatch trust is established.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "predictive_model"
   },
   {
     "id": "win-014",
@@ -1046,18 +1098,18 @@
     "company_profile": {
       "size_employees": 220,
       "size_label": "mid-market",
-      "annual_revenue_usd": "$35M\u2013$50M",
+      "annual_revenue_usd": "$35M–$50M",
       "geography": "US (Chicago headquarters, 3 offices)",
       "business_model": "Mid-market commercial law firm with practices in M&A, real estate, and commercial contracts; ~60 attorneys"
     },
-    "problem_statement": "Associates spent 6\u201310 hours reviewing a standard commercial contract, manually checking 40+ clause types against the firm's preferred positions and flagging risks. Senior attorneys then spent 2\u20133 hours reviewing associate work before client delivery. The firm had won several large M&A due diligence mandates but could not scale without hiring more associates. Billable rate pressure from clients was making high-touch manual review economically unsustainable.",
-    "solution_summary": "Tenex built a contract review system using a fine-tuned legal NLP model to classify and extract 47 clause types from commercial contracts, flag deviation from the firm's standard positions, and generate a structured risk summary. The model was trained on 3 years of the firm's own marked-up contracts. Associates received a pre-populated review checklist with clause extractions and deviation flags \u2014 reducing the manual review phase by 70% while preserving attorney judgment on risk assessment.",
+    "problem_statement": "Associates spent 6–10 hours reviewing a standard commercial contract, manually checking 40+ clause types against the firm's preferred positions and flagging risks. Senior attorneys then spent 2–3 hours reviewing associate work before client delivery. The firm had won several large M&A due diligence mandates but could not scale without hiring more associates. Billable rate pressure from clients was making high-touch manual review economically unsustainable.",
+    "solution_summary": "Tenex built a contract review system using a fine-tuned legal NLP model to classify and extract 47 clause types from commercial contracts, flag deviation from the firm's standard positions, and generate a structured risk summary. The model was trained on 3 years of the firm's own marked-up contracts. Associates received a pre-populated review checklist with clause extractions and deviation flags — reducing the manual review phase by 70% while preserving attorney judgment on risk assessment.",
     "results": {
       "primary_metric": {
         "label": "Contract review time reduction",
         "value": "70% reduction in associate review time",
         "baseline": "7.5 hours average associate time per standard commercial contract review",
-        "outcome": "2.2 hours average \u2014 5.3 hours saved per contract"
+        "outcome": "2.2 hours average — 5.3 hours saved per contract"
       },
       "secondary_metrics": [
         {
@@ -1106,11 +1158,15 @@
     },
     "maturity_at_engagement": "Beginner",
     "follow_on_engagement": true,
-    "lessons_learned": "Getting senior attorneys to define the clause taxonomy took 3 weeks of facilitation \u2014 they disagreed on definitions. This definitional work is the product, not a prerequisite. Budget it properly.",
-    "embed_text": "Professional Services \u2014 Mid-market commercial law firm, 220 employees, ~$42M revenue, US (Chicago + 3 offices), 60 attorneys\n\nProblem: Associates spent 6\u201310 hours per commercial contract review checking 40+ clause types against standard positions. Senior attorney review added 2\u20133 hours. Could not scale M&A due diligence mandates without hiring. Manual review economically unsustainable.\n\nSolution: Contract review system using fine-tuned Legal-BERT to classify and extract 47 clause types, flag deviations from standard positions, and generate structured risk summary. Associates receive pre-populated checklist \u2014 manual review phase reduced by 70%.\n\nApproach: Fine-tuned Legal-BERT for clause extraction and classification using 3 years of firm's own marked-up contracts\n\nResults: Associate review time: 70% reduction (7.5 hours to 2.2 hours per contract) (6 months post-deployment). Risk clause identification: 40% more flagged. M&A due diligence capacity: 40% increase without headcount addition.",
+    "lessons_learned": "Getting senior attorneys to define the clause taxonomy took 3 weeks of facilitation — they disagreed on definitions. This definitional work is the product, not a prerequisite. Budget it properly.",
+    "embed_text": "Professional Services — Mid-market commercial law firm, 220 employees, ~$42M revenue, US (Chicago + 3 offices), 60 attorneys\n\nProblem: Associates spent 6–10 hours per commercial contract review checking 40+ clause types against standard positions. Senior attorney review added 2–3 hours. Could not scale M&A due diligence mandates without hiring. Manual review economically unsustainable.\n\nSolution: Contract review system using fine-tuned Legal-BERT to classify and extract 47 clause types, flag deviations from standard positions, and generate structured risk summary. Associates receive pre-populated checklist — manual review phase reduced by 70%.\n\nApproach: Fine-tuned Legal-BERT for clause extraction and classification using 3 years of firm's own marked-up contracts\n\nResults: Associate review time: 70% reduction (7.5 hours to 2.2 hours per contract) (6 months post-deployment). Risk clause identification: 40% more flagged. M&A due diligence capacity: 40% increase without headcount addition.",
     "industry_benchmark": "70% reduction in associate contract review time (7.5 hours to 2.2 hours per contract) with 40% more risk clauses identified",
     "success_threshold": "Most applicable when the firm has 3+ years of internally marked-up contracts available for training and senior attorneys can invest 3 weeks in clause taxonomy definition.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 contract review automation capacity multiplier is realised in 6 months; clause taxonomy facilitation is the non-negotiable first investment."
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — contract review automation capacity multiplier is realised in 6 months; clause taxonomy facilitation is the non-negotiable first investment.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "classification"
   },
   {
     "id": "win-015",
@@ -1125,18 +1181,18 @@
     "company_profile": {
       "size_employees": 450,
       "size_label": "mid-market",
-      "annual_revenue_usd": "$65M\u2013$85M",
+      "annual_revenue_usd": "$65M–$85M",
       "geography": "US (remote-first, clients in major metros)",
       "business_model": "IT consulting firm placing consultants on client projects; ~310 billable staff across 4 practice areas"
     },
-    "problem_statement": "The firm's resource managers scheduled consultants manually, matching client project requirements to available staff using a spreadsheet and personal knowledge of consultant skills. Billable utilization averaged 71% \u2014 7 points below the firm's 78% target. The scheduling process took 3 days at the start of each project; last-minute changes resulted in consultants sitting idle for 2\u20135 business days between engagements. The firm turned down 12 projects in one year due to perceived resource constraints that did not actually exist.",
+    "problem_statement": "The firm's resource managers scheduled consultants manually, matching client project requirements to available staff using a spreadsheet and personal knowledge of consultant skills. Billable utilization averaged 71% — 7 points below the firm's 78% target. The scheduling process took 3 days at the start of each project; last-minute changes resulted in consultants sitting idle for 2–5 business days between engagements. The firm turned down 12 projects in one year due to perceived resource constraints that did not actually exist.",
     "solution_summary": "Tenex built a resource scheduling optimization engine that matched project skill requirements to available consultants, predicted availability gaps 4 weeks out, and surfaced ranked consultant recommendations with fit scores. A constraint satisfaction model handled scheduling logic; a skill embedding model matched project requirements to consultant profiles using 2 years of project history and performance ratings. Recommendations were surfaced in a dashboard for resource managers to review and approve.",
     "results": {
       "primary_metric": {
         "label": "Billable utilization improvement",
         "value": "11 percentage point increase (71% to 82%)",
         "baseline": "71% average billable utilization across 310 billable staff ($65M revenue base)",
-        "outcome": "82% utilization \u2014 equivalent to $4.7M additional revenue potential at current headcount"
+        "outcome": "82% utilization — equivalent to $4.7M additional revenue potential at current headcount"
       },
       "secondary_metrics": [
         {
@@ -1186,11 +1242,15 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": false,
-    "lessons_learned": "The hidden value was in forecasting availability 4 weeks out \u2014 resource managers had never been able to see this. The scheduling recommendation was the visible feature; the pipeline was the real capability.",
-    "embed_text": "Professional Services \u2014 Mid-market IT consulting firm, 450 employees, ~$75M revenue, US remote-first, 310 billable consultants across 4 practice areas\n\nProblem: Manual spreadsheet scheduling with personal knowledge. Billable utilization at 71% vs 78% target. Scheduling took 3 days per project start. Consultants idle 2\u20135 days between engagements. Firm declined 12 projects in one year due to perceived resource constraints.\n\nSolution: Resource scheduling optimization engine matching project skill requirements to available consultants, predicting availability gaps 4 weeks out. Constraint satisfaction model for scheduling; skill embedding model matches project requirements to consultant profiles using 2 years project history.\n\nApproach: Constraint satisfaction model with sentence transformer skill embeddings using project staffing history and consultant profiles\n\nResults: Billable utilization: 71% to 82% (11 percentage point increase, $4.7M additional revenue potential) (12 months post-deployment). Staffing time: 3 days to 4 hours. Inter-project idle days: 2.8 to 0.9 days.",
+    "lessons_learned": "The hidden value was in forecasting availability 4 weeks out — resource managers had never been able to see this. The scheduling recommendation was the visible feature; the pipeline was the real capability.",
+    "embed_text": "Professional Services — Mid-market IT consulting firm, 450 employees, ~$75M revenue, US remote-first, 310 billable consultants across 4 practice areas\n\nProblem: Manual spreadsheet scheduling with personal knowledge. Billable utilization at 71% vs 78% target. Scheduling took 3 days per project start. Consultants idle 2–5 days between engagements. Firm declined 12 projects in one year due to perceived resource constraints.\n\nSolution: Resource scheduling optimization engine matching project skill requirements to available consultants, predicting availability gaps 4 weeks out. Constraint satisfaction model for scheduling; skill embedding model matches project requirements to consultant profiles using 2 years project history.\n\nApproach: Constraint satisfaction model with sentence transformer skill embeddings using project staffing history and consultant profiles\n\nResults: Billable utilization: 71% to 82% (11 percentage point increase, $4.7M additional revenue potential) (12 months post-deployment). Staffing time: 3 days to 4 hours. Inter-project idle days: 2.8 to 0.9 days.",
     "industry_benchmark": "11 percentage point billable utilization increase (71% to 82%), equivalent to $4.7M additional revenue potential at current headcount",
     "success_threshold": "Most applicable when 2+ years of project staffing history is in a PSA system and resource managers can commit 2 weeks to validating the skill-requirement matching taxonomy.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 resource scheduling optimization ROI is visible within 3 months when pipeline data from CRM is integrated with PSA availability forecasts."
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — resource scheduling optimization ROI is visible within 3 months when pipeline data from CRM is integrated with PSA availability forecasts.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "classification"
   },
   {
     "id": "win-016",
@@ -1205,18 +1265,18 @@
     "company_profile": {
       "size_employees": 580,
       "size_label": "mid-market",
-      "annual_revenue_usd": "$90M\u2013$120M",
+      "annual_revenue_usd": "$90M–$120M",
       "geography": "US Southeast",
       "business_model": "Regional personal lines insurer writing homeowner and auto policies; ~180,000 active policies"
     },
-    "problem_statement": "Claims adjusters manually reviewed each new claim, pulling policy documents, extracting coverage details, calculating initial reserve estimates, and checking for fraud indicators \u2014 a process taking 4\u20136 hours per claim on arrival. Average time from first notice of loss to initial reserve set was 14 days. Adjusters handled a backlog that prevented timely policyholder contact, and customer satisfaction scores on claims experience were below industry benchmarks.",
+    "problem_statement": "Claims adjusters manually reviewed each new claim, pulling policy documents, extracting coverage details, calculating initial reserve estimates, and checking for fraud indicators — a process taking 4–6 hours per claim on arrival. Average time from first notice of loss to initial reserve set was 14 days. Adjusters handled a backlog that prevented timely policyholder contact, and customer satisfaction scores on claims experience were below industry benchmarks.",
     "solution_summary": "Tenex built a claims intake automation system that extracted structured data from first notice of loss documents, matched claims to policy coverage automatically, calculated initial reserve estimates using historical claims data and property data enrichment, and flagged anomalies for fraud review. An NLP model classified claim type and severity; a regression model produced reserve estimates. Adjusters received a pre-populated claim summary on intake, reducing the manual extraction phase entirely.",
     "results": {
       "primary_metric": {
         "label": "Average claims processing time (first notice to initial reserve set)",
         "value": "From 14 days to 5 days average",
         "baseline": "14 days average from FNOL to initial reserve set across all claim types",
-        "outcome": "5 days average \u2014 9 days saved per claim"
+        "outcome": "5 days average — 9 days saved per claim"
       },
       "secondary_metrics": [
         {
@@ -1267,11 +1327,15 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": true,
-    "lessons_learned": "Reserve estimate accuracy required property enrichment data that the client had never purchased \u2014 the data cost ($40K annually) was the most impactful spend in the engagement. Always audit data quality before model design.",
-    "embed_text": "Insurance \u2014 Mid-market regional personal lines insurer, 580 employees, ~$105M revenue, US Southeast, 180,000 active policies\n\nProblem: Claims adjusters manually extracted policy coverage, calculated reserves, and checked fraud indicators \u2014 4\u20136 hours per claim on arrival. Average 14 days from FNOL to initial reserve set. Adjuster backlog prevented timely policyholder contact.\n\nSolution: Claims intake automation extracting structured data from FNOL documents, matching to policy coverage automatically, calculating initial reserve estimates using 5 years claims history and property data enrichment. NLP classifies claim type and severity; regression model produces reserve estimates.\n\nApproach: NLP for claim classification with gradient boosted regression for reserve estimation using 5 years claims history and CoreLogic property data\n\nResults: Processing time: 14 days to 5 days average (6 months post-deployment). Reserve accuracy: 25% improvement. Adjuster capacity: 85 to 124 open claims per adjuster.",
+    "lessons_learned": "Reserve estimate accuracy required property enrichment data that the client had never purchased — the data cost ($40K annually) was the most impactful spend in the engagement. Always audit data quality before model design.",
+    "embed_text": "Insurance — Mid-market regional personal lines insurer, 580 employees, ~$105M revenue, US Southeast, 180,000 active policies\n\nProblem: Claims adjusters manually extracted policy coverage, calculated reserves, and checked fraud indicators — 4–6 hours per claim on arrival. Average 14 days from FNOL to initial reserve set. Adjuster backlog prevented timely policyholder contact.\n\nSolution: Claims intake automation extracting structured data from FNOL documents, matching to policy coverage automatically, calculating initial reserve estimates using 5 years claims history and property data enrichment. NLP classifies claim type and severity; regression model produces reserve estimates.\n\nApproach: NLP for claim classification with gradient boosted regression for reserve estimation using 5 years claims history and CoreLogic property data\n\nResults: Processing time: 14 days to 5 days average (6 months post-deployment). Reserve accuracy: 25% improvement. Adjuster capacity: 85 to 124 open claims per adjuster.",
     "industry_benchmark": "Claims processing time reduced from 14 days to 5 days average; adjuster capacity increased from 85 to 124 open claims per adjuster",
     "success_threshold": "Most applicable when 5+ years of claims history with reserve and settlement data is available and the insurer has capacity to purchase property enrichment data for reserve accuracy.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 claims automation ROI is realised within 6 months; property enrichment data at $40K annually is the highest-leverage data investment."
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — claims automation ROI is realised within 6 months; property enrichment data at $40K annually is the highest-leverage data investment.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "predictive_model"
   },
   {
     "id": "win-017",
@@ -1286,18 +1350,18 @@
     "company_profile": {
       "size_employees": 340,
       "size_label": "mid-market",
-      "annual_revenue_usd": "$55M\u2013$75M",
+      "annual_revenue_usd": "$55M–$75M",
       "geography": "US (Southeast focus)",
       "business_model": "Specialty commercial lines insurer writing professional liability and D&O for mid-market firms; ~8,500 active policies"
     },
-    "problem_statement": "The insurer's underwriting was entirely judgment-based \u2014 underwriters assessed each submission using experience and a static rating manual last updated in 2019. The combined loss ratio had deteriorated from 91% to 104% over 36 months, driven by adverse selection in certain industry verticals and company sizes. The portfolio was generating underwriting losses. Actuaries suspected the rating model was systematically mispricing risk but lacked the analytical tooling to identify where.",
-    "solution_summary": "Tenex built a predictive risk scoring model for new submissions using 6 years of policy and claims data. The model scored each submission on 38 features: applicant industry, revenue, employee count, years in operation, prior claims history, financial ratios from public filings, and industry-level loss trends. Underwriters received a model-predicted loss ratio alongside their manual assessment, surfacing systematic deviations. Pricing was not automated \u2014 the model informed underwriter judgment.",
+    "problem_statement": "The insurer's underwriting was entirely judgment-based — underwriters assessed each submission using experience and a static rating manual last updated in 2019. The combined loss ratio had deteriorated from 91% to 104% over 36 months, driven by adverse selection in certain industry verticals and company sizes. The portfolio was generating underwriting losses. Actuaries suspected the rating model was systematically mispricing risk but lacked the analytical tooling to identify where.",
+    "solution_summary": "Tenex built a predictive risk scoring model for new submissions using 6 years of policy and claims data. The model scored each submission on 38 features: applicant industry, revenue, employee count, years in operation, prior claims history, financial ratios from public filings, and industry-level loss trends. Underwriters received a model-predicted loss ratio alongside their manual assessment, surfacing systematic deviations. Pricing was not automated — the model informed underwriter judgment.",
     "results": {
       "primary_metric": {
         "label": "Loss ratio improvement",
         "value": "17 percentage point improvement in combined loss ratio",
         "baseline": "104% combined loss ratio (underwriting losses of ~$3.1M on written premium)",
-        "outcome": "87% combined loss ratio \u2014 returned to underwriting profitability ($3.9M swing)"
+        "outcome": "87% combined loss ratio — returned to underwriting profitability ($3.9M swing)"
       },
       "secondary_metrics": [
         {
@@ -1347,11 +1411,15 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": true,
-    "lessons_learned": "Underwriters needed to understand why the model was scoring a submission differently from their own assessment before they would trust it. SHAP factor display was not optional \u2014 it was the product adoption lever.",
-    "embed_text": "Insurance \u2014 Mid-market specialty commercial lines insurer, 340 employees, ~$65M revenue, US Southeast, 8,500 active policies\n\nProblem: Judgment-based underwriting with 2019 static rating manual. Combined loss ratio deteriorated from 91% to 104% over 36 months \u2014 underwriting losses of $3.1M. Systematic mispricing across certain industry verticals and company sizes undetected.\n\nSolution: Predictive risk scoring model for new submissions using 6 years of policy and claims data. Gradient boosted regression predicts loss ratio per submission using 38 features. Underwriters receive model-predicted loss ratio alongside their manual assessment \u2014 pricing not automated, model informs judgment.\n\nApproach: Gradient boosted regression with SHAP explainability using 6 years claims history, financial ratios, and industry loss trend data\n\nResults: Combined loss ratio: 104% to 87% (17 point improvement, $3.9M swing to profitability) (18 months post-deployment). Underwriter consistency: coefficient of variation 18% to 7%.",
+    "lessons_learned": "Underwriters needed to understand why the model was scoring a submission differently from their own assessment before they would trust it. SHAP factor display was not optional — it was the product adoption lever.",
+    "embed_text": "Insurance — Mid-market specialty commercial lines insurer, 340 employees, ~$65M revenue, US Southeast, 8,500 active policies\n\nProblem: Judgment-based underwriting with 2019 static rating manual. Combined loss ratio deteriorated from 91% to 104% over 36 months — underwriting losses of $3.1M. Systematic mispricing across certain industry verticals and company sizes undetected.\n\nSolution: Predictive risk scoring model for new submissions using 6 years of policy and claims data. Gradient boosted regression predicts loss ratio per submission using 38 features. Underwriters receive model-predicted loss ratio alongside their manual assessment — pricing not automated, model informs judgment.\n\nApproach: Gradient boosted regression with SHAP explainability using 6 years claims history, financial ratios, and industry loss trend data\n\nResults: Combined loss ratio: 104% to 87% (17 point improvement, $3.9M swing to profitability) (18 months post-deployment). Underwriter consistency: coefficient of variation 18% to 7%.",
     "industry_benchmark": "17 percentage point combined loss ratio improvement (104% to 87%) delivering a $3.9M swing to underwriting profitability",
-    "success_threshold": "Most applicable when the insurer has 5+ years of policy and claims data with outcome labels and underwriters can accept model-predicted loss ratio as an input to \u2014 not replacement of \u2014 their judgment.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 underwriting risk scoring ROI requires a full 18-month renewal cycle; SHAP explainability is not optional for underwriter adoption."
+    "success_threshold": "Most applicable when the insurer has 5+ years of policy and claims data with outcome labels and underwriters can accept model-predicted loss ratio as an input to — not replacement of — their judgment.",
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — underwriting risk scoring ROI requires a full 18-month renewal cycle; SHAP explainability is not optional for underwriter adoption.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "predictive_model"
   },
   {
     "id": "win-018",
@@ -1366,18 +1434,18 @@
     "company_profile": {
       "size_employees": 1800,
       "size_label": "enterprise",
-      "annual_revenue_usd": "$380M\u2013$440M",
+      "annual_revenue_usd": "$380M–$440M",
       "geography": "US Mid-Atlantic (service territory: 340,000 accounts)",
       "business_model": "Regulated electric distribution utility serving residential and commercial customers in 4-county territory"
     },
-    "problem_statement": "The utility's grid operations team used a day-ahead demand forecast based on a 15-year-old linear regression model using only temperature and historical load averages. As solar generation and EV adoption grew in the service territory, the model's accuracy degraded \u2014 MAPE had risen from 4.2% to 9.1% over 5 years. Excess reserve margins to compensate for forecast uncertainty cost $8.4M annually in peak capacity purchases. A 1% improvement in forecast accuracy was worth approximately $840K in reduced reserve costs.",
+    "problem_statement": "The utility's grid operations team used a day-ahead demand forecast based on a 15-year-old linear regression model using only temperature and historical load averages. As solar generation and EV adoption grew in the service territory, the model's accuracy degraded — MAPE had risen from 4.2% to 9.1% over 5 years. Excess reserve margins to compensate for forecast uncertainty cost $8.4M annually in peak capacity purchases. A 1% improvement in forecast accuracy was worth approximately $840K in reduced reserve costs.",
     "solution_summary": "Tenex built an ensemble demand forecasting model using weather data, temperature forecasts, EV charging patterns (inferred from smart meter data), solar generation forecasts, and historical load by feeder. A gradient boosting model with temporal features and a LSTM model were ensembled, producing hourly load forecasts 48 hours ahead. The forecast fed directly into the existing energy management system via API, replacing the legacy linear model.",
     "results": {
       "primary_metric": {
         "label": "Reduction in reserve margin costs",
         "value": "9% reduction in annual peak reserve capacity costs",
         "baseline": "$8.4M annual excess reserve margin costs due to forecast uncertainty",
-        "outcome": "$7.65M annual reserve costs \u2014 $756K annual savings"
+        "outcome": "$7.65M annual reserve costs — $756K annual savings"
       },
       "secondary_metrics": [
         {
@@ -1428,11 +1496,15 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": false,
-    "lessons_learned": "Operational technology network isolation made cloud deployment impossible \u2014 all serving had to be on-premise. The performance validation period needed to span a full peak season before the utility would accept the model for production use.",
-    "embed_text": "Energy \u2014 Enterprise regulated electric distribution utility, 1,800 employees, ~$410M revenue, US Mid-Atlantic, 340,000 accounts\n\nProblem: 15-year-old linear regression demand forecast degraded as solar and EV adoption grew \u2014 MAPE rose from 4.2% to 9.1%. Excess reserve margins cost $8.4M annually. Each 1% MAPE improvement worth ~$840K in reserve savings.\n\nSolution: Ensemble demand forecasting model using smart meter data, weather forecasts, EV charging patterns, and solar generation forecasts. XGBoost and LSTM ensembled for hourly load forecasts 48 hours ahead. Replaced legacy linear model via API in existing energy management system.\n\nApproach: XGBoost + LSTM ensemble using 10 years smart meter data, weather forecasts, and ISO generation data, on-premise deployment\n\nResults: Reserve margin costs: 9% reduction ($756K annual savings) (12 months post-deployment). Forecast MAPE: 9.1% to 3.8%. Peak demand prediction error: 61% reduction.",
+    "lessons_learned": "Operational technology network isolation made cloud deployment impossible — all serving had to be on-premise. The performance validation period needed to span a full peak season before the utility would accept the model for production use.",
+    "embed_text": "Energy — Enterprise regulated electric distribution utility, 1,800 employees, ~$410M revenue, US Mid-Atlantic, 340,000 accounts\n\nProblem: 15-year-old linear regression demand forecast degraded as solar and EV adoption grew — MAPE rose from 4.2% to 9.1%. Excess reserve margins cost $8.4M annually. Each 1% MAPE improvement worth ~$840K in reserve savings.\n\nSolution: Ensemble demand forecasting model using smart meter data, weather forecasts, EV charging patterns, and solar generation forecasts. XGBoost and LSTM ensembled for hourly load forecasts 48 hours ahead. Replaced legacy linear model via API in existing energy management system.\n\nApproach: XGBoost + LSTM ensemble using 10 years smart meter data, weather forecasts, and ISO generation data, on-premise deployment\n\nResults: Reserve margin costs: 9% reduction ($756K annual savings) (12 months post-deployment). Forecast MAPE: 9.1% to 3.8%. Peak demand prediction error: 61% reduction.",
     "industry_benchmark": "9% reduction in annual peak reserve capacity costs ($756K savings) with forecast MAPE improving from 9.1% to 3.8%",
     "success_threshold": "Most applicable when smart meter data at 15-minute intervals spans 5+ years and the utility's OT network can support on-premise Docker deployment for EMS integration.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 grid demand forecasting ROI requires a full peak season for validation; on-premise deployment adds 4 weeks to the integration timeline."
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — grid demand forecasting ROI requires a full peak season for validation; on-premise deployment adds 4 weeks to the integration timeline.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "predictive_model"
   },
   {
     "id": "win-019",
@@ -1448,18 +1520,18 @@
     "company_profile": {
       "size_employees": 160,
       "size_label": "mid-market",
-      "annual_revenue_usd": "$22M\u2013$32M",
+      "annual_revenue_usd": "$22M–$32M",
       "geography": "US (national SaaS, largest markets: Sun Belt)",
       "business_model": "PropTech SaaS platform serving multifamily property operators; ~850 properties totaling 120,000 apartment units on platform"
     },
-    "problem_statement": "Property managers using the platform managed lease renewals through manual outreach \u2014 they contacted residents 60 days before lease expiration via a generic email sequence. Turnover rates across the platform's client properties averaged 52% annually \u2014 industry average for similar properties is 45%. Each unit turnover cost property operators $3,200\u2013$4,800 in lost rent and make-ready costs. The platform had resident behavior data that was not being used.",
+    "problem_statement": "Property managers using the platform managed lease renewals through manual outreach — they contacted residents 60 days before lease expiration via a generic email sequence. Turnover rates across the platform's client properties averaged 52% annually — industry average for similar properties is 45%. Each unit turnover cost property operators $3,200–$4,800 in lost rent and make-ready costs. The platform had resident behavior data that was not being used.",
     "solution_summary": "Tenex built a lease renewal churn prediction model that scored each resident 90 days before lease expiration for non-renewal probability. The model used maintenance request history (frequency and sentiment), payment patterns, unit transfer requests, amenity utilization, and lease price change at renewal relative to market comps. Property managers received a prioritized renewal outreach list with the top 3 churn risk factors per resident, enabling personalised retention conversations.",
     "results": {
       "primary_metric": {
         "label": "Lease renewal rate improvement",
         "value": "24% improvement in retention for high-risk residents contacted with personalised outreach",
         "baseline": "52% annual turnover rate across platform properties (48% renewal rate)",
-        "outcome": "44% annual turnover rate among properties using the retention feature \u2014 8 percentage point improvement"
+        "outcome": "44% annual turnover rate among properties using the retention feature — 8 percentage point improvement"
       },
       "secondary_metrics": [
         {
@@ -1472,7 +1544,7 @@
         },
         {
           "label": "Resident satisfaction (maintenance sentiment correlation)",
-          "value": "Maintenance request response time identified as top churn predictor \u2014 flagged for operational improvement"
+          "value": "Maintenance request response time identified as top churn predictor — flagged for operational improvement"
         }
       ],
       "measurement_period": "12 months post-deployment across 180 pilot properties",
@@ -1510,11 +1582,15 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": true,
-    "lessons_learned": "Maintenance request sentiment was the strongest predictor of churn \u2014 residents who submitted maintenance requests that were resolved slowly were 3x more likely to not renew. The model revealed an operational problem the client had not quantified.",
-    "embed_text": "Real Estate / PropTech \u2014 Mid-market SaaS platform for multifamily property operators, 160 employees, ~$27M revenue, US national, 850 properties, 120,000 units\n\nProblem: 52% annual unit turnover vs 45% industry average. Manual generic email outreach 60 days before lease expiration. Each turnover costs $3,200\u2013$4,800. Resident behavior data on platform not being used.\n\nSolution: Lease renewal churn prediction scoring each resident 90 days before expiration using maintenance request history, payment patterns, unit transfer requests, amenity utilization, and lease price change vs market. Property managers receive prioritised outreach list with top 3 risk factors per resident.\n\nApproach: XGBoost with SHAP explainability and NLP sentiment on maintenance requests using 3 years resident history and CoStar market data\n\nResults: Retention improvement: 24% for high-risk residents contacted with personalised outreach (52% to 44% turnover rate) (12 months post-deployment). Revenue impact: $186K annually per 100-unit property.",
+    "lessons_learned": "Maintenance request sentiment was the strongest predictor of churn — residents who submitted maintenance requests that were resolved slowly were 3x more likely to not renew. The model revealed an operational problem the client had not quantified.",
+    "embed_text": "Real Estate / PropTech — Mid-market SaaS platform for multifamily property operators, 160 employees, ~$27M revenue, US national, 850 properties, 120,000 units\n\nProblem: 52% annual unit turnover vs 45% industry average. Manual generic email outreach 60 days before lease expiration. Each turnover costs $3,200–$4,800. Resident behavior data on platform not being used.\n\nSolution: Lease renewal churn prediction scoring each resident 90 days before expiration using maintenance request history, payment patterns, unit transfer requests, amenity utilization, and lease price change vs market. Property managers receive prioritised outreach list with top 3 risk factors per resident.\n\nApproach: XGBoost with SHAP explainability and NLP sentiment on maintenance requests using 3 years resident history and CoStar market data\n\nResults: Retention improvement: 24% for high-risk residents contacted with personalised outreach (52% to 44% turnover rate) (12 months post-deployment). Revenue impact: $186K annually per 100-unit property.",
     "industry_benchmark": "24% retention improvement for high-risk residents; portfolio turnover rate reduced from 52% to 44%, delivering $186K annually per 100-unit property",
     "success_threshold": "Most applicable when the platform holds 2+ years of resident lease history including maintenance request logs with resolution timestamps and market rent comp data is accessible via API.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 lease renewal churn prediction reveals operational problems (maintenance response gaps) that generate additional ROI beyond direct retention improvement."
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — lease renewal churn prediction reveals operational problems (maintenance response gaps) that generate additional ROI beyond direct retention improvement.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "classification"
   },
   {
     "id": "win-020",
@@ -1529,7 +1605,7 @@
     "company_profile": {
       "size_employees": 680,
       "size_label": "mid-market",
-      "annual_revenue_usd": "$95M\u2013$130M",
+      "annual_revenue_usd": "$95M–$130M",
       "geography": "US South and Southeast",
       "business_model": "Regional heavy equipment rental company with 2,800 units across excavators, cranes, lifts, and compact equipment; serves construction and infrastructure projects"
     },
@@ -1540,12 +1616,12 @@
         "label": "Reduction in unplanned equipment breakdowns on customer job sites",
         "value": "28% reduction in unplanned field breakdowns",
         "baseline": "~420 unplanned breakdowns annually ($480K in emergency service, credits, and replacement deployments)",
-        "outcome": "~302 unplanned breakdowns annually \u2014 $138K direct cost reduction, plus customer relationship preservation"
+        "outcome": "~302 unplanned breakdowns annually — $138K direct cost reduction, plus customer relationship preservation"
       },
       "secondary_metrics": [
         {
           "label": "Planned maintenance visits (total)",
-          "value": "17% reduction in total maintenance events \u2014 estimated $210K annual labor and parts savings"
+          "value": "17% reduction in total maintenance events — estimated $210K annual labor and parts savings"
         },
         {
           "label": "Equipment utilization rate",
@@ -1590,10 +1666,14 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": false,
-    "lessons_learned": "Mechanics' knowledge of failure patterns was irreplaceable training data \u2014 structured interviews with the 3 senior mechanics produced 40% of the feature engineering ideas. Do not design features from telematics data alone without this domain knowledge layer.",
-    "embed_text": "Construction \u2014 Mid-market heavy equipment rental company, 680 employees, ~$112M revenue, US South and Southeast, 2,800 units fleet\n\nProblem: Fixed calendar maintenance intervals (250 operating hours or 90 days) ignored actual utilisation intensity and condition. High-utilisation units in extreme conditions degraded faster than schedule. Equipment breakdowns on customer job sites cost $480K annually in emergency service, replacement units, and customer credits.\n\nSolution: Predictive maintenance system using existing telematics data (engine hours, operating temperature, hydraulic pressure, error codes). LightGBM model predicts 14-day breakdown probability per unit. High-risk units proactively scheduled; low-risk units extended up to 30%. Daily prioritised work order queue for maintenance crews.\n\nApproach: LightGBM gradient boosted classifier with anomaly detection using real-time telematics and 5 years maintenance work order history\n\nResults: Unplanned field breakdowns: 28% reduction (420 to 302 annually, $138K direct cost reduction) (12 months post-deployment). Planned maintenance visits: 17% reduction ($210K labor and parts savings). Equipment utilization: 71% to 76%.",
+    "lessons_learned": "Mechanics' knowledge of failure patterns was irreplaceable training data — structured interviews with the 3 senior mechanics produced 40% of the feature engineering ideas. Do not design features from telematics data alone without this domain knowledge layer.",
+    "embed_text": "Construction — Mid-market heavy equipment rental company, 680 employees, ~$112M revenue, US South and Southeast, 2,800 units fleet\n\nProblem: Fixed calendar maintenance intervals (250 operating hours or 90 days) ignored actual utilisation intensity and condition. High-utilisation units in extreme conditions degraded faster than schedule. Equipment breakdowns on customer job sites cost $480K annually in emergency service, replacement units, and customer credits.\n\nSolution: Predictive maintenance system using existing telematics data (engine hours, operating temperature, hydraulic pressure, error codes). LightGBM model predicts 14-day breakdown probability per unit. High-risk units proactively scheduled; low-risk units extended up to 30%. Daily prioritised work order queue for maintenance crews.\n\nApproach: LightGBM gradient boosted classifier with anomaly detection using real-time telematics and 5 years maintenance work order history\n\nResults: Unplanned field breakdowns: 28% reduction (420 to 302 annually, $138K direct cost reduction) (12 months post-deployment). Planned maintenance visits: 17% reduction ($210K labor and parts savings). Equipment utilization: 71% to 76%.",
     "industry_benchmark": "28% reduction in unplanned field breakdowns with 17% reduction in total planned maintenance events, delivering $348K combined annual savings",
     "success_threshold": "Most applicable when telematics data is already streaming per unit and senior mechanics can invest time in structured failure mode labeling interviews to complement sensor feature engineering.",
-    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline \u2014 heavy equipment predictive maintenance ROI is measurable within 12 months; domain knowledge from senior mechanics is the non-substitutable feature engineering input."
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — heavy equipment predictive maintenance ROI is measurable within 12 months; domain knowledge from senior mechanics is the non-substitutable feature engineering input.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "classification"
   }
 ]
