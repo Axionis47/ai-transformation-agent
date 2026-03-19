@@ -172,3 +172,64 @@ class TestCiEvalRubrics:
         )
         for key in expected:
             assert key in ci_mod._RUBRICS, f"_RUBRICS missing key: {key}"
+
+
+# ── ci_eval _match_vars extracts correct fields ──────────────────────────────
+
+class TestMatchVars:
+    def test_match_vars_extracts_base_fields(self) -> None:
+        from evals.ci_eval import _match_vars
+        sample_match = {
+            "match_tier": "DELIVERED",
+            "source_id": "win-001",
+            "source_title": "Route Optimization",
+            "source_industry": "logistics",
+            "confidence": 0.85,
+            "relevance_note": "Direct match on fleet management signals",
+            "adaptation_notes": "",
+            "gap_from_base": 0.0,
+            "industry_examples": [],
+            "source_citations": [],
+        }
+        sample_signals = {"industry": "logistics", "scale": "mid-market", "composite_score": 2.5}
+        result = _match_vars(sample_match, sample_signals)
+        assert result["match_tier"] == "DELIVERED"
+        assert result["source_id"] == "win-001"
+        assert result["confidence"] == 0.85
+        assert result["company_industry"] == "logistics"
+        assert result["company_scale"] == "mid-market"
+        assert result["composite_score"] == 2.5
+
+    def test_match_vars_adaptation_fields(self) -> None:
+        from evals.ci_eval import _match_vars
+        match = {
+            "match_tier": "ADAPTATION", "source_id": "win-003",
+            "source_title": "Demand Forecasting", "source_industry": "retail",
+            "confidence": 0.65, "relevance_note": "Adjacent",
+            "adaptation_notes": "Different sector, same ML", "gap_from_base": 1.2,
+            "industry_examples": [], "source_citations": [],
+        }
+        result = _match_vars(match, {})
+        assert result["adaptation_notes"] == "Different sector, same ML"
+        assert result["gap_from_base"] == 1.2
+
+    def test_match_vars_ambitious_fields(self) -> None:
+        from evals.ci_eval import _match_vars
+        match = {
+            "match_tier": "AMBITIOUS", "source_id": "ind-001",
+            "source_title": "Amazon Go", "source_industry": "retail",
+            "confidence": 0.50, "relevance_note": "Industry trend",
+            "adaptation_notes": "", "gap_from_base": 0.0,
+            "industry_examples": ["Amazon", "Walmart"],
+            "source_citations": ["McKinsey 2023"],
+        }
+        result = _match_vars(match, {})
+        assert result["industry_examples"] == "Amazon, Walmart"
+        assert result["source_citations"] == "McKinsey 2023"
+
+    def test_match_vars_missing_fields_default_safely(self) -> None:
+        from evals.ci_eval import _match_vars
+        result = _match_vars({}, {})
+        assert result["match_tier"] == ""
+        assert result["company_industry"] == "unknown"
+        assert result["composite_score"] == 0.0
