@@ -12,6 +12,7 @@ from orchestrator.schemas import (
     UseCase,
 )
 from orchestrator.validators import (
+    _normalize_signal_sources,
     validate_maturity,
     validate_signals,
     validate_use_cases,
@@ -90,6 +91,43 @@ def test_hard_experiment_confidence_cap():
     assert not isinstance(use_cases, AgentError)
     hard = next(uc for uc in use_cases if uc.tier == "HARD_EXPERIMENT")
     assert hard.confidence == 0.65
+
+
+# --- Source normalization ---
+
+def test_source_normalization_known_variants():
+    raw = {
+        "signals": [
+            {"type": "tech_stack", "value": "AWS", "source": "about"},
+            {"type": "ml_signal", "value": "PyTorch", "source": "job_postings"},
+            {"type": "tech_stack", "value": "API", "source": "product/solutions"},
+            {"type": "data_signal", "value": "Kafka", "source": "careers"},
+        ],
+        "industry": "logistics",
+    }
+    result = validate_signals(raw)
+    assert not isinstance(result, AgentError)
+    sources = [s.source for s in result.signals]
+    assert sources == ["about_text", "job_posting", "product_page", "careers_page"]
+
+
+def test_source_normalization_unknown_falls_back_to_about_text():
+    raw = {
+        "signals": [
+            {"type": "tech_stack", "value": "something", "source": "totally_unknown"},
+        ],
+        "industry": "retail",
+    }
+    result = validate_signals(raw)
+    assert not isinstance(result, AgentError)
+    assert result.signals[0].source == "about_text"
+
+
+def test_normalize_signal_sources_direct():
+    data = {"signals": [{"source": "job_postings"}, {"source": "homepage"}]}
+    out = _normalize_signal_sources(data)
+    assert out["signals"][0]["source"] == "job_posting"
+    assert out["signals"][1]["source"] == "about_text"
 
 
 # --- Signal ID assignment ---
