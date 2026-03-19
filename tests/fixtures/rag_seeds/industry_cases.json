@@ -1,0 +1,177 @@
+[
+  {
+    "id": "ind-001",
+    "case_title": "UPS ORION Route Optimization",
+    "industry": "logistics",
+    "sector_tags": ["route_optimization", "last_mile", "fleet_management"],
+    "company_profile": {
+      "company_name": "UPS",
+      "company_type": "enterprise",
+      "geography": "Global",
+      "size_hint": "large enterprise, 500,000+ employees"
+    },
+    "ai_application": {
+      "problem_addressed": "Manual route planning for 55,000+ daily delivery routes was inefficient, causing excess fuel spend and driver overtime across the US network.",
+      "solution_description": "ORION (On-Road Integrated Optimization and Navigation) uses operations research and ML to compute optimal delivery sequences, minimizing left turns and idle time across each driver's daily route.",
+      "technology_used": ["operations_research", "machine_learning", "optimization"],
+      "deployment_scale": "55,000 drivers in the US, 30 million customer delivery points",
+      "implementation_year": 2012
+    },
+    "reported_outcomes": {
+      "headline_metric": "100 million miles saved annually",
+      "supporting_metrics": [
+        "Fuel savings of 10 million gallons per year",
+        "$400 million in annual cost savings",
+        "Reduced CO2 emissions by 100,000 metric tons per year"
+      ],
+      "source": "UPS Annual Report 2017 and UPS Sustainability Report 2019",
+      "confidence_in_data": "high"
+    },
+    "maturity_signal": "Advanced",
+    "use_case_category": "optimization",
+    "applicable_signals": ["ops_signal", "process_signal", "data_signal"],
+    "embed_text": "UPS ORION route optimization uses ML and operations research to plan 55,000 daily delivery routes, saving 100 million miles and $400M annually through reduced fuel and driver overtime.",
+    "status": "active",
+    "ingestion_date": "2026-03-19"
+  },
+  {
+    "id": "ind-002",
+    "case_title": "Mayo Clinic AI-Assisted Radiology Diagnostics",
+    "industry": "healthcare",
+    "sector_tags": ["radiology", "diagnostics", "medical_imaging"],
+    "company_profile": {
+      "company_name": "Mayo Clinic",
+      "company_type": "enterprise",
+      "geography": "US",
+      "size_hint": "large enterprise, 73,000+ staff across 3 campuses"
+    },
+    "ai_application": {
+      "problem_addressed": "Radiologists face growing imaging volumes with limited staff, leading to delays in detecting early-stage conditions such as lung nodules, cardiac abnormalities, and bone fractures.",
+      "solution_description": "ML models trained on millions of annotated radiology images assist radiologists by flagging high-priority scans, detecting abnormalities, and pre-populating structured findings in the reporting workflow.",
+      "technology_used": ["deep_learning", "computer_vision", "natural_language_processing"],
+      "deployment_scale": "Deployed across Mayo Clinic's three main campuses, reviewing hundreds of thousands of scans annually",
+      "implementation_year": 2019
+    },
+    "reported_outcomes": {
+      "headline_metric": "Reduced time-to-diagnosis for critical findings by 30%",
+      "supporting_metrics": [
+        "False-negative rate for lung nodule detection reduced by 25%",
+        "Radiologist review throughput improved by 15%",
+        "Early-stage detection rates improved across three imaging modalities"
+      ],
+      "source": "Mayo Clinic Proceedings 2021, NPJ Digital Medicine 2022",
+      "confidence_in_data": "high"
+    },
+    "maturity_signal": "Advanced",
+    "use_case_category": "computer_vision",
+    "applicable_signals": ["data_signal", "tech_signal", "ops_signal"],
+    "embed_text": "Mayo Clinic deploys ML-based radiology AI to assist radiologists with scan prioritization and abnormality detection, reducing time-to-diagnosis by 30% and improving early detection across imaging modalities.",
+    "status": "active",
+    "ingestion_date": "2026-03-19"
+  },
+  {
+    "id": "ind-003",
+    "case_title": "Walmart Demand Forecasting at Scale",
+    "industry": "retail",
+    "sector_tags": ["demand_forecasting", "inventory_optimization", "supply_chain"],
+    "company_profile": {
+      "company_name": "Walmart",
+      "company_type": "enterprise",
+      "geography": "US and Global",
+      "size_hint": "largest retailer globally, 2.3 million employees"
+    },
+    "ai_application": {
+      "problem_addressed": "Managing inventory across 4,700+ US stores with manual or rules-based forecasting led to out-of-stock events and overstock write-downs worth billions annually.",
+      "solution_description": "Time-series ML models ingesting POS data, weather, local events, and economic indicators generate automated replenishment orders at the SKU-store level, replacing spreadsheet-based planning.",
+      "technology_used": ["time_series_forecasting", "machine_learning", "gradient_boosting"],
+      "deployment_scale": "4,700+ US stores, 100,000+ SKUs per store",
+      "implementation_year": 2017
+    },
+    "reported_outcomes": {
+      "headline_metric": "Out-of-stock events reduced by 16%",
+      "supporting_metrics": [
+        "Inventory carrying costs reduced by $1 billion annually",
+        "On-shelf availability improved to 98.5% for high-velocity items",
+        "Manual planning hours reduced by 70% in replenishment teams"
+      ],
+      "source": "Walmart Tech Blog 2020, Harvard Business Review Case Study 2021",
+      "confidence_in_data": "medium"
+    },
+    "maturity_signal": "Developing",
+    "use_case_category": "predictive_model",
+    "applicable_signals": ["data_signal", "process_signal", "ops_signal"],
+    "embed_text": "Walmart uses time-series ML for demand forecasting across 4,700+ stores, reducing out-of-stock events by 16% and cutting inventory carrying costs by $1 billion annually through automated replenishment.",
+    "status": "active",
+    "ingestion_date": "2026-03-19"
+  },
+  {
+    "id": "ind-004",
+    "case_title": "JPMorgan COiN Contract Intelligence",
+    "industry": "financial_services",
+    "sector_tags": ["contract_review", "legal_tech", "document_processing"],
+    "company_profile": {
+      "company_name": "JPMorgan Chase",
+      "company_type": "enterprise",
+      "geography": "US and Global",
+      "size_hint": "largest US bank by assets, 270,000+ employees"
+    },
+    "ai_application": {
+      "problem_addressed": "Lawyers and loan officers spent 360,000 hours per year manually reviewing commercial loan agreements to extract key terms, obligations, and risk clauses.",
+      "solution_description": "COiN (Contract Intelligence) uses NLP and document classification to automatically extract over 150 attributes from commercial credit agreements, reducing manual review to a fraction of previous time.",
+      "technology_used": ["natural_language_processing", "document_classification", "information_extraction"],
+      "deployment_scale": "12,000+ commercial credit agreements reviewed annually",
+      "implementation_year": 2017
+    },
+    "reported_outcomes": {
+      "headline_metric": "360,000 hours of manual review replaced in the first year",
+      "supporting_metrics": [
+        "Error rate in term extraction reduced by 90% versus manual review",
+        "Average contract review time reduced from hours to seconds",
+        "Scaled to review 5x more contracts with same headcount"
+      ],
+      "source": "JPMorgan Chase Annual Report 2017, Fortune 2017",
+      "confidence_in_data": "high"
+    },
+    "maturity_signal": "Emerging",
+    "use_case_category": "nlp",
+    "applicable_signals": ["data_signal", "process_signal", "tech_signal"],
+    "embed_text": "JPMorgan COiN uses NLP to review commercial loan agreements, replacing 360,000 hours of manual legal review annually. Error rates dropped 90% and review time fell from hours to seconds.",
+    "status": "active",
+    "ingestion_date": "2026-03-19"
+  },
+  {
+    "id": "ind-005",
+    "case_title": "Siemens Predictive Maintenance for Industrial Equipment",
+    "industry": "manufacturing",
+    "sector_tags": ["predictive_maintenance", "iot", "equipment_monitoring"],
+    "company_profile": {
+      "company_name": "Siemens",
+      "company_type": "enterprise",
+      "geography": "Global",
+      "size_hint": "large enterprise, 300,000+ employees across 200 countries"
+    },
+    "ai_application": {
+      "problem_addressed": "Unplanned equipment downtime in industrial facilities costs manufacturers an estimated $50 billion annually. Maintenance was reactive or on fixed schedules rather than condition-based.",
+      "solution_description": "Sensor data from industrial equipment is streamed to ML models that detect anomalous vibration, temperature, and pressure patterns 4-8 weeks before failure, enabling targeted maintenance before breakdown.",
+      "technology_used": ["anomaly_detection", "time_series_ml", "iot_sensors", "edge_computing"],
+      "deployment_scale": "Deployed across 300+ Siemens customer facilities globally",
+      "implementation_year": 2016
+    },
+    "reported_outcomes": {
+      "headline_metric": "Unplanned downtime reduced by 30% on average",
+      "supporting_metrics": [
+        "Maintenance cost reduction of 25% versus scheduled maintenance",
+        "Equipment lifespan extended by 20% through condition-based intervention",
+        "False alarm rate below 5% after model calibration"
+      ],
+      "source": "Siemens Industrial AI Report 2020, McKinsey Manufacturing Analytics 2021",
+      "confidence_in_data": "medium"
+    },
+    "maturity_signal": "Emerging",
+    "use_case_category": "predictive_model",
+    "applicable_signals": ["ops_signal", "data_signal", "tech_signal"],
+    "embed_text": "Siemens predictive maintenance uses IoT sensor data and ML anomaly detection to predict equipment failures 4-8 weeks in advance, reducing unplanned downtime by 30% and maintenance costs by 25% across 300+ facilities.",
+    "status": "active",
+    "ingestion_date": "2026-03-19"
+  }
+]

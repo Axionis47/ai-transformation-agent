@@ -1,0 +1,35 @@
+{
+  "id": "ind-006",
+  "case_title": "DHL AI-Powered Parcel Sorting",
+  "industry": "logistics",
+  "sector_tags": ["parcel_sorting", "warehouse_automation", "computer_vision"],
+  "company_profile": {
+    "company_name": "DHL",
+    "company_type": "enterprise",
+    "geography": "Global",
+    "size_hint": "large enterprise, 570,000+ employees in 220 countries"
+  },
+  "ai_application": {
+    "problem_addressed": "Manual parcel sorting at high-volume hubs could not keep pace with e-commerce volume growth, causing sorting errors and missed delivery windows.",
+    "solution_description": "Computer vision systems mounted above conveyor belts read barcodes, labels, and package dimensions in real time to route each parcel to the correct chute automatically, replacing manual scanning and sorting.",
+    "technology_used": ["computer_vision", "deep_learning", "real_time_image_classification"],
+    "deployment_scale": "22 DHL sortation hubs across Europe and North America",
+    "implementation_year": 2020
+  },
+  "reported_outcomes": {
+    "headline_metric": "Sorting accuracy improved to 99.5%",
+    "supporting_metrics": [
+      "Throughput increased by 40% without additional headcount",
+      "Mis-sorted parcel rate reduced from 1.2% to 0.5%",
+      "Labor cost per sorted parcel reduced by 35%"
+    ],
+    "source": "DHL Innovation Report 2021, Logistics Management Journal 2022",
+    "confidence_in_data": "medium"
+  },
+  "maturity_signal": "Developing",
+  "use_case_category": "computer_vision",
+  "applicable_signals": ["ops_signal", "tech_signal", "data_signal"],
+  "embed_text": "DHL deploys computer vision at 22 sorting hubs to automate parcel routing, achieving 99.5% sorting accuracy and 40% throughput increase without additional headcount.",
+  "status": "active",
+  "ingestion_date": "2026-03-19"
+}
