@@ -1,0 +1,54 @@
+{
+  "id": "win-021",
+  "engagement_title": "Patient Readmission Risk Scoring for Regional Health System",
+  "industry": "healthcare",
+  "sector_tags": ["hospital_operations", "patient_outcomes", "risk_scoring"],
+  "company_profile": {
+    "size_employees": 1200,
+    "size_label": "mid-market",
+    "annual_revenue_usd": "$180M-$220M",
+    "geography": "US Southeast",
+    "business_model": "Regional health system operating 4 hospitals and 12 outpatient clinics across two states"
+  },
+  "problem_statement": "The health system had a 30-day readmission rate of 18.4%, above the national average of 15.5%. Care coordinators manually reviewed discharge summaries to flag high-risk patients but covered only 30% of daily discharges due to staffing constraints. CMS penalties for excess readmissions had cost the system $1.2M in the prior fiscal year.",
+  "solution_summary": "Tenex built a readmission risk scoring model using 3 years of EHR data — diagnosis codes, prior admissions, medication adherence flags, and social determinants of health. A gradient boosting classifier scored each discharge within 2 hours of discharge orders being placed. Scores above 0.65 triggered an automatic care coordinator assignment in the Epic workflow. The model was deployed as a REST service integrated with Epic FHIR API.",
+  "results": {
+    "primary_metric": {
+      "label": "30-day Readmission Rate",
+      "value": "Reduced from 18.4% to 14.1%",
+      "baseline": "18.4% 30-day readmission rate, 2,800 annual discharges",
+      "outcome": "14.1% readmission rate — 120 fewer readmissions annually, $1.8M CMS penalty avoidance"
+    },
+    "secondary_metrics": [
+      {"label": "Care coordinator coverage", "value": "30% to 89% of high-risk discharges covered"},
+      {"label": "Model precision at 0.65 threshold", "value": "71% — 7 in 10 flagged patients readmitted within 30 days"},
+      {"label": "Time to score", "value": "Under 2 hours from discharge order placement"}
+    ],
+    "measurement_period": "6 months post-deployment",
+    "measurement_basis": "Compared to same 6-month window in prior year, adjusted for case mix index"
+  },
+  "engagement_details": {
+    "duration_months": 5,
+    "tenex_team_size": 3,
+    "tenex_roles": ["ML Engineer", "Data Engineer", "Engagement Lead"],
+    "client_team_involvement": "Chief Medical Informatics Officer, 2 Epic analysts, 3 care coordinators as SMEs during model validation",
+    "delivery_model": "project"
+  },
+  "tech_stack": {
+    "data_sources": ["Epic EHR (3 years discharge history)", "ICD-10 diagnosis codes", "Medication adherence records", "Social determinants screening data"],
+    "ml_approach": "Gradient boosting classifier (XGBoost) with SHAP explainability layer for care coordinator transparency",
+    "infrastructure": ["GCP Vertex AI", "BigQuery", "Cloud Run for FHIR API service"],
+    "client_systems_integrated": ["Epic FHIR API", "Epic workflow alerts", "Care coordinator assignment queue"]
+  },
+  "maturity_at_engagement": "Developing",
+  "follow_on_engagement": true,
+  "lessons_learned": "HIPAA BAA setup added 3 weeks to the engagement start. Build legal lead time into healthcare scoping. SHAP explainability was essential — care coordinators rejected the model without it.",
+  "embed_text": "Healthcare — Mid-market regional health system, 1200 employees, ~$200M revenue, US Southeast\n\nProblem: 30-day readmission rate of 18.4% above 15.5% national average. Care coordinators manually reviewed only 30% of daily discharges. CMS penalties cost $1.2M annually.\n\nSolution: Tenex built a readmission risk scoring model using 3 years of EHR data with XGBoost classifier. Scores each discharge within 2 hours. Threshold 0.65 triggers automatic care coordinator assignment in Epic workflow.\n\nApproach: XGBoost gradient boosting with SHAP explainability, Epic FHIR API integration\n\nResults: 30-day readmission rate: 18.4% to 14.1% (120 fewer readmissions, $1.8M CMS penalty avoidance) (6 months post-deployment). Care coordinator coverage: 30% to 89% of high-risk discharges.",
+  "industry_benchmark": "National average 30-day readmission rate 15.5%; CMS penalty threshold at 17.5% for comparable DRG mix",
+  "success_threshold": "Requires Epic or equivalent EHR with FHIR API access and at least 2 years of structured discharge history. Care coordinator team must have capacity to act on scored alerts within 4 hours.",
+  "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — readmission risk ROI realises within 6 months when EHR data is centralised and care coordinator workflow can receive automated assignments.",
+  "status": "active",
+  "ingestion_date": "2026-03-19",
+  "solution_category": "scoring_model",
+  "applicable_signals": ["data_signal", "ops_signal", "process_signal"]
+}
