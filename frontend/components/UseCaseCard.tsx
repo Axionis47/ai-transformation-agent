@@ -3,261 +3,161 @@
 import { useState } from "react";
 import type { TieredUseCase } from "@/lib/types";
 
-const TIER_STYLES = {
-  LOW_HANGING_FRUIT: {
-    border: "border-l-[3px] border-green-500",
-    badge: { bg: "#f0fdf4", text: "#16a34a", border: "#bbf7d0" },
-    bar: "#16a34a",
-    label: "Proven Solution",
-  },
-  MEDIUM_SOLUTION: {
-    border: "border-l-[3px] border-amber-500",
-    badge: { bg: "#fffbeb", text: "#d97706", border: "#fde68a" },
-    bar: "#d97706",
-    label: "Achievable Opportunity",
-  },
-  HARD_EXPERIMENT: {
-    border: "border-l-[3px] border-blue-500",
-    badge: { bg: "#eff6ff", text: "#4f6df5", border: "#bfdbfe" },
-    bar: "#4f6df5",
-    label: "Frontier Experiment",
-  },
-};
-
-const EFFORT_STYLES: Record<string, { bg: string; text: string; border: string }> = {
-  Low:    { bg: "#f0fdf4", text: "#16a34a", border: "#bbf7d0" },
-  Medium: { bg: "#fffbeb", text: "#d97706", border: "#fde68a" },
-  High:   { bg: "#fef2f2", text: "#dc2626", border: "#fecaca" },
-};
-
-const IMPACT_STYLES: Record<string, { bg: string; text: string; border: string }> = {
-  Low:    { bg: "#f0fdf4", text: "#16a34a", border: "#bbf7d0" },
-  Medium: { bg: "#eff6ff", text: "#4f6df5", border: "#bfdbfe" },
-  High:   { bg: "#f5f3ff", text: "#7c3aed", border: "#ddd6fe" },
-};
-
-function Tag({ label, style }: { label: string; style: { bg: string; text: string; border: string } }) {
-  return (
-    <span
-      className="text-[11px] font-semibold px-2 py-0.5 rounded-full border"
-      style={{ background: style.bg, color: style.text, borderColor: style.border }}
-    >
-      {label}
-    </span>
-  );
-}
-
 interface UseCaseCardProps {
   useCase: TieredUseCase;
 }
 
 export default function UseCaseCard({ useCase }: UseCaseCardProps) {
   const [dataFlowOpen, setDataFlowOpen] = useState(false);
-  const styles = TIER_STYLES[useCase.tier];
-  const effortStyle = EFFORT_STYLES[useCase.effort] ?? EFFORT_STYLES.Medium;
-  const impactStyle = IMPACT_STYLES[useCase.impact] ?? IMPACT_STYLES.Medium;
   const confidencePct = Math.round(useCase.confidence * 100);
 
-  return (
-    <div className={`neo-flat p-5 space-y-4 ${styles.border}`}>
-      {/* Tags row */}
-      <div className="flex flex-wrap items-center gap-2">
-        <Tag label={styles.label} style={styles.badge} />
-        <Tag label={`Effort: ${useCase.effort}`} style={effortStyle} />
-        <Tag label={`Impact: ${useCase.impact}`} style={impactStyle} />
-      </div>
+  const roiLabel =
+    useCase.tier === "LOW_HANGING_FRUIT"
+      ? "Proven ROI"
+      : useCase.tier === "MEDIUM_SOLUTION"
+      ? "Adapted ROI"
+      : "Estimated ROI";
 
+  return (
+    <div className="py-6">
       {/* Title */}
-      <h3 className="text-sm font-bold leading-snug" style={{ color: "#1e2433" }}>
+      <h3 className="font-headline text-xl text-ink leading-snug mb-1">
         {useCase.title}
       </h3>
 
+      {/* Effort / Impact */}
+      <p className="font-label text-xs text-ink-light tracking-wide mb-4">
+        {useCase.effort} effort&nbsp;&nbsp;|&nbsp;&nbsp;{useCase.impact} impact
+      </p>
+
       {/* Description */}
-      <p className="text-sm leading-relaxed" style={{ color: "#4a5568" }}>
+      <p className="font-body text-ink leading-[1.75] mb-5">
         {useCase.description}
       </p>
 
+      {/* ROI */}
+      <div className="mb-4">
+        <p className="font-label text-xs text-ink-light uppercase tracking-[0.1em] mb-1">
+          {roiLabel}
+        </p>
+        <p className="font-mono font-bold text-ink text-base">{useCase.roi_estimate}</p>
+        {useCase.roi_basis && (
+          <p className="font-body text-sm text-ink-light mt-0.5">{useCase.roi_basis}</p>
+        )}
+      </div>
+
       {/* Confidence bar */}
-      <div className="space-y-1.5">
-        <div className="flex justify-between items-center">
-          <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+      <div className="mb-4">
+        <div className="flex justify-between items-center mb-1">
+          <span className="font-label text-xs text-ink-light uppercase tracking-[0.1em]">
             Confidence
           </span>
-          <span className="text-xs font-bold" style={{ color: styles.bar }}>
-            {confidencePct}%
-          </span>
+          <span className="font-mono text-xs text-ink-light">{confidencePct}%</span>
         </div>
-        <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+        <div className="h-1 w-full" style={{ background: "var(--rule)" }}>
           <div
-            className="h-2 rounded-full transition-all duration-500"
-            style={{ width: `${confidencePct}%`, background: styles.bar }}
+            className="h-1 transition-all duration-500"
+            style={{ width: `${confidencePct}%`, background: "var(--ink)" }}
           />
         </div>
       </div>
 
-      {/* ROI estimate — prefix varies by tier */}
-      <div
-        className="rounded-xl px-4 py-3 border"
-        style={{ background: "#f8f9ff", borderColor: "#e0e7ff" }}
-      >
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1">
-          {useCase.tier === "LOW_HANGING_FRUIT"
-            ? "Proven ROI"
-            : useCase.tier === "MEDIUM_SOLUTION"
-            ? "Adapted ROI"
-            : "Estimated ROI"}
-        </p>
-        <p className="text-sm font-semibold" style={{ color: "#4f6df5" }}>
-          {useCase.tier === "HARD_EXPERIMENT" && (
-            <span className="text-xs font-normal text-gray-400 mr-1">Estimated:</span>
-          )}
-          {useCase.roi_estimate}
-        </p>
-        {useCase.roi_basis && (
-          <p className="text-xs text-gray-500 mt-0.5">{useCase.roi_basis}</p>
-        )}
-      </div>
-
       {/* Why this company */}
       {useCase.why_this_company && (
-        <div className="rounded-xl px-4 py-3 bg-gray-50 border border-gray-200">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1">
-            Why this company
-          </p>
-          <p className="text-xs leading-relaxed" style={{ color: "#4a5568" }}>
-            {useCase.why_this_company}
-          </p>
-        </div>
+        <p className="font-body italic text-ink-medium text-sm leading-relaxed mb-4">
+          {useCase.why_this_company}
+        </p>
       )}
 
-      {/* DELIVERED tier evidence: win ID badge + proven metric + client profile */}
+      {/* LOW_HANGING_FRUIT evidence */}
       {useCase.tier === "LOW_HANGING_FRUIT" && (
-        <div className="space-y-2">
+        <div className="space-y-1.5 mb-4 font-body text-sm">
           {useCase.win_id && (
-            <div className="flex items-center gap-2">
-              <span
-                className="text-[11px] font-bold px-2 py-0.5 rounded border"
-                style={{ background: "#f0fdf4", color: "#16a34a", borderColor: "#bbf7d0" }}
-              >
-                {useCase.win_id}
-              </span>
-              <span className="text-[11px] text-gray-400">proven engagement</span>
-            </div>
+            <p className="text-ink-light">
+              <span className="font-mono text-xs text-ink-medium">{useCase.win_id}</span>
+              <span className="ml-2">proven engagement</span>
+            </p>
           )}
           {useCase.proven_metric && (
-            <p className="text-sm font-semibold" style={{ color: "#16a34a" }}>
-              Proven: {useCase.proven_metric}
-            </p>
+            <p className="text-ink-medium">Proven: {useCase.proven_metric}</p>
           )}
           {useCase.client_profile_match && (
-            <p className="text-[11px] text-gray-500">
-              <span className="font-medium">Similar: </span>
-              {useCase.client_profile_match}
-            </p>
+            <p className="text-ink-light">Similar: {useCase.client_profile_match}</p>
           )}
           {useCase.rag_benchmark && (
-            <p className="text-[11px] text-gray-400">
-              <span className="font-medium text-gray-500">Benchmark: </span>
-              {useCase.rag_benchmark}
-            </p>
+            <p className="text-ink-faint">Benchmark: {useCase.rag_benchmark}</p>
           )}
         </div>
       )}
 
-      {/* ADAPTATION tier evidence: base win reference + adaptation notes + adjusted ROI */}
+      {/* MEDIUM_SOLUTION evidence */}
       {useCase.tier === "MEDIUM_SOLUTION" && (
-        <div className="space-y-2">
+        <div className="space-y-1.5 mb-4 font-body text-sm">
           {useCase.base_win_id && (
-            <div className="flex items-center gap-2">
-              <span
-                className="text-[11px] font-bold px-2 py-0.5 rounded border"
-                style={{ background: "#fffbeb", color: "#d97706", borderColor: "#fde68a" }}
-              >
-                Based on {useCase.base_win_id}
-              </span>
-            </div>
+            <p className="text-ink-light">
+              Based on <span className="font-mono text-xs text-ink-medium">{useCase.base_win_id}</span>
+            </p>
           )}
           {useCase.adaptation_notes && (
-            <div className="rounded-xl px-3 py-2 border" style={{ background: "#fffbeb", borderColor: "#fde68a" }}>
-              <p className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: "#d97706" }}>
+            <div className="pl-3 border-l border-rule mt-2">
+              <p className="font-label text-xs text-ink-light uppercase tracking-[0.1em] mb-1">
                 Adaptation notes
               </p>
-              <p className="text-xs leading-relaxed" style={{ color: "#92400e" }}>
+              <p className="font-body text-sm text-ink-medium leading-relaxed">
                 {useCase.adaptation_notes}
               </p>
             </div>
           )}
           {useCase.adjusted_roi_range && (
-            <p className="text-[11px] text-gray-500">
-              <span className="font-medium">Adjusted ROI: </span>
-              {useCase.adjusted_roi_range}
-            </p>
+            <p className="text-ink-light">Adjusted ROI: {useCase.adjusted_roi_range}</p>
           )}
           {useCase.rag_benchmark && (
-            <p className="text-[11px] text-gray-400">
-              <span className="font-medium text-gray-500">Benchmark: </span>
-              {useCase.rag_benchmark}
-            </p>
+            <p className="text-ink-faint">Benchmark: {useCase.rag_benchmark}</p>
           )}
         </div>
       )}
 
-      {/* AMBITIOUS tier evidence: industry examples + source citations */}
+      {/* HARD_EXPERIMENT evidence */}
       {useCase.tier === "HARD_EXPERIMENT" && (
-        <div className="space-y-2">
+        <div className="space-y-2 mb-4 font-body text-sm">
           {useCase.industry_examples && useCase.industry_examples.length > 0 && (
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1">
+              <p className="font-label text-xs text-ink-light uppercase tracking-[0.1em] mb-1">
                 Industry examples
               </p>
-              <div className="flex flex-wrap gap-1.5">
-                {useCase.industry_examples.map((ex) => (
-                  <span
-                    key={ex}
-                    className="text-[11px] font-medium px-2 py-0.5 rounded-full border"
-                    style={{ background: "#eff6ff", color: "#4f6df5", borderColor: "#bfdbfe" }}
-                  >
-                    {ex}
-                  </span>
-                ))}
-              </div>
+              <p className="text-ink-medium">{useCase.industry_examples.join(", ")}</p>
             </div>
           )}
           {useCase.source_citations && useCase.source_citations.length > 0 && (
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1">
+              <p className="font-label text-xs text-ink-light uppercase tracking-[0.1em] mb-1">
                 Sources
               </p>
               <ul className="space-y-0.5">
                 {useCase.source_citations.map((src) => (
-                  <li key={src} className="text-[11px] text-gray-500">
-                    {src}
-                  </li>
+                  <li key={src} className="text-ink-light font-mono text-xs">{src}</li>
                 ))}
               </ul>
             </div>
           )}
           {useCase.rag_benchmark && (
-            <p className="text-[11px] text-gray-400">
-              <span className="font-medium text-gray-500">Industry ref: </span>
-              {useCase.rag_benchmark}
-            </p>
+            <p className="text-ink-faint">Industry ref: {useCase.rag_benchmark}</p>
           )}
         </div>
       )}
 
       {/* Data flow accordion */}
-      <div className="border-t border-[#c4cad6]/40 pt-3">
+      <div className="pt-3 border-t" style={{ borderColor: "var(--rule)" }}>
         <button
           onClick={() => setDataFlowOpen(!dataFlowOpen)}
           className="w-full flex items-center justify-between gap-2 text-left group"
           aria-expanded={dataFlowOpen}
         >
-          <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 group-hover:text-gray-600 transition-colors">
+          <span className="font-label text-xs uppercase tracking-[0.1em] text-ink-light group-hover:text-ink-medium transition-colors">
             Data Flow
           </span>
           <span
-            className="text-gray-400 group-hover:text-gray-600 transition-all duration-200"
+            className="text-ink-light text-xs transition-transform duration-200"
             style={{ transform: dataFlowOpen ? "rotate(180deg)" : "rotate(0deg)", display: "inline-block" }}
           >
             ▾
@@ -265,7 +165,7 @@ export default function UseCaseCard({ useCase }: UseCaseCardProps) {
         </button>
 
         {dataFlowOpen && (
-          <div className="mt-3 space-y-2 pl-1">
+          <dl className="mt-3 space-y-2 pl-1">
             {[
               { label: "Inputs", value: useCase.data_flow.data_inputs.join(", ") },
               { label: "Model", value: useCase.data_flow.model_approach },
@@ -274,13 +174,18 @@ export default function UseCaseCard({ useCase }: UseCaseCardProps) {
               { label: "Measurement", value: useCase.data_flow.value_measurement },
             ].map(({ label, value }) => (
               <div key={label} className="flex gap-3 text-xs">
-                <span className="font-semibold text-gray-500 min-w-[80px] shrink-0">{label}</span>
-                <span style={{ color: "#4a5568" }}>{value}</span>
+                <dt className="font-label uppercase tracking-[0.08em] text-ink-light min-w-[90px] shrink-0">
+                  {label}
+                </dt>
+                <dd className="font-body text-ink-medium">{value}</dd>
               </div>
             ))}
-          </div>
+          </dl>
         )}
       </div>
+
+      {/* Hairline separator */}
+      <div className="rule-hairline mt-6" />
     </div>
   );
 }
