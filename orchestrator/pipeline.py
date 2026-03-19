@@ -212,13 +212,15 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     logger.log_agent_call("VICTORY_MATCHER", result=True,
                           output_summary=matching_output(state.match_results))
 
-    # Stage 6: Use case generation
+    # Stage 6: Use case generation — per-tier synthesis using match_results
     t = time.time()
     logger.log_agent_call("USE_CASE_GENERATOR", prompt_version="1.0",
                           input_summary=use_case_input(state.signals, state.maturity, state.victory_matches))
     result = _run_with_timeout(UseCaseGeneratorAgent(), {
-        "signals": state.signals, "maturity": state.maturity,
+        "signals": state.signals,
+        "maturity": state.maturity,
         "victory_matches": state.victory_matches,
+        "match_results": state.match_results,
     })
     if isinstance(result, AgentError):
         _log_stage(logger, "USE_CASE_GENERATOR", "error", code=result.code, message=result.message)
