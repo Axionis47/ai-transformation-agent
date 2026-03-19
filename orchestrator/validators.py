@@ -4,11 +4,41 @@ from __future__ import annotations
 from agents.base import AgentError
 from orchestrator.schemas import MaturityResult, SignalSet, UseCase
 
+_SOURCE_NORMALIZE: dict[str, str] = {
+    "about": "about_text",
+    "about_page": "about_text",
+    "about_us": "about_text",
+    "company_page": "about_text",
+    "website": "about_text",
+    "homepage": "about_text",
+    "job_posting": "job_posting",
+    "job_postings": "job_posting",
+    "jobs": "job_posting",
+    "careers": "careers_page",
+    "careers_page": "careers_page",
+    "career_page": "careers_page",
+    "product_page": "product_page",
+    "product/solutions": "product_page",
+    "product": "product_page",
+    "solutions": "product_page",
+    "product_pages": "product_page",
+}
+
+
+def _normalize_signal_sources(result: dict) -> dict:
+    """Normalize LLM signal source values to valid Literal values in-place."""
+    signals = result.get("signals", [])
+    for sig in signals:
+        raw = sig.get("source", "")
+        sig["source"] = _SOURCE_NORMALIZE.get(raw, "about_text")
+    return result
+
 
 def validate_signals(
     result: dict, agent_tag: str = "SIGNAL_EXTRACTOR"
 ) -> SignalSet | AgentError:
     """Validate signal extractor output. Returns SignalSet or AgentError."""
+    result = _normalize_signal_sources(result)
     try:
         signal_set = SignalSet(**result)
     except Exception as e:
