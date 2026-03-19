@@ -43,7 +43,7 @@
 ```bash
 # Backend
 pip install -r requirements.txt
-uvicorn infra.app:app --reload --port 8000
+uvicorn app:app --reload --port 8000
 
 # Frontend (separate terminal)
 cd frontend && npm install && npm run dev
@@ -174,7 +174,7 @@ orchestrator/pipeline.py          ← Stage 7 uses ThreadPoolExecutor(max_worker
 evals/judge_client.py             ← switched to anthropic.AnthropicVertex
 evals/ci_eval.py                  ← updated to _SPRINT = "sprint_6"
 evals/baselines.json              ← sprint_6 key added (scores 0.0, pending_deploy)
-infra/app.py                      ← AnalyzeSuccess model extended with pages_fetched, signal_count
+app.py                            ← AnalyzeSuccess model extended with pages_fetched, signal_count
 infra/deploy_target.py            ← fully implemented with gcloud CLI commands
 infra/health_check.py             ← returns pipeline: "ready", version: "sprint6"
 Dockerfile                        ← python:3.11-slim, uvicorn on port 8080
