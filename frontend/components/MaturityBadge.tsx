@@ -15,16 +15,10 @@ interface MaturityBadgeProps {
   dimensions?: Record<string, number>;
 }
 
-function scoreAccent(score: number): { ring: string; fill: string; text: string } {
-  if (score < 2) return { ring: "#ef4444", fill: "#ef4444", text: "#dc2626" };
-  if (score < 3.5) return { ring: "#f59e0b", fill: "#f59e0b", text: "#d97706" };
-  return { ring: "#4f6df5", fill: "#4f6df5", text: "#4f6df5" };
-}
-
-function barFill(val: number): string {
-  if (val < 2) return "#ef4444";
-  if (val < 3.5) return "#f59e0b";
-  return "#4f6df5";
+function dimensionBarColor(val: number): string {
+  if (val < 2) return "#c1272d";
+  if (val <= 3.5) return "#1a1714";
+  return "#2d6a4f";
 }
 
 function maturityTier(score: number): string {
@@ -42,104 +36,66 @@ export default function MaturityBadge({
   costUsd,
   dimensions,
 }: MaturityBadgeProps) {
-  const accent = score !== undefined ? scoreAccent(score) : scoreAccent(3.5);
   const displayLabel = label ?? (score !== undefined ? maturityTier(score) : "Complete");
 
-  return (
-    <div className="neo-raised p-6 space-y-5">
-      {/* Top row: score + metadata */}
-      <div className="flex flex-wrap items-start gap-6">
-        {/* Score block */}
-        <div className="flex items-center gap-5">
-          {/* Large circular score */}
-          <div
-            className="relative flex items-center justify-center w-20 h-20 rounded-full"
-            style={{
-              background: `conic-gradient(${accent.fill} 0% ${score !== undefined ? (score / 5) * 100 : 100}%, #d1d5db ${score !== undefined ? (score / 5) * 100 : 100}% 100%)`,
-              padding: "3px",
-            }}
-          >
-            <div className="w-full h-full rounded-full bg-[#edf0f5] flex flex-col items-center justify-center">
-              <span className="text-2xl font-extrabold leading-none" style={{ color: accent.text }}>
-                {score !== undefined ? score.toFixed(1) : "–"}
-              </span>
-              <span className="text-[10px] font-medium text-gray-400 leading-none mt-0.5">/5</span>
-            </div>
-          </div>
-          {/* Label block */}
-          <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-              AI Maturity Score
-            </span>
-            <span
-              className="text-xl font-bold leading-tight"
-              style={{ color: "#1e2433" }}
-            >
-              {displayLabel}
-            </span>
-            <span
-              className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full"
-              style={{
-                background: accent.fill + "18",
-                color: accent.text,
-                border: `1px solid ${accent.fill}40`,
-              }}
-            >
-              {score !== undefined ? `${Math.round((score / 5) * 100)}th percentile` : "Analysis complete"}
-            </span>
-          </div>
-        </div>
+  const metaParts: string[] = [];
+  if (elapsedSeconds !== undefined) metaParts.push(`${elapsedSeconds.toFixed(1)}s`);
+  if (costUsd !== undefined) metaParts.push(`$${costUsd.toFixed(4)}`);
 
-        {/* Metadata: elapsed + cost */}
-        <div className="ml-auto flex gap-4 self-center">
-          {elapsedSeconds !== undefined && (
-            <div className="neo-flat px-4 py-2.5 flex flex-col items-center min-w-[72px]">
-              <span className="text-base font-bold text-gray-700 leading-none">
-                {elapsedSeconds.toFixed(1)}s
-              </span>
-              <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-widest">Runtime</span>
-            </div>
-          )}
-          {costUsd !== undefined && (
-            <div className="neo-flat px-4 py-2.5 flex flex-col items-center min-w-[72px]">
-              <span className="text-base font-bold text-gray-700 leading-none">
-                ${costUsd.toFixed(4)}
-              </span>
-              <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-widest">Cost</span>
-            </div>
-          )}
-        </div>
+  return (
+    <div className="py-6">
+      {/* Kicker */}
+      <p className="font-label uppercase tracking-[0.12em] text-xs text-red mb-2">
+        AI Maturity Score
+      </p>
+
+      {/* Score headline */}
+      <div className="mb-1">
+        <span className="font-headline text-6xl font-black text-ink leading-none">
+          {score !== undefined ? score.toFixed(1) : "–"}
+        </span>
       </div>
+      <p className="font-body text-ink-light text-base mb-4">
+        out of 5.0 — {displayLabel}
+      </p>
+
+      {/* Hairline separator */}
+      <div className="rule-hairline mb-4" />
 
       {/* Dimension bars */}
       {dimensions && (
-        <div className="pt-4 border-t border-[#c4cad6]/40">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-3">
-            Dimension Breakdown
+        <div className="space-y-3">
+          <p className="font-label uppercase tracking-[0.1em] text-xs text-ink-light mb-2">
+            Dimensions
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
-            {DIMENSION_LABELS.map(({ key, label: dimLabel }) => {
-              const val = dimensions[key] ?? 0;
-              const fill = barFill(val);
-              return (
-                <div key={key} className="space-y-1.5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-medium text-gray-600">{dimLabel}</span>
-                    <span className="text-xs font-bold" style={{ color: fill }}>
-                      {val.toFixed(1)}
-                    </span>
-                  </div>
-                  <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
-                    <div
-                      className="h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${(val / 5) * 100}%`, background: fill }}
-                    />
-                  </div>
+          {DIMENSION_LABELS.map(({ key, label: dimLabel }) => {
+            const val = dimensions[key] ?? 0;
+            const fill = dimensionBarColor(val);
+            return (
+              <div key={key}>
+                <div className="flex justify-between items-baseline mb-1">
+                  <span className="font-label text-xs text-ink-medium uppercase tracking-[0.06em]">
+                    {dimLabel}
+                  </span>
+                  <span className="font-mono text-xs text-ink-light">{val.toFixed(1)}</span>
                 </div>
-              );
-            })}
-          </div>
+                <div className="h-1.5 bg-rule overflow-hidden">
+                  <div
+                    className="h-1.5 transition-all duration-500"
+                    style={{ width: `${(val / 5) * 100}%`, background: fill }}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
+      )}
+
+      {/* Metadata footer */}
+      {metaParts.length > 0 && (
+        <p className="font-mono text-xs text-ink-light mt-5">
+          {metaParts.join(" | ")}
+        </p>
       )}
     </div>
   );
