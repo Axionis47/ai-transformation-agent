@@ -12,3 +12,4 @@
 | [ADR-008](ADR-008.md) | Tool Registry as Orchestrator-Level Abstraction | Accepted | 2026-03-16 |
 | [ADR-009](ADR-009.md) | Parallel Report Section Generation via ThreadPoolExecutor | Accepted | 2026-03-16 |
 | [ADR-010](ADR-010.md) | Cloud Run as Production Deploy Target with Zero-Secrets-in-Image Policy | Accepted | 2026-03-16 |
+| [ADR-011](ADR-011.md) | Three-Tier Matching Architecture | Accepted | 2026-03-19 |
