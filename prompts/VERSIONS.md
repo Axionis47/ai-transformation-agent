@@ -42,3 +42,21 @@ PM owns this file. Update at every prompt version bump.
 | Version | Date | Description | ADR |
 |---------|------|-------------|-----|
 | 1.0 | 2026-03-16 | Initial prompt. Three-tier framework (LOW_HANGING_FRUIT/MEDIUM_SOLUTION/HARD_EXPERIMENT), data_flow required per use case, ROI calibration per tier, evidence tracing to signal_ids and win-NNN IDs. | — |
+
+## tier1_delivered.md
+
+| Version | Date | Description | ADR |
+|---------|------|-------------|-----|
+| 1.0 | 2026-03-19 | Initial prompt. Synthesizes use cases from DELIVERED MatchResult records (Library A direct matches). Requires exact win_id citation, proven metric verbatim, measurement_period, client_profile_summary match. Confidence always >= 0.80. Tier always LOW_HANGING_FRUIT. Includes failure guards against estimated language. | -- |
+
+## tier2_adaptation.md
+
+| Version | Date | Description | ADR |
+|---------|------|-------------|-----|
+| 1.0 | 2026-03-19 | Initial prompt. Synthesizes use cases from ADAPTATION MatchResult records (Library A adjacent matches). Requires base win_id citation, adaptation_notes explaining what changes, explicit discount factor on base ROI, gap_from_base in roi_basis. Confidence 0.55-0.79. Tier always MEDIUM_SOLUTION. | -- |
+
+## tier3_ambitious.md
+
+| Version | Date | Description | ADR |
+|---------|------|-------------|-----|
+| 1.0 | 2026-03-19 | Initial prompt. Synthesizes use cases from AMBITIOUS MatchResult records (Library B industry cases). Requires named external company or published source citation. Prohibits win-NNN citations. ROI always labeled as estimated with source. Confidence 0.40-0.65 hard cap. Tier always HARD_EXPERIMENT. | -- |
