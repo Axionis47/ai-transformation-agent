@@ -3,118 +3,96 @@
 @tailwind utilities;
 
 :root {
-  --neo-bg: #edf0f5;
-  --neo-bg-gradient: linear-gradient(135deg, #edf0f5 0%, #e8ecf2 60%, #eaecf5 100%);
-  --neo-shadow-dark: #c4cad6;
-  --neo-shadow-light: #ffffff;
-  --accent: #4f6df5;
-  --accent-hover: #3b5de7;
-  --accent-active: #2f4fd4;
+  --cream: #f5f0e8;
+  --ink: #1a1714;
+  --ink-medium: #3d3830;
+  --ink-light: #8a8279;
+  --ink-faint: #b8b0a4;
+  --rule: #c9c1b4;
+  --red: #c1272d;
+  --red-light: rgba(193, 39, 45, 0.08);
 }
 
 body {
-  background: var(--neo-bg-gradient);
-  background-attachment: fixed;
-  color: #1e2433;
-  font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
+  background-color: var(--cream);
+  color: var(--ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Paper grain overlay — SVG feTurbulence noise at very low opacity */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+}
+
 @layer utilities {
-  /* Elevated card — raised from surface */
-  .neo-raised {
-    box-shadow:
-      6px 6px 14px #c4cad6,
-      -6px -6px 14px #ffffff;
-    background: #edf0f5;
-    border-radius: 16px;
+  /* Ruled line utilities */
+  .rule-masthead {
+    border-top: 3px solid var(--red);
+    width: 100%;
   }
 
-  /* Flat surface — slight depth */
-  .neo-flat {
-    box-shadow:
-      3px 3px 8px #c4cad6,
-      -3px -3px 8px #ffffff;
-    background: #edf0f5;
-    border-radius: 16px;
+  .rule-ink {
+    border-top: 1px solid var(--ink);
+    width: 100%;
   }
 
-  /* Inset — inputs and recessed areas */
-  .neo-inset {
-    box-shadow:
-      inset 3px 3px 7px #c4cad6,
-      inset -3px -3px 7px #ffffff;
-    background: #edf0f5;
-    border-radius: 12px;
+  .rule-hairline {
+    border-top: 0.5px solid var(--rule);
+    width: 100%;
   }
 
-  /* Button base */
-  .neo-btn {
-    box-shadow:
-      4px 4px 10px #c4cad6,
-      -4px -4px 10px #ffffff;
+  /* Double rule: 2.5px top + 0.5px bottom with 2px gap via padding */
+  .rule-double {
+    position: relative;
+    border-top: 2.5px solid var(--ink);
+    padding-top: 2px;
   }
 
-  .neo-btn:active {
-    box-shadow:
-      inset 2px 2px 6px rgba(0,0,0,0.15),
-      inset -2px -2px 4px rgba(255,255,255,0.6);
+  .rule-double::after {
+    content: '';
+    display: block;
+    border-top: 0.5px solid var(--ink);
+    width: 100%;
   }
 
-  /* Focus ring utility */
-  .focus-accent {
-    outline: none;
+  /* Staggered reveal animation */
+  .reveal-up {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: revealUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
-  .focus-accent:focus-visible {
-    outline: none;
-    box-shadow:
-      inset 3px 3px 7px #c4cad6,
-      inset -3px -3px 7px #ffffff,
-      0 0 0 3px rgba(79, 109, 245, 0.35);
+  .delay-150 {
+    animation-delay: 150ms;
   }
 
-  /* Accent button: strong, pressable, prominent */
-  .btn-accent {
-    background: linear-gradient(135deg, #5a76f6 0%, #4f6df5 50%, #4463ef 100%);
-    color: #ffffff;
-    box-shadow:
-      4px 4px 12px rgba(79, 109, 245, 0.4),
-      -2px -2px 8px rgba(255,255,255,0.8),
-      inset 0 1px 0 rgba(255,255,255,0.2);
-    border-radius: 12px;
-    transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+  .delay-350 {
+    animation-delay: 350ms;
   }
 
-  .btn-accent:hover:not(:disabled) {
-    background: linear-gradient(135deg, #4f6df5 0%, #3b5de7 50%, #3050d8 100%);
-    box-shadow:
-      5px 5px 16px rgba(79, 109, 245, 0.5),
-      -2px -2px 8px rgba(255,255,255,0.9),
-      inset 0 1px 0 rgba(255,255,255,0.15);
-    transform: translateY(-1px);
+  .delay-500 {
+    animation-delay: 500ms;
   }
 
-  .btn-accent:active:not(:disabled) {
-    background: linear-gradient(135deg, #3b5de7 0%, #2f4fd4 100%);
-    box-shadow:
-      inset 3px 3px 8px rgba(0,0,0,0.2),
-      inset -2px -2px 6px rgba(255,255,255,0.1);
+  .delay-650 {
+    animation-delay: 650ms;
+  }
+
+  .delay-800 {
+    animation-delay: 800ms;
+  }
+}
+
+@keyframes revealUp {
+  to {
+    opacity: 1;
     transform: translateY(0);
-  }
-
-  .btn-accent:focus-visible {
-    outline: none;
-    box-shadow:
-      4px 4px 12px rgba(79, 109, 245, 0.4),
-      -2px -2px 8px rgba(255,255,255,0.8),
-      0 0 0 3px rgba(79, 109, 245, 0.4);
-  }
-
-  .btn-accent:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-    transform: none;
   }
 }
