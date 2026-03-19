@@ -28,9 +28,9 @@ class VectorStore(ABC):
 class ChromaStore(VectorStore):
     """ChromaDB-backed vector store with local persistence."""
 
-    def __init__(self) -> None:
+    def __init__(self, collection_name: str = "tenex_delivered") -> None:
         self._persist_dir = os.getenv("CHROMA_PERSIST_DIR", "./rag/store")
-        self._collection_name = "ai_solutions"
+        self._collection_name = collection_name
         self._client = None
         self._collection = None
 
@@ -94,6 +94,9 @@ class MockStore(VectorStore):
     _VICTORIES = _FIXTURES / "victories.json"
     _SEEDS_FALLBACK = _FIXTURES / "seeds.json"
 
+    def __init__(self, collection_name: str = "tenex_delivered") -> None:
+        self._collection_name = collection_name
+
     def add(self, docs: list[dict[str, Any]]) -> None:
         return None
 
@@ -106,13 +109,13 @@ class MockStore(VectorStore):
             return [{"id": "win-000", "embed_text": "Mock seed: AI transformation solution", "industry": "general"}]
 
 
-def get_vector_store() -> VectorStore:
+def get_vector_store(collection_name: str = "tenex_delivered") -> VectorStore:
     """Factory — returns the correct store based on env vars."""
     if os.getenv("DRY_RUN", "").lower() in ("true", "1", "yes"):
-        return MockStore()
+        return MockStore(collection_name=collection_name)
 
     store_type = os.getenv("VECTOR_STORE", "chroma").lower()
     if store_type == "chroma":
-        return ChromaStore()
+        return ChromaStore(collection_name=collection_name)
 
-    return MockStore()
+    return MockStore(collection_name=collection_name)

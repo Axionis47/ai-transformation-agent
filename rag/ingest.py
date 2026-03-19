@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from pathlib import Path
 
@@ -10,16 +11,27 @@ _FIXTURES = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "rag
 _VICTORIES_PATH = _FIXTURES / "victories.json"
 _SEEDS_FALLBACK = _FIXTURES / "seeds.json"
 _SEED_COUNT = 20
+_COLLECTION = "tenex_delivered"
+
+logger = logging.getLogger(__name__)
 
 
 def _load_victories() -> tuple[list[str], list[str], list[dict]]:
-    """Load victories.json and return (ids, documents, metadatas) for ChromaDB upsert."""
+    """Load victories.json, validate through SolutionSchema, return (ids, documents, metadatas)."""
+    from rag.schemas import SolutionSchema
+    from pydantic import ValidationError
+
     if _VICTORIES_PATH.exists():
-        records = json.loads(_VICTORIES_PATH.read_text())
-        ids = [r["id"] for r in records]
-        documents = [r["embed_text"] for r in records]
-        metadatas = [
-            {
+        raw_records = json.loads(_VICTORIES_PATH.read_text())
+        ids, documents, metadatas = [], [], []
+        for r in raw_records:
+            try:
+                SolutionSchema.model_validate(r)
+            except ValidationError as exc:
+                logger.warning("Skipping %s — validation warning: %s", r.get("id"), exc)
+            ids.append(r["id"])
+            documents.append(r["embed_text"])
+            metadatas.append({
                 "industry": r["industry"],
                 "size_label": r["company_profile"]["size_label"],
                 "engagement_title": r["engagement_title"],
@@ -28,9 +40,7 @@ def _load_victories() -> tuple[list[str], list[str], list[dict]]:
                 "measurement_period": r["results"]["measurement_period"],
                 "duration_months": r["engagement_details"]["duration_months"],
                 "maturity_at_engagement": r.get("maturity_at_engagement", ""),
-            }
-            for r in records
-        ]
+            })
         return ids, documents, metadatas
 
     # Fallback to legacy seeds.json
@@ -42,13 +52,13 @@ def _load_victories() -> tuple[list[str], list[str], list[dict]]:
 
 
 def ensure_seeds_loaded() -> None:
-    """Upsert victory documents into ChromaDB — idempotent, skips if already loaded."""
+    """Upsert victory documents into tenex_delivered ChromaDB collection — idempotent."""
     if os.getenv("DRY_RUN", "").lower() in ("true", "1", "yes"):
         return  # MockStore handles dry-run; no ChromaDB needed
 
     from rag.vector_store import ChromaStore  # local import avoids circular at module level
 
-    store = ChromaStore()
+    store = ChromaStore(collection_name=_COLLECTION)
     store._init_chroma()
 
     if store._collection.count() >= _SEED_COUNT:
