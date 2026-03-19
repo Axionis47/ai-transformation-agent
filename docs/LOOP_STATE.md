@@ -4,8 +4,8 @@
 
 ## Position
 - **Cycle:** 4
-- **Phase:** SPRINT PLANNING (REVISED)
-- **Next action:** Sai reviews sprint 8 plan -- three-tier matching architecture
+- **Phase:** EXECUTION (Sprint 8, Phase 5 -- Eval + Docs)
+- **Next action:** DISC-72 (QA eval runner) and DISC-73 (FE solution browser) remaining
 
 ## Sprint 8 Plan Revision Note
 
@@ -97,16 +97,16 @@ ChromaDB collections: "tenex_delivered" and "industry_cases" (separate from old 
 - [ ] Missing signals shown with confidence impact
 - [x] Business processes named specifically (sig-009, sig-010)
 - [x] Delivered tier: victory win_id + ROI cited (roi_basis now includes gap analysis)
-- [ ] Adaptation tier: base win + gap analysis + adapted ROI (DISC-68, DISC-76)
-- [ ] Ambitious tier: real industry companies cited (DISC-74, DISC-76)
+- [x] Adaptation tier: base win + gap analysis + adapted ROI (DISC-68 done)
+- [x] Ambitious tier: industry cases in Library B (DISC-74 done)
 - [x] ROI math: complete chain (win benchmark + gap analysis + quantified estimate)
 - [ ] Thin-signal: honest LOW confidence
 - [ ] No agent context overflow
 - [x] All tests pass
-- [ ] Delivered solutions: own ingestion pipeline -- Library A (DISC-67)
-- [ ] Industry cases: own ingestion pipeline -- Library B (DISC-74)
-- [ ] Matching layer: three-channel, named contract (DISC-68)
-- [ ] Synthesis: per-tier prompts (DISC-75, DISC-76)
+- [x] Delivered solutions: own ingestion pipeline -- Library A (DISC-67 done)
+- [x] Industry cases: own ingestion pipeline -- Library B (DISC-74 done)
+- [x] Matching layer: three-channel, named contract (DISC-68 done)
+- [x] Synthesis: per-tier prompts written (DISC-75 done)
 - [ ] Match quality: measurable via eval per tier (DISC-69, DISC-72)
 - [ ] Three-tier UI: Delivered/Adaptation/Ambitious panels (DISC-77)
 

@@ -1,7 +1,7 @@
 # Victory Data Specification
 
-Version: 1.0
-Last updated: 2026-03-15
+Version: 2.0
+Last updated: 2026-03-19
 Owner: PM
 ADR: ADR-007
 
@@ -378,3 +378,31 @@ Below is a summary of the 20 cases by industry for reference:
 | win-018 | Energy                | Grid Demand Forecasting for Regional Utility            | 9% reduction in reserve margin costs |
 | win-019 | Real Estate           | Lease Renewal Churn Prediction for PropTech Platform    | 24% improvement in retention |
 | win-020 | Construction          | Predictive Maintenance for Heavy Equipment Rental Fleet | 28% reduction in unplanned downtime |
+
+---
+
+## 5. Sprint 8 Additions: Library A New Fields
+
+The existing SolutionRecord schema gains four fields for the Sprint 8 matching layer.
+Defaults ensure all 20 existing records pass validation without manual edits.
+
+```
+status              enum    "draft" | "active" | "deprecated"   default: "active"
+ingestion_date      string  ISO date, set by ingest_solution.py  default: ""
+solution_category   enum    "predictive_model" | "classification" | "nlp" |
+                            "computer_vision" | "optimization" | "scoring_model"
+                                                                  default: "predictive_model"
+applicable_signals  list    Signal.type values from orchestrator/schemas.py
+                    e.g.    ["ops_signal", "process_signal", "data_signal"]
+                                                                  default: []
+```
+
+Library A ingestion CLI:
+
+```bash
+python rag/ingest_solution.py --file solution.json
+python rag/ingest_solution.py --file solution.json --dry-run
+# Exit: 0 = ok, 1 = validation error, 2 = store write error
+```
+
+ChromaDB collection: `tenex_delivered` (separate from old `ai_solutions`)
