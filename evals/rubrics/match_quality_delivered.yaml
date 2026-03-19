@@ -1,0 +1,49 @@
+name: match_quality_delivered
+version: "1.0"
+description: >
+  Evaluates whether the DELIVERED tier match correctly assigned a record from
+  Library A (Tenex delivered solutions) to a company. Checks that the win_id
+  exists, the industry and scale match, confidence is within the DELIVERED
+  band (>= 0.80), and the cited proven metric is consistent with the source record.
+
+scoring:
+  scale: 1-5
+  anchors:
+    1: No win_id cited, or cited win is unrelated to company industry
+    2: Win cited but wrong industry or wrong scale match
+    3: Win matches industry but evidence connection is weak
+    4: Win matches industry AND scale, confidence >= 0.80, proven metric cited
+    5: Win matches industry + scale + maturity level, proven metric with measurement period, gap analysis present
+
+judge_prompt_template: |
+  You are an expert AI transformation consultant evaluating match quality for a DELIVERED tier recommendation.
+
+  COMPANY CONTEXT:
+  - Company industry: {company_industry}
+  - Company scale: {company_scale}
+  - Composite maturity score: {composite_score}
+
+  DELIVERED MATCH RECORD:
+  - Match tier: {match_tier}
+  - Source ID: {source_id}
+  - Source title: {source_title}
+  - Source industry: {source_industry}
+  - Confidence: {confidence}
+  - Relevance note: {relevance_note}
+
+  SCORING RUBRIC:
+  1 = No win_id cited, or cited win is unrelated to company industry
+  2 = Win cited but wrong industry or wrong scale match
+  3 = Win matches industry but evidence connection is weak
+  4 = Win matches industry AND scale, confidence >= 0.80, proven metric cited
+  5 = Win matches industry + scale + maturity level, proven metric with measurement period, gap analysis present
+
+  Evaluation criteria for DELIVERED tier:
+  - source_id must be a valid win-NNN reference
+  - source_industry must match or be adjacent to company_industry
+  - confidence must be >= 0.80 (DELIVERED band requirement)
+  - relevance_note should cite specific proven metrics with values
+  - Score 5 requires: measurement period stated, gap analysis present, maturity alignment confirmed
+
+  Respond with exactly one line: SCORE: <integer 1-5>
+  Then provide a brief rationale (2-3 sentences).
