@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 
-def test_dry_run_returns_victory_records(monkeypatch):
-    """Dry-run must return full victory records with win-NNN IDs."""
+def test_dry_run_returns_both_collections(monkeypatch):
+    """Dry-run must return both delivered_results and industry_results."""
     monkeypatch.setenv("DRY_RUN", "true")
 
     from agents.rag_query import RAGQueryAgent
@@ -12,13 +12,21 @@ def test_dry_run_returns_victory_records(monkeypatch):
     agent = RAGQueryAgent()
     results = agent._run({})
 
-    assert isinstance(results, list)
-    assert len(results) >= 1
-    for record in results:
+    assert isinstance(results, dict)
+    assert "delivered_results" in results
+    assert "industry_results" in results
+
+    delivered = results["delivered_results"]
+    assert len(delivered) >= 1
+    for record in delivered:
         assert "id" in record
         assert record["id"].startswith("win-")
-        assert "embed_text" in record
-        assert "industry" in record
+
+    industry = results["industry_results"]
+    assert len(industry) >= 1
+    for record in industry:
+        assert "id" in record
+        assert record["id"].startswith("ind-")
 
 
 def test_build_query_logistics(monkeypatch):

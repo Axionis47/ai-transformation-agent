@@ -1,4 +1,4 @@
-"""RAG query agent — retrieves similar AI solutions from vector store."""
+"""RAG query agent — retrieves from both solution libraries (tenex_delivered + industry_cases)."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from rag.vector_store import get_vector_store
 
 _FIXTURES = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "rag_seeds"
 _VICTORIES = _FIXTURES / "victories.json"
+_INDUSTRY_CASES = _FIXTURES / "industry_cases.json"
 
 # Industry keywords for query signal extraction
 _INDUSTRY_KEYWORDS: dict[str, list[str]] = {
@@ -22,22 +23,42 @@ _INDUSTRY_KEYWORDS: dict[str, list[str]] = {
 
 
 class RAGQueryAgent(BaseAgent):
-    """Queries vector store for similar AI transformation solutions."""
+    """Queries both vector store collections for the three-tier matching layer.
+
+    Returns dict with keys:
+      delivered_results: list[dict]  -- from tenex_delivered collection (Library A)
+      industry_results:  list[dict]  -- from industry_cases collection  (Library B)
+    """
 
     agent_tag = "RAG"
 
-    def _run(self, input_data: dict) -> list[dict] | AgentError:
+    def _run(self, input_data: dict) -> dict[str, list[dict]] | AgentError:
         if self.dry_run:
-            try:
-                records = json.loads(_VICTORIES.read_text())
-                return records[:3]
-            except FileNotFoundError:
-                return [{"id": "win-000", "embed_text": "Mock: AI solution", "industry": "general"}]
+            return self._dry_run_both()
 
         company_data = input_data.get("company_data", {})
         query_text = self._build_query(company_data)
-        store = get_vector_store()
-        return store.query(query_text, k=3)
+        delivered_store = get_vector_store("tenex_delivered")
+        industry_store = get_vector_store("industry_cases")
+        delivered = delivered_store.query(query_text, k=5)
+        industry = industry_store.query(query_text, k=5)
+        if isinstance(delivered, AgentError):
+            return delivered
+        if isinstance(industry, AgentError):
+            return industry
+        return {"delivered_results": delivered, "industry_results": industry}
+
+    def _dry_run_both(self) -> dict[str, list[dict]]:
+        """Return fixture records for both collections in dry-run mode."""
+        try:
+            delivered = json.loads(_VICTORIES.read_text())
+        except FileNotFoundError:
+            delivered = [{"id": "win-000", "embed_text": "Mock: AI solution", "industry": "general"}]
+        try:
+            industry = json.loads(_INDUSTRY_CASES.read_text())
+        except FileNotFoundError:
+            industry = [{"id": "ind-000", "embed_text": "Mock industry case", "industry": "general"}]
+        return {"delivered_results": delivered, "industry_results": industry}
 
     def _build_query(self, company_data: dict) -> str:
         """Build a structured query using the victory embed_text template format."""
