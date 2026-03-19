@@ -114,15 +114,25 @@
         "roi_basis": 4.33,
         "match_quality_delivered": 3.0,
         "match_quality_adaptation": 4.0,
-        "match_quality_ambitious": 4.0
+        "match_quality_ambitious": 4.0,
+        "report_exec_summary": 3.0,
+        "report_current_state": 5.0,
+        "report_use_cases": 4.0,
+        "report_roadmap": 4.0,
+        "report_roi_analysis": 4.0
       },
       "MedFlow Health": {
         "tier_classification": 3.67,
-        "evidence_grounding": 4.0,
+        "evidence_grounding": 4.67,
         "roi_basis": 4.67,
         "match_quality_delivered": 3.0,
         "match_quality_adaptation": 4.0,
-        "match_quality_ambitious": 4.0
+        "match_quality_ambitious": 4.0,
+        "report_exec_summary": 3.0,
+        "report_current_state": 5.0,
+        "report_use_cases": 4.0,
+        "report_roadmap": 4.0,
+        "report_roi_analysis": 4.0
       },
       "ShopStream": {
         "tier_classification": 3.67,
@@ -130,32 +140,52 @@
         "roi_basis": 4.33,
         "match_quality_delivered": 3.0,
         "match_quality_adaptation": 4.0,
-        "match_quality_ambitious": 4.0
+        "match_quality_ambitious": 4.0,
+        "report_exec_summary": 3.0,
+        "report_current_state": 5.0,
+        "report_use_cases": 4.0,
+        "report_roadmap": 4.0,
+        "report_roi_analysis": 4.0
       },
       "FinVault": {
+        "tier_classification": 3.67,
+        "evidence_grounding": 4.67,
+        "roi_basis": 4.67,
+        "match_quality_delivered": 3.0,
+        "match_quality_adaptation": 4.0,
+        "match_quality_ambitious": 4.0,
+        "report_exec_summary": 3.0,
+        "report_current_state": 5.0,
+        "report_use_cases": 4.0,
+        "report_roadmap": 4.0,
+        "report_roi_analysis": 4.0
+      },
+      "Apex Consulting": {
         "tier_classification": 3.67,
         "evidence_grounding": 4.67,
         "roi_basis": 4.33,
         "match_quality_delivered": 3.0,
         "match_quality_adaptation": 4.0,
-        "match_quality_ambitious": 4.0
-      },
-      "Apex Consulting": {
-        "tier_classification": 3.67,
-        "evidence_grounding": 4.33,
-        "roi_basis": 4.33,
-        "match_quality_delivered": 3.0,
-        "match_quality_adaptation": 4.0,
-        "match_quality_ambitious": 4.0
+        "match_quality_ambitious": 4.0,
+        "report_exec_summary": 3.0,
+        "report_current_state": 5.0,
+        "report_use_cases": 4.0,
+        "report_roadmap": 4.0,
+        "report_roi_analysis": 4.0
       }
     },
     "averages": {
       "tier_classification": 3.67,
-      "evidence_grounding": 4.4,
-      "roi_basis": 4.4,
+      "evidence_grounding": 4.6,
+      "roi_basis": 4.47,
       "match_quality_delivered": 3.0,
       "match_quality_adaptation": 4.0,
-      "match_quality_ambitious": 4.0
+      "match_quality_ambitious": 4.0,
+      "report_exec_summary": 3.0,
+      "report_current_state": 5.0,
+      "report_use_cases": 4.0,
+      "report_roadmap": 4.0,
+      "report_roi_analysis": 4.0
     }
   }
 }
