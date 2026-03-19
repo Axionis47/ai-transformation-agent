@@ -1,8 +1,8 @@
-# System State — Sprint 6
+# System State -- Sprint 8
 
 > Sai reads this at the start of every sprint. 5-minute overview of what exists.
 
-## Current Sprint: 6 (Ship It — Parallel Writes, Extended Scraper, Deploy Prep)
+## Current Sprint: 8 (Three-Tier Matching Architecture)
 
 ---
 
@@ -28,7 +28,13 @@
 | `pages_fetched` and `signal_count` in API response | Working | Check response JSON from /v1/analyze |
 | Dockerfile at repo root | Ready | `docker build -t ai-transform-agent .` |
 | Cloud Run deploy target (infra/deploy_target.py) | Implemented | Deploy via `gcloud run deploy` — requires GCP credentials |
-| 140 tests passing | Green | `pytest tests/ -q --tb=short` |
+| 188 tests passing | Green | `pytest tests/ -q --tb=short` |
+| MatchResult schema (3 tiers) | Working | `orchestrator/schemas.py` exports MatchResult with DELIVERED/ADAPTATION/AMBITIOUS |
+| SolutionSchema + IndustryCaseStudySchema | Working | `rag/schemas.py` validates both library record types |
+| Matching layer -- 3 output tracks | Working | `orchestrator/matching_layer.py` match() returns delivered/adaptation/ambitious dicts |
+| Library A ingestion CLI | Working | `python rag/ingest_solution.py --file tests/fixtures/sample_solution.json --dry-run` |
+| Library B ingestion CLI | Working | `python rag/ingest_industry_case.py --file tests/fixtures/sample_industry_case.json --dry-run` |
+| Three synthesis prompts | Working | `prompts/tier1_delivered.md`, `tier2_adaptation.md`, `tier3_ambitious.md` at v1.0 |
 
 ---
 
@@ -101,13 +107,14 @@ Eval scoring attempted via `evals/ci_eval.py`. Judge client was updated to use
 `claude-sonnet-4-20250514` returned HTTP 404 on Vertex AI for project `plotpointe`
 in region `us-east5` — the model is not enabled in this project/region combination.
 
-| Dimension | Sprint 6 Score | Threshold | Status |
-|-----------|---------------|-----------|--------|
-| tier_classification | 0.0 | >= 3.8 | Unscored — model not enabled |
-| evidence_grounding | 0.0 | >= 3.8 | Unscored — model not enabled |
-| roi_basis | 0.0 | >= 3.8 | Unscored — model not enabled |
-
-`scoring_status: "pending_deploy"` in baselines.json.
+| Dimension | Sprint 7 | Sprint 8 Target | Status |
+|-----------|----------|-----------------|--------|
+| tier_classification | 3.67 | >= 3.80 | Below target (DISC-70 in progress) |
+| evidence_grounding | 4.67 | >= 3.80 | Passing |
+| roi_basis | 3.80 | >= 3.80 | Passing |
+| match_quality_delivered | -- | >= 3.50 | New rubric (DISC-72) |
+| match_quality_adaptation | -- | >= 3.00 | New rubric (DISC-72) |
+| match_quality_ambitious | -- | >= 2.80 | New rubric (DISC-72) |
 
 **Sprint 7 resolution options (PM recommendation — Sai decides):**
 1. Enable Claude model access: GCP Console → Model Garden → Claude → Enable API
@@ -123,7 +130,8 @@ in region `us-east5` — the model is not enabled in this project/region combina
 | Sprint 4 | 79 | baseline |
 | Sprint 5 | 117 | +38 |
 | Sprint 6 | 140 | +23 |
-| Post-sprint | 124 | recount after cleanup |
+| Post-sprint 6 cleanup | 124 | recount |
+| Sprint 8 | 188 | +64 |
 
 Zero regressions. All tests pass.
 
@@ -154,6 +162,7 @@ Zero regressions. All tests pass.
 | ADR-008 | Tool registry as orchestrator-level abstraction |
 | ADR-009 | Parallel report section generation via ThreadPoolExecutor |
 | ADR-010 | Cloud Run as production deploy target with zero-secrets-in-image policy |
+| ADR-011 | Three-tier matching architecture: two ChromaDB collections, three output tracks |
 
 ---
 
