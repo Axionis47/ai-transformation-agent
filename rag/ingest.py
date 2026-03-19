@@ -10,8 +10,11 @@ from pathlib import Path
 _FIXTURES = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "rag_seeds"
 _VICTORIES_PATH = _FIXTURES / "victories.json"
 _SEEDS_FALLBACK = _FIXTURES / "seeds.json"
+_INDUSTRY_CASES_PATH = _FIXTURES / "industry_cases.json"
 _SEED_COUNT = 20
+_INDUSTRY_SEED_COUNT = 5
 _COLLECTION = "tenex_delivered"
+_INDUSTRY_COLLECTION = "industry_cases"
 
 logger = logging.getLogger(__name__)
 
@@ -51,21 +54,51 @@ def _load_victories() -> tuple[list[str], list[str], list[dict]]:
     return ids, documents, metadatas
 
 
+def _load_industry_cases() -> tuple[list[str], list[str], list[dict]]:
+    """Load industry_cases.json, validate, return (ids, documents, metadatas)."""
+    from rag.schemas import IndustryCaseStudySchema
+    from pydantic import ValidationError
+
+    raw_records = json.loads(_INDUSTRY_CASES_PATH.read_text())
+    ids, documents, metadatas = [], [], []
+    for r in raw_records:
+        try:
+            IndustryCaseStudySchema.model_validate(r)
+        except ValidationError as exc:
+            logger.warning("Skipping %s — validation warning: %s", r.get("id"), exc)
+        ids.append(r["id"])
+        documents.append(r.get("embed_text", r.get("case_title", "")))
+        metadatas.append({
+            "industry": r["industry"],
+            "company_name": r["company_profile"].get("company_name", ""),
+            "use_case_category": r.get("use_case_category", ""),
+            "maturity_signal": r.get("maturity_signal", ""),
+            "status": r.get("status", "active"),
+        })
+    return ids, documents, metadatas
+
+
 def ensure_seeds_loaded() -> None:
-    """Upsert victory documents into tenex_delivered ChromaDB collection — idempotent."""
+    """Upsert seed documents into both ChromaDB collections — idempotent."""
     if os.getenv("DRY_RUN", "").lower() in ("true", "1", "yes"):
         return  # MockStore handles dry-run; no ChromaDB needed
 
     from rag.vector_store import ChromaStore  # local import avoids circular at module level
 
-    store = ChromaStore(collection_name=_COLLECTION)
-    store._init_chroma()
+    # Library A: tenex_delivered
+    store_a = ChromaStore(collection_name=_COLLECTION)
+    store_a._init_chroma()
+    if store_a._collection.count() < _SEED_COUNT:
+        ids, documents, metadatas = _load_victories()
+        store_a._collection.upsert(ids=ids, documents=documents, metadatas=metadatas)
 
-    if store._collection.count() >= _SEED_COUNT:
-        return  # Already seeded — nothing to do
-
-    ids, documents, metadatas = _load_victories()
-    store._collection.upsert(ids=ids, documents=documents, metadatas=metadatas)
+    # Library B: industry_cases
+    if _INDUSTRY_CASES_PATH.exists():
+        store_b = ChromaStore(collection_name=_INDUSTRY_COLLECTION)
+        store_b._init_chroma()
+        if store_b._collection.count() < _INDUSTRY_SEED_COUNT:
+            ids, documents, metadatas = _load_industry_cases()
+            store_b._collection.upsert(ids=ids, documents=documents, metadatas=metadatas)
 
 
 if __name__ == "__main__":

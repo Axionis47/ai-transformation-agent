@@ -93,6 +93,7 @@ class MockStore(VectorStore):
     _FIXTURES = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "rag_seeds"
     _VICTORIES = _FIXTURES / "victories.json"
     _SEEDS_FALLBACK = _FIXTURES / "seeds.json"
+    _INDUSTRY_CASES = _FIXTURES / "industry_cases.json"
 
     def __init__(self, collection_name: str = "tenex_delivered") -> None:
         self._collection_name = collection_name
@@ -102,7 +103,12 @@ class MockStore(VectorStore):
 
     def query(self, text: str, k: int = 3) -> list[dict[str, Any]]:
         try:
-            source = self._VICTORIES if self._VICTORIES.exists() else self._SEEDS_FALLBACK
+            if self._collection_name == "industry_cases":
+                source = self._INDUSTRY_CASES
+                if not source.exists():
+                    return [{"id": "ind-000", "embed_text": "Mock industry case", "industry": "general"}]
+            else:
+                source = self._VICTORIES if self._VICTORIES.exists() else self._SEEDS_FALLBACK
             records = json.loads(source.read_text())
             return records[:k]
         except FileNotFoundError:
