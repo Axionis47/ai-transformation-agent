@@ -406,3 +406,54 @@ python rag/ingest_solution.py --file solution.json --dry-run
 ```
 
 ChromaDB collection: `tenex_delivered` (separate from old `ai_solutions`)
+
+## 6. Sprint 8 Additions: Library B (Industry Cases)
+
+New record type. Not Tenex wins. External companies, published case studies, industry reports.
+These records feed the AMBITIOUS matching tier only.
+
+Key fields:
+
+```
+id                  string  "ind-001" -- separate ID space from win-NNN
+case_title          string  "Amazon Go Cashierless Checkout"
+industry            string  "retail" -- same controlled vocabulary as Library A
+company_profile
+  company_name      string  "Amazon"
+  company_type      string  "enterprise" | "mid-market" | "startup"
+  geography         string  "Global"
+ai_application
+  problem_addressed string  business problem solved
+  solution_description string what was built
+  technology_used   list    ["computer_vision", "edge_computing"]
+  deployment_scale  string  "2,000+ stores globally"
+  implementation_year int   2018
+reported_outcomes
+  headline_metric   string  "Eliminated checkout wait times"
+  source            string  "Amazon press release 2021"
+  confidence_in_data enum   "high" | "medium" | "low"
+applicable_signals  list    Signal.type values for relevance matching
+```
+
+Library B ingestion CLI:
+
+```bash
+python rag/ingest_industry_case.py --file case.json
+python rag/ingest_industry_case.py --file case.json --dry-run
+```
+
+ChromaDB collection: `industry_cases`
+
+## 7. Three-Tier MatchResult
+
+Matching layer output schema (`orchestrator/schemas.py`).
+`VictoryMatch` is kept as a deprecated alias.
+
+| Tier | Source | Confidence | Score threshold |
+|------|--------|------------|-----------------|
+| DELIVERED | Library A | 0.80-0.95 | >= 0.75 |
+| ADAPTATION | Library A | 0.55-0.79 | 0.45-0.74 |
+| AMBITIOUS | Library B | 0.40-0.65 | >= 0.30 |
+
+A Library A record appears in at most one tier.
+See ADR-011 for the full architecture decision.
