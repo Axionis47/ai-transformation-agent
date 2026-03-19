@@ -33,10 +33,10 @@ function relativeDate(iso: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-function scoreBadgeStyle(score: number): { bg: string; text: string } {
-  if (score >= 4) return { bg: "#e8f0fe", text: "#3b5de7" };
-  if (score >= 2.5) return { bg: "#fef9e7", text: "#b7791f" };
-  return { bg: "#fdecea", text: "#c0392b" };
+function scoreColor(score: number): string {
+  if (score > 3.5) return "#2d6a4f";
+  if (score >= 2) return "#1a1714";
+  return "#c1272d";
 }
 
 export default function AnalyzeForm() {
@@ -107,34 +107,34 @@ export default function AnalyzeForm() {
       )}
 
       {showHistory && (
-        <div className="neo-flat p-5 space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400">
-            Recent Analyses
-          </h2>
-          <ul className="space-y-2">
-            {history.map((entry) => {
-              const badge = scoreBadgeStyle(entry.score);
-              return (
-                <li key={entry.run_id}>
-                  <button
-                    onClick={() => loadFromHistory(entry)}
-                    className="w-full neo-flat px-4 py-3 rounded-xl flex items-center justify-between gap-3 text-left hover:shadow-neo-btn-pressed transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4f6df5]"
-                  >
-                    <span className="text-sm text-gray-700 truncate flex-1">{entry.url}</span>
-                    <span
-                      className="flex-shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full"
-                      style={{ background: badge.bg, color: badge.text }}
-                    >
-                      {entry.score.toFixed(1)} &middot; {entry.label}
-                    </span>
-                    <span className="flex-shrink-0 text-xs text-gray-400">
-                      {relativeDate(entry.date)}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
+        <div className="pt-2">
+          <p className="font-label uppercase tracking-widest text-xs text-ink-light mb-3">
+            RECENT ANALYSES
+          </p>
+          <ul>
+            {history.map((entry) => (
+              <li key={entry.run_id} className="rule-hairline">
+                <button
+                  onClick={() => loadFromHistory(entry)}
+                  className="w-full flex items-center gap-4 py-2.5 text-left hover:bg-red-light transition-colors focus:outline-none"
+                >
+                  <span className="font-mono text-xs text-ink-medium truncate flex-1">{entry.url}</span>
+                  <span className="font-mono text-xs flex-shrink-0" style={{ color: scoreColor(entry.score) }}>
+                    {entry.score.toFixed(1)}
+                  </span>
+                  <span className="font-mono text-xs text-ink-light flex-shrink-0">
+                    {relativeDate(entry.date)}
+                  </span>
+                </button>
+              </li>
+            ))}
           </ul>
+          <button
+            onClick={() => { localStorage.removeItem("analysis_history"); setHistory([]); }}
+            className="font-body text-ink-light text-xs underline hover:text-ink transition-colors mt-3"
+          >
+            Clear history
+          </button>
         </div>
       )}
 
@@ -144,9 +144,9 @@ export default function AnalyzeForm() {
             <ReportNav />
             <button
               onClick={() => setState({ phase: "idle" })}
-              className="neo-flat px-5 py-2 text-xs font-medium text-gray-500 rounded-xl transition-all hover:text-gray-700 active:shadow-neo-btn-pressed focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4f6df5]"
+              className="font-label uppercase text-xs border border-ink bg-cream text-ink px-5 py-2 rounded-none transition-colors hover:bg-red hover:text-cream hover:border-red"
             >
-              + New Analysis
+              New Analysis
             </button>
           </div>
           <MaturityBadge
