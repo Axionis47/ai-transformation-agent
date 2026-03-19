@@ -84,15 +84,16 @@ Separation contracts:
 ## Pipeline Flow (7 Stages)
 
 ```
-1. POST /v1/analyze → pipeline starts, run_id generated
-2. Stage 1: ToolRegistry.get("website_scraper").run(url) → ScrapedData
-3. Stage 2: SignalExtractorAgent → typed signals with raw_quote citations
-4. Stage 3: MaturityScorerAgent → maturity_score (0-5) + dimension_scores
-5. Stage 4: VictoryMatcherAgent → RAG matches with tier + gap_analysis
-6. Stage 5: UseCaseGeneratorAgent → use cases (DIRECT/CALIBRATION/ADJACENT)
-7. Stage 6: ReportWriterAgent → 5-section report
-   Stage 7: All I/O logged per stage to logs/runs/{run_id}.jsonl
-8. GET /v1/trace/{run_id} → TracePanel in frontend fetches and renders
+1. POST /v1/analyze -> pipeline starts, run_id generated
+2. Stage 1: ToolRegistry.get("website_scraper").run(url) -> ScrapedData
+3. Stage 2: SignalExtractorAgent -> typed signals with raw_quote citations
+4. Stage 3: MaturityScorerAgent -> composite_score + composite_label
+5. Stage 4: RAGQueryAgent -> queries tenex_delivered + industry_cases separately
+6. Stage 5: matching_layer.match() -> dict: delivered/adaptation/ambitious lists
+7. Stage 6: UseCaseGeneratorAgent -> per-tier synthesis (up to 3 model calls)
+8. Stage 7: ReportWriterAgent -> 5-section report (parallel ThreadPoolExecutor)
+   All I/O logged per stage to logs/runs/{run_id}.jsonl
+9. GET /v1/trace/{run_id} -> TracePanel in frontend fetches and renders
 ```
 
 ## Tool Registry Pattern
@@ -133,10 +134,11 @@ evals/ci_eval.py (5 test companies from test_companies.json)
 
 ```
 ScrapedData { url, company_name, pages }
-  → ExtractedSignals { signals[{ signal_id, type, value, raw_quote }] }
-  → AnalysisResult { maturity_score, dimension_scores, company_composite_score }
-  → VictoryMatches { matches[{ win_id, tier, gap_analysis, confidence }] }
-  → ReportSections { exec_summary, maturity, use_cases, roi, roadmap }
+  -> SignalSet { signals[{ signal_id, type, value, raw_quote }], industry, scale }
+  -> MaturityResult { composite_score, composite_label, dimension_scores }
+  -> dict[str, list[MatchResult]] { delivered[], adaptation[], ambitious[] }
+  -> list[UseCase] (ordered: DELIVERED first, ADAPTATION, AMBITIOUS last)
+  -> ReportSections { exec_summary, maturity, use_cases, roi, roadmap }
 ```
 
 ## Model Routing
@@ -145,12 +147,11 @@ ScrapedData { url, company_name, pages }
 |-------|-------|----------|-----------|
 | Signal Extractor | gemini-2.5-flash | Vertex AI | ~$0.001 |
 | Maturity Scorer | gemini-2.5-flash | Vertex AI | ~$0.002 |
-| Victory Matcher | gemini-2.5-flash | Vertex AI | ~$0.002 |
-| Use Case Generator | gemini-2.5-pro | Vertex AI | ~$0.005 |
+| Use Case Generator (per tier) | gemini-2.5-pro | Vertex AI | ~$0.005 each |
 | Report Writer | gemini-2.5-flash | Vertex AI | ~$0.004 |
 | Eval Judge | claude-sonnet-4-20250514 | Anthropic | ~$0.04 |
 
-Total pipeline: ~$0.011 | With eval: ~$0.05
+Total pipeline: ~$0.018 (3 use case calls) | With eval: ~$0.06
 
 ## Infrastructure
 
