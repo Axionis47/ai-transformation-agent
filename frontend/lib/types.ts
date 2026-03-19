@@ -49,6 +49,17 @@ export interface TieredUseCase {
   confidence: number;
   why_this_company: string;
   data_flow: DataFlow;
+  // DELIVERED tier (LOW_HANGING_FRUIT) — tier-specific evidence fields
+  win_id?: string;
+  client_profile_match?: string;
+  proven_metric?: string;
+  // ADAPTATION tier (MEDIUM_SOLUTION) — tier-specific evidence fields
+  base_win_id?: string;
+  adaptation_notes?: string;
+  adjusted_roi_range?: string;
+  // AMBITIOUS tier (HARD_EXPERIMENT) — tier-specific evidence fields
+  industry_examples?: string[];
+  source_citations?: string[];
 }
 
 export interface VictoryMatch {

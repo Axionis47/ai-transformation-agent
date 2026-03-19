@@ -27,11 +27,14 @@ const LOW: TieredUseCase = {
   effort: "Low",
   impact: "Medium",
   roi_estimate: "10-12% reduction in carrier costs",
-  roi_basis: "Based on win-002 at similar logistics SaaS company",
-  rag_benchmark: "Mednax 12% cost reduction, 6-month payback",
+  roi_basis: "Proven across similar logistics engagements",
+  rag_benchmark: "14% fuel cost reduction over 4 months post-deployment",
   confidence: 0.82,
   why_this_company: "You already track shipment history in BigQuery — this needs no new data collection.",
   data_flow: DATA_FLOW,
+  win_id: "win-002",
+  proven_metric: "14% fuel cost reduction",
+  client_profile_match: "mid-market logistics SaaS, 520 employees, US Midwest",
 };
 
 const MEDIUM: TieredUseCase = {
@@ -41,12 +44,15 @@ const MEDIUM: TieredUseCase = {
   evidence_signal_ids: ["sig-003"],
   effort: "Medium",
   impact: "High",
-  roi_estimate: "15-20% reduction in capacity waste",
-  roi_basis: "Based on retail demand forecasting benchmarks",
+  roi_estimate: "12-16% reduction in capacity waste",
+  roi_basis: "Base win: 20% reduction. Adapted estimate with industry gap discount.",
   rag_benchmark: null,
   confidence: 0.68,
   why_this_company: "Your 2M monthly shipments provide the training data volume required for reliable forecasting.",
   data_flow: DATA_FLOW,
+  base_win_id: "win-005",
+  adaptation_notes: "Base win was retail sector. Logistics domain adds lead-time variability — adjusted model complexity upward by ~30% effort.",
+  adjusted_roi_range: "12-16% — base win 20% discounted for cross-domain adaptation",
 };
 
 const HARD: TieredUseCase = {
@@ -57,13 +63,27 @@ const HARD: TieredUseCase = {
   effort: "High",
   impact: "High",
   roi_estimate: "25-35% logistics cost reduction",
-  roi_basis: "Theoretical — no direct benchmark available",
-  rag_benchmark: null,
+  roi_basis: "Industry estimate range — no direct Tenex precedent",
+  rag_benchmark: "Amazon Logistics: 35% delivery cost reduction (2022)",
   confidence: 0.41,
   why_this_company: "You have the network complexity and volume to justify the model training investment.",
   data_flow: DATA_FLOW,
+  industry_examples: ["Amazon Logistics", "UPS ORION", "FedEx SenseAware"],
+  source_citations: ["McKinsey Logistics AI Report 2023", "Amazon press release 2022"],
 };
 
 export const LowHangingFruit: Story = { args: { useCase: LOW } };
 export const MediumSolution: Story = { args: { useCase: MEDIUM } };
 export const HardExperiment: Story = { args: { useCase: HARD } };
+
+export const DeliveredNoOptionalFields: Story = {
+  args: {
+    useCase: {
+      ...LOW,
+      win_id: undefined,
+      proven_metric: undefined,
+      client_profile_match: undefined,
+      rag_benchmark: null,
+    },
+  },
+};
