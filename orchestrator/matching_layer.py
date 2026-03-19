@@ -18,9 +18,15 @@ _INDUSTRY_CLUSTERS = [
 
 
 def _industries_related(a: str, b: str) -> bool:
+    """Check if two industry strings belong to the same cluster.
+
+    Handles exact cluster members and compound labels like 'B2B logistics SaaS'.
+    """
     a_l, b_l = a.lower(), b.lower()
     for cluster in _INDUSTRY_CLUSTERS:
-        if any(a_l in c for c in cluster) and any(b_l in c for c in cluster):
+        a_in = any(c in a_l or a_l in c for c in cluster)
+        b_in = any(c in b_l or b_l in c for c in cluster)
+        if a_in and b_in:
             return True
     return False
 

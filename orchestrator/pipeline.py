@@ -19,14 +19,14 @@ from orchestrator.tool_registry import registry
 from ops.logger import PipelineLogger, get_logger
 from orchestrator.gates import scraper_quality_gate
 from orchestrator.stage_io import (
-    maturity_input, maturity_output, rag_input, rag_output,
+    matching_output, maturity_input, maturity_output, rag_input, rag_output,
     report_writer_output, scraper_input, scraper_output,
     signal_input, signal_output, use_case_input, use_case_output,
     victory_input, victory_output,
 )
 from orchestrator.state import PipelineState, PipelineStatus
 from orchestrator.validators import validate_maturity, validate_signals, validate_use_cases
-from orchestrator.victory_matcher import match_victories
+from orchestrator.victory_matcher import get_full_match_results, match_victories
 from rag.ingest import ensure_seeds_loaded
 
 _STAGE_TIMEOUT_S = 60
@@ -168,7 +168,7 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     logger.log_agent_call("MATURITY_SCORER", result=True, start_time=t, prompt_version="1.0",
                           output_summary=maturity_output(state.maturity))
 
-    # Stage 4: RAG query
+    # Stage 4: RAG query — returns both tenex_delivered and industry_cases results
     t = time.time()
     logger.log_agent_call("RAG", prompt_file="prompts/rag_query.md", prompt_version="1.0",
                           input_summary=rag_input(state.signals, state.company_data))
@@ -176,26 +176,41 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     if isinstance(result, AgentError):
         _log_stage(logger, "RAG", "error", code=result.code, message=result.message)
         return _fail(state, result, start, logger)
-    state.rag_context = result
+    # result is dict with delivered_results + industry_results; keep rag_context for compat
+    if isinstance(result, dict) and "delivered_results" in result:
+        delivered_results = result.get("delivered_results", [])
+        industry_results = result.get("industry_results", [])
+        state.rag_context = delivered_results  # backwards compat
+    else:
+        delivered_results = result if isinstance(result, list) else []
+        industry_results = []
+        state.rag_context = delivered_results
     logger.log_agent_call("RAG", result=True, start_time=t,
                           prompt_file="prompts/rag_query.md", prompt_version="1.0",
-                          output_summary=rag_output(state.rag_context))
+                          output_summary=rag_output(result))
 
-    # Stage 5: Victory matching (deterministic — no model call)
-    industry = (state.signals or {}).get("industry", "unknown")
-    scale = (state.signals or {}).get("scale", "unknown")
-    maturity_label = (state.maturity or {}).get("composite_label", "")
-    composite_score = float((state.maturity or {}).get("composite_score", 0.0))
+    # Stage 5: Matching layer — three-tier deterministic scoring
     logger.log_agent_call("VICTORY_MATCHER",
                           input_summary=victory_input(state.rag_context, state.maturity))
-    victory_list = match_victories(
-        signals_industry=industry, signals_scale=scale,
-        maturity_label=maturity_label, rag_results=state.rag_context or [],
-        company_composite_score=composite_score,
+    three_tier = get_full_match_results(
+        signals=state.signals or {},
+        maturity=state.maturity or {},
+        delivered_results=delivered_results,
+        industry_results=industry_results,
     )
-    state.victory_matches = [vm.model_dump() for vm in victory_list]
+    state.match_results = {k: [mr.model_dump() for mr in v] for k, v in three_tier.items()}
+    # Flatten delivered + adaptation into victory_matches for backwards compat
+    flat = three_tier["delivered"] + three_tier["adaptation"]
+    state.victory_matches = [mr.model_dump() for mr in flat] or [
+        vm.model_dump() for vm in match_victories(
+            signals_industry=(state.signals or {}).get("industry", "unknown"),
+            signals_scale=(state.signals or {}).get("scale", "unknown"),
+            maturity_label=(state.maturity or {}).get("composite_label", ""),
+            rag_results=delivered_results,
+        )
+    ]
     logger.log_agent_call("VICTORY_MATCHER", result=True,
-                          output_summary=victory_output(state.victory_matches))
+                          output_summary=matching_output(state.match_results))
 
     # Stage 6: Use case generation
     t = time.time()
