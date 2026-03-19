@@ -2,43 +2,43 @@ import AnalyzeForm from "@/components/AnalyzeForm";
 
 export default function HomePage() {
   return (
-    <div className="max-w-2xl mx-auto space-y-7">
-      {/* Hero section */}
-      <div className="text-center space-y-4 pt-2">
-        {/* Subtle badge */}
-        <div className="inline-flex items-center gap-1.5 neo-flat px-3 py-1 rounded-full">
-          <span
-            className="inline-block w-1.5 h-1.5 rounded-full"
-            style={{ background: "#4f6df5" }}
-          />
-          <span
-            className="text-[10px] font-semibold tracking-widest uppercase"
-            style={{ color: "#4f6df5" }}
-          >
-            AI-Powered Analysis
+    <>
+      {/* Asymmetric two-column hero */}
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_0.72fr] gap-8 items-end">
+
+        {/* Left column: kicker + headline */}
+        <div className="reveal-up delay-150">
+          <span className="font-label uppercase tracking-[0.15em] text-sm text-red">
+            — AI-POWERED ANALYSIS
           </span>
+          <h1
+            className="font-headline font-black mt-3 text-ink"
+            style={{ fontSize: "clamp(2.2rem, 4.5vw, 3.3rem)", lineHeight: 1.1 }}
+          >
+            Enterprise AI readiness,{" "}
+            <em className="font-headline font-normal italic">diagnosed in seconds</em>
+          </h1>
         </div>
 
-        {/* Primary headline */}
-        <h1
-          className="text-[2rem] leading-tight font-extrabold tracking-tight"
-          style={{ color: "#1e2433" }}
-        >
-          AI Transformation Discovery
-        </h1>
+        {/* Right column: two body paragraphs */}
+        <div className="reveal-up delay-350 space-y-4">
+          <p className="font-body text-ink-medium text-base leading-relaxed">
+            Enter any company URL. Our four-agent pipeline scrapes public data,
+            extracts signals, scores AI maturity, and writes a transformation
+            roadmap in under 90 seconds.
+          </p>
+          <p className="font-body text-ink-medium text-base leading-relaxed">
+            What used to cost $50K and take six weeks now runs for four cents.
+          </p>
+        </div>
 
-        {/* Supporting copy */}
-        <p
-          className="text-base leading-relaxed max-w-md mx-auto"
-          style={{ color: "#4a5568" }}
-        >
-          Enterprise AI maturity assessment in 90 seconds — from URL to
-          actionable roadmap.
-        </p>
       </div>
 
-      {/* Form */}
+      {/* Double rule separator */}
+      <div className="rule-double my-10" />
+
+      {/* Input section */}
       <AnalyzeForm />
-    </div>
+    </>
   );
 }
