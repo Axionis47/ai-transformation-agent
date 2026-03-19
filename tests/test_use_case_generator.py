@@ -104,3 +104,50 @@ def test_load_tier_prompt_returns_string(monkeypatch):
         assert isinstance(content, str) and len(content) > 50, (
             f"Tier prompt for '{key}' is empty or missing"
         )
+
+
+def test_parse_response_strips_markdown_fences(monkeypatch):
+    """_parse_response handles LLM output wrapped in markdown code fences."""
+    monkeypatch.setenv("DRY_RUN", "false")
+    from agents.use_case_generator import UseCaseGeneratorAgent
+
+    agent = UseCaseGeneratorAgent()
+    fenced = '```json\n[{"tier": "LOW_HANGING_FRUIT", "title": "Test"}]\n```'
+    result = agent._parse_response(fenced)
+    assert isinstance(result, list)
+    assert len(result) == 1
+    assert result[0]["tier"] == "LOW_HANGING_FRUIT"
+
+
+def test_parse_response_strips_plain_fences(monkeypatch):
+    """_parse_response handles code fences without language tag."""
+    monkeypatch.setenv("DRY_RUN", "false")
+    from agents.use_case_generator import UseCaseGeneratorAgent
+
+    agent = UseCaseGeneratorAgent()
+    fenced = '```\n[{"tier": "MEDIUM_SOLUTION", "title": "Test2"}]\n```'
+    result = agent._parse_response(fenced)
+    assert isinstance(result, list)
+    assert result[0]["tier"] == "MEDIUM_SOLUTION"
+
+
+def test_parse_response_plain_json_unchanged(monkeypatch):
+    """_parse_response handles plain JSON without fences."""
+    monkeypatch.setenv("DRY_RUN", "false")
+    from agents.use_case_generator import UseCaseGeneratorAgent
+
+    agent = UseCaseGeneratorAgent()
+    plain = '[{"tier": "HARD_EXPERIMENT", "title": "Test3"}]'
+    result = agent._parse_response(plain)
+    assert len(result) == 1
+    assert result[0]["tier"] == "HARD_EXPERIMENT"
+
+
+def test_parse_response_returns_empty_on_invalid(monkeypatch):
+    """_parse_response returns empty list when input is not parseable JSON."""
+    monkeypatch.setenv("DRY_RUN", "false")
+    from agents.use_case_generator import UseCaseGeneratorAgent
+
+    agent = UseCaseGeneratorAgent()
+    result = agent._parse_response("This is not JSON at all.")
+    assert result == []

@@ -116,9 +116,18 @@ class UseCaseGeneratorAgent(BaseAgent):
             "Generate use cases as a JSON array."
         )
 
+    def _extract_json(self, text: str) -> str:
+        """Strip markdown code fences if present."""
+        import re
+        match = re.search(r'```(?:json)?\s*\n(.*?)```', text, re.DOTALL)
+        if match:
+            return match.group(1).strip()
+        return text.strip()
+
     def _parse_response(self, response: str) -> list:
         try:
-            result = json.loads(response)
+            cleaned = self._extract_json(response)
+            result = json.loads(cleaned)
             return result if isinstance(result, list) else result.get("use_cases", [result])
         except json.JSONDecodeError:
             return []
