@@ -18,9 +18,13 @@ logger = logging.getLogger(__name__)
 
 _UC_RUBRICS = ("tier_classification", "evidence_grounding", "roi_basis")
 _MATCH_RUBRICS = ("match_quality_delivered", "match_quality_adaptation", "match_quality_ambitious")
+_REPORT_RUBRICS = (
+    "report_exec_summary", "report_current_state", "report_use_cases",
+    "report_roadmap", "report_roi_analysis",
+)
 _RUBRICS = {
     k: str(REPO_ROOT / "evals" / "rubrics" / f"{k}.yaml")
-    for k in _UC_RUBRICS + _MATCH_RUBRICS
+    for k in _UC_RUBRICS + _MATCH_RUBRICS + _REPORT_RUBRICS
 }
 _TEST_COMPANIES = REPO_ROOT / "evals" / "test_companies.json"
 _BASELINES = REPO_ROOT / "evals" / "baselines.json"
@@ -54,12 +58,43 @@ def _match_vars(match: dict, company_signals: dict) -> dict:
         "company_industry": company_signals.get("industry", "unknown"),
         "company_scale": company_signals.get("scale", "unknown"),
         "composite_score": company_signals.get("composite_score", 0.0),
-        # ADAPTATION tier fields
         "adaptation_notes": match.get("adaptation_notes", ""),
         "gap_from_base": match.get("gap_from_base", 0.0),
-        # AMBITIOUS tier fields
         "industry_examples": ", ".join(match.get("industry_examples", [])),
         "source_citations": ", ".join(match.get("source_citations", [])),
+    }
+
+
+def _report_vars(state: object) -> dict:
+    """Extract judge template variables for report section rubrics."""
+    report = getattr(state, "report", None) or {}
+    maturity = getattr(state, "maturity", None) or {}
+    signals = getattr(state, "signals", None) or {}
+    use_cases = getattr(state, "use_cases", None) or []
+    victory_matches = getattr(state, "victory_matches", None) or []
+
+    use_cases_summary = "; ".join(
+        f"{uc.get('title', '')} ({uc.get('tier', '')})" for uc in use_cases[:5]
+    )
+    victory_matches_summary = "; ".join(
+        str(m.get("source_title", "")) for m in victory_matches[:3]
+    ) if isinstance(victory_matches, list) else ""
+
+    signals_summary = signals.get("raw_text", "") or str(signals)[:500]
+
+    return {
+        "exec_summary": report.get("exec_summary", ""),
+        "current_state": report.get("current_state", ""),
+        "use_cases_section": report.get("use_cases", ""),
+        "roadmap": report.get("roadmap", ""),
+        "roi_analysis": report.get("roi_analysis", ""),
+        "maturity_score": maturity.get("composite_score", 0.0),
+        "maturity_label": maturity.get("composite_label", ""),
+        "composite_score": maturity.get("composite_score", 0.0),
+        "company_industry": signals.get("industry", "unknown"),
+        "signals_summary": signals_summary,
+        "use_cases_summary": use_cases_summary,
+        "victory_matches_summary": victory_matches_summary,
     }
 
 
@@ -93,7 +128,6 @@ def _score_company(name: str, url: str, judge: JudgeClient) -> dict:
         "adaptation": "match_quality_adaptation",
         "ambitious": "match_quality_ambitious",
     }
-    # Merge maturity composite_score into signals context for _match_vars
     signals_ctx = dict(signals)
     if maturity:
         signals_ctx["composite_score"] = maturity.get("composite_score", 0.0)
@@ -106,6 +140,18 @@ def _score_company(name: str, url: str, judge: JudgeClient) -> dict:
             buckets[rubric_key].append(judge.score(_RUBRICS[rubric_key], ctx))
         else:
             buckets[rubric_key].append(0.0)
+
+    # Score report sections against the 5 report rubrics
+    rpt_ctx = _report_vars(state)
+    section_to_rubric = {
+        "exec_summary": "report_exec_summary",
+        "current_state": "report_current_state",
+        "use_cases_section": "report_use_cases",
+        "roadmap": "report_roadmap",
+        "roi_analysis": "report_roi_analysis",
+    }
+    for section_key, rubric_key in section_to_rubric.items():
+        buckets[rubric_key].append(judge.score(_RUBRICS[rubric_key], rpt_ctx))
 
     return {k: round(sum(v) / len(v), 2) if v else 0.0 for k, v in buckets.items()}
 
