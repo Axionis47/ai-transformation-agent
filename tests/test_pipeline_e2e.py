@@ -31,12 +31,19 @@ def test_dry_run_7_stage_complete(monkeypatch):
     assert state.rag_context is not None
     assert len(state.rag_context) > 0
 
-    # Stage 5: victory_matches
+    # Stage 5: victory_matches (flattened MatchResult from delivered + adaptation)
     assert state.victory_matches is not None
     assert len(state.victory_matches) > 0
     for vm in state.victory_matches:
         assert "match_tier" in vm
-        assert vm["match_tier"] in ("DIRECT_MATCH", "CALIBRATION_MATCH", "ADJACENT_MATCH")
+        assert vm["match_tier"] in (
+            "DELIVERED", "ADAPTATION", "AMBITIOUS",
+            "DIRECT_MATCH", "CALIBRATION_MATCH", "ADJACENT_MATCH",  # backwards compat
+        )
+
+    # Stage 5: match_results — three-tier structure
+    assert state.match_results is not None
+    assert set(state.match_results.keys()) == {"delivered", "adaptation", "ambitious"}
 
     # Stage 6: use_cases
     assert state.use_cases is not None

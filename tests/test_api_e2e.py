@@ -41,10 +41,11 @@ async def test_api_returns_sprint4_fields(monkeypatch):
     tiers = {uc["tier"] for uc in data["use_cases"]}
     assert "LOW_HANGING_FRUIT" in tiers
 
-    # Victory matches shape
+    # Victory matches shape — now MatchResult (Sprint 8 schema)
     for vm in data["victory_matches"]:
         assert "match_tier" in vm
-        assert "win_id" in vm
+        # MatchResult uses source_id; VictoryMatch (legacy) used win_id
+        assert "source_id" in vm or "win_id" in vm
 
 
 @pytest.mark.asyncio
