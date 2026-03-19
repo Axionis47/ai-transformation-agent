@@ -147,3 +147,101 @@ def _build_delivered(record: dict, score: float, composite_score: float) -> Matc
         tech_approach=tech.get("ml_approach", "") if isinstance(tech, dict) else "",
         gap_analysis=gap_text,
     )
+
+
+def _build_adaptation(record: dict, score: float, composite_score: float) -> MatchResult:
+    win_maturity = record.get("maturity_at_engagement", "")
+    win_float = _MATURITY_LEVELS.index(win_maturity) + 1.0 if win_maturity in _MATURITY_LEVELS else 0.0
+    gap_from_base = round(abs(composite_score - win_float), 2)
+    results = record.get("results", {})
+    pm = results.get("primary_metric", {}) if isinstance(results, dict) else {}
+    base_roi = f"{pm.get('label', '')}: {pm.get('value', '')}".strip(": ")
+    tech = record.get("tech_stack", {})
+    approach = tech.get("ml_approach", "ML model") if isinstance(tech, dict) else "ML model"
+    return MatchResult(
+        result_id=f"mr-{uuid.uuid4().hex[:6]}",
+        source_library="tenex_delivered",
+        match_tier="ADAPTATION",
+        confidence=_map_confidence(score, 0.55, 0.79, 0.45, 0.74),
+        similarity_score=round(score, 3),
+        source_id=record.get("id", ""),
+        source_title=record.get("engagement_title", ""),
+        source_industry=record.get("industry", ""),
+        relevance_note=f"Adjacent match — industry: {record.get('industry','')}, score: {score:.2f}",
+        base_solution_id=record.get("id", ""),
+        adaptation_notes=(
+            f"Base: {record.get('engagement_title', '')}. "
+            f"Core approach ({approach}) remains applicable. "
+            "Industry adaptation required for target sector."
+        ),
+        gap_from_base=gap_from_base,
+        estimated_scope_delta="20-30% more effort due to domain differences",
+        adjusted_roi_range=f"Base: {base_roi} -- adapted estimate: 60-80% of base ROI",
+    )
+
+
+def _build_ambitious(record: dict, score: float) -> MatchResult:
+    outcomes = record.get("reported_outcomes", {})
+    headline = outcomes.get("headline_metric", "") if isinstance(outcomes, dict) else ""
+    source = outcomes.get("source", "") if isinstance(outcomes, dict) else ""
+    profile = record.get("company_profile", {})
+    company_name = profile.get("company_name", "") if isinstance(profile, dict) else ""
+    ai_app = record.get("ai_application", {})
+    dep_scale = ai_app.get("deployment_scale", "") if isinstance(ai_app, dict) else ""
+    return MatchResult(
+        result_id=f"mr-{uuid.uuid4().hex[:6]}",
+        source_library="industry_cases",
+        match_tier="AMBITIOUS",
+        confidence=_map_confidence(score, 0.40, 0.65, 0.30, 1.0),
+        similarity_score=score,
+        source_id=record.get("id", ""),
+        source_title=record.get("case_title", ""),
+        source_industry=record.get("industry", ""),
+        relevance_note=f"Industry case — {record.get('industry', '')}, score: {score:.2f}",
+        industry_examples=[company_name] if company_name else [],
+        source_citations=[source] if source else [],
+        deployment_scale=dep_scale,
+        implementation_maturity="mainstream" if score >= 0.6 else "early adopter",
+        experimental_roi_range=f"{headline} -- industry estimate" if headline else "",
+    )
+
+
+def match(
+    signals: dict,
+    maturity: dict,
+    delivered_results: list[dict],
+    industry_results: list[dict],
+) -> dict[str, list[MatchResult]]:
+    """Return three-tier matching output from two solution libraries.
+
+    DELIVERED (confidence 0.80-0.95): Library A records with score >= 0.75.
+    ADAPTATION (confidence 0.55-0.79): Library A records with score 0.45-0.74.
+    AMBITIOUS (confidence 0.40-0.65): Library B records with score >= 0.30.
+    A Library A record appears in at most one track.
+    """
+    industry = signals.get("industry", "unknown")
+    scale = signals.get("scale", "unknown")
+    maturity_label = maturity.get("composite_label", "")
+    composite_score = float(maturity.get("composite_score", 0.0))
+    company_signals: list[dict] = signals.get("signals", [])
+
+    delivered: list[MatchResult] = []
+    adaptation: list[MatchResult] = []
+    for record in delivered_results:
+        score = _score_library_a(record, industry, scale, maturity_label, company_signals)
+        if score >= 0.75:
+            delivered.append(_build_delivered(record, score, composite_score))
+        elif score >= 0.45:
+            adaptation.append(_build_adaptation(record, score, composite_score))
+
+    delivered.sort(key=lambda r: -r.similarity_score)
+    adaptation.sort(key=lambda r: -r.similarity_score)
+
+    ambitious: list[MatchResult] = []
+    for record in industry_results:
+        score = _score_library_b(record, industry, scale, company_signals)
+        if score >= 0.30:
+            ambitious.append(_build_ambitious(record, score))
+    ambitious.sort(key=lambda r: -r.similarity_score)
+
+    return {"delivered": delivered, "adaptation": adaptation, "ambitious": ambitious}
