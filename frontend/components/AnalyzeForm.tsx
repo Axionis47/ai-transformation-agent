@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { PageState, AnalyzeSuccess } from "@/lib/types";
 import { parseApiError } from "@/lib/types";
-import { saveAnalysis, getHistory, getAnalysis } from "@/lib/history";
+import { saveAnalysis, getHistory, getAnalysis, clearHistory } from "@/lib/history";
 import type { HistoryEntry } from "@/lib/history";
 import ReportCard from "@/components/ReportCard";
 import MaturityBadge from "@/components/MaturityBadge";
@@ -130,7 +130,7 @@ export default function AnalyzeForm() {
             ))}
           </ul>
           <button
-            onClick={() => { localStorage.removeItem("analysis_history"); setHistory([]); }}
+            onClick={() => { clearHistory(); setHistory([]); }}
             className="font-body text-ink-light text-xs underline hover:text-ink transition-colors mt-3"
           >
             Clear history
