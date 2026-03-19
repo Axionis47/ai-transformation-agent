@@ -151,15 +151,15 @@ class TestCiEvalSprint:
         )
 
 
-# ── ci_eval _RUBRICS has 6 keys ─────────────────────────────────────────────
+# ── ci_eval _RUBRICS has 11 keys ─────────────────────────────────────────────
 
 class TestCiEvalRubrics:
-    def test_rubrics_dict_has_six_keys(self) -> None:
+    def test_rubrics_dict_has_eleven_keys(self) -> None:
         import importlib
         import evals.ci_eval as ci_mod
         importlib.reload(ci_mod)
-        assert len(ci_mod._RUBRICS) == 6, (
-            f"_RUBRICS should have 6 keys, got {len(ci_mod._RUBRICS)}: {list(ci_mod._RUBRICS)}"
+        assert len(ci_mod._RUBRICS) == 11, (
+            f"_RUBRICS should have 11 keys, got {len(ci_mod._RUBRICS)}: {list(ci_mod._RUBRICS)}"
         )
 
     def test_rubrics_dict_has_all_expected_keys(self) -> None:
@@ -169,6 +169,8 @@ class TestCiEvalRubrics:
         expected = (
             "tier_classification", "evidence_grounding", "roi_basis",
             "match_quality_delivered", "match_quality_adaptation", "match_quality_ambitious",
+            "report_exec_summary", "report_current_state", "report_use_cases",
+            "report_roadmap", "report_roi_analysis",
         )
         for key in expected:
             assert key in ci_mod._RUBRICS, f"_RUBRICS missing key: {key}"
@@ -233,3 +235,74 @@ class TestMatchVars:
         assert result["match_tier"] == ""
         assert result["company_industry"] == "unknown"
         assert result["composite_score"] == 0.0
+
+
+# ── ci_eval _report_vars extracts correct fields ─────────────────────────────
+
+class TestReportVars:
+    def _make_state(self, **overrides):
+        """Return a minimal mock state object."""
+        class _State:
+            report = {
+                "exec_summary": "Maturity score 2.3.",
+                "current_state": "Uses BigQuery.",
+                "use_cases": "1. Route Optimization",
+                "roadmap": "Phase 1: deploy model.",
+                "roi_analysis": "Saves $400K-600K annually.",
+            }
+            maturity = {"composite_score": 2.3, "composite_label": "Developing"}
+            signals = {"industry": "logistics", "scale": "mid-market"}
+            use_cases = [{"title": "Route Opt", "tier": "LOW_HANGING_FRUIT"}]
+            victory_matches = [{"source_title": "Fleet Routing Win"}]
+
+        state = _State()
+        for k, v in overrides.items():
+            setattr(state, k, v)
+        return state
+
+    def test_report_vars_extracts_report_sections(self) -> None:
+        from evals.ci_eval import _report_vars
+        state = self._make_state()
+        result = _report_vars(state)
+        assert result["exec_summary"] == "Maturity score 2.3."
+        assert result["current_state"] == "Uses BigQuery."
+        assert result["use_cases_section"] == "1. Route Optimization"
+        assert result["roadmap"] == "Phase 1: deploy model."
+        assert result["roi_analysis"] == "Saves $400K-600K annually."
+
+    def test_report_vars_extracts_maturity_fields(self) -> None:
+        from evals.ci_eval import _report_vars
+        state = self._make_state()
+        result = _report_vars(state)
+        assert result["maturity_score"] == 2.3
+        assert result["maturity_label"] == "Developing"
+        assert result["composite_score"] == 2.3
+
+    def test_report_vars_extracts_signals_fields(self) -> None:
+        from evals.ci_eval import _report_vars
+        state = self._make_state()
+        result = _report_vars(state)
+        assert result["company_industry"] == "logistics"
+
+    def test_report_vars_builds_use_cases_summary(self) -> None:
+        from evals.ci_eval import _report_vars
+        state = self._make_state()
+        result = _report_vars(state)
+        assert "Route Opt" in result["use_cases_summary"]
+        assert "LOW_HANGING_FRUIT" in result["use_cases_summary"]
+
+    def test_report_vars_defaults_on_none_state(self) -> None:
+        from evals.ci_eval import _report_vars
+
+        class _Empty:
+            report = None
+            maturity = None
+            signals = None
+            use_cases = None
+            victory_matches = None
+
+        result = _report_vars(_Empty())
+        assert result["exec_summary"] == ""
+        assert result["maturity_score"] == 0.0
+        assert result["company_industry"] == "unknown"
+        assert result["use_cases_summary"] == ""
