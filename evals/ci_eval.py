@@ -16,13 +16,15 @@ from orchestrator.pipeline import run_pipeline  # noqa: E402
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
+_UC_RUBRICS = ("tier_classification", "evidence_grounding", "roi_basis")
+_MATCH_RUBRICS = ("match_quality_delivered", "match_quality_adaptation", "match_quality_ambitious")
 _RUBRICS = {
     k: str(REPO_ROOT / "evals" / "rubrics" / f"{k}.yaml")
-    for k in ("tier_classification", "evidence_grounding", "roi_basis")
+    for k in _UC_RUBRICS + _MATCH_RUBRICS
 }
 _TEST_COMPANIES = REPO_ROOT / "evals" / "test_companies.json"
 _BASELINES = REPO_ROOT / "evals" / "baselines.json"
-_SPRINT = "sprint_7"
+_SPRINT = "sprint_8"
 
 
 def _uc_vars(uc: dict, mat: dict | None) -> dict:
@@ -40,6 +42,27 @@ def _uc_vars(uc: dict, mat: dict | None) -> dict:
     }
 
 
+def _match_vars(match: dict, company_signals: dict) -> dict:
+    """Extract judge template variables from a MatchResult dict."""
+    return {
+        "match_tier": match.get("match_tier", ""),
+        "source_id": match.get("source_id", ""),
+        "source_title": match.get("source_title", ""),
+        "source_industry": match.get("source_industry", ""),
+        "confidence": match.get("confidence", 0.0),
+        "relevance_note": match.get("relevance_note", ""),
+        "company_industry": company_signals.get("industry", "unknown"),
+        "company_scale": company_signals.get("scale", "unknown"),
+        "composite_score": company_signals.get("composite_score", 0.0),
+        # ADAPTATION tier fields
+        "adaptation_notes": match.get("adaptation_notes", ""),
+        "gap_from_base": match.get("gap_from_base", 0.0),
+        # AMBITIOUS tier fields
+        "industry_examples": ", ".join(match.get("industry_examples", [])),
+        "source_citations": ", ".join(match.get("source_citations", [])),
+    }
+
+
 def _score_company(name: str, url: str, judge: JudgeClient) -> dict:
     try:
         state = run_pipeline(url=url, dry_run=True)
@@ -49,15 +72,40 @@ def _score_company(name: str, url: str, judge: JudgeClient) -> dict:
 
     use_cases = getattr(state, "use_cases", None) or []
     maturity = getattr(state, "maturity", None)
+    signals = getattr(state, "signals", None) or {}
+    match_results = getattr(state, "match_results", None) or {}
 
     if not use_cases:
         return {k: 0.0 for k in _RUBRICS}
 
     buckets: dict[str, list[float]] = {k: [] for k in _RUBRICS}
+
+    # Score use cases against the 3 uc rubrics
+    uc_rubric_keys = {k: _RUBRICS[k] for k in _UC_RUBRICS}
     for uc in use_cases[:3]:
         ctx = _uc_vars(uc, maturity)
-        for key, path in _RUBRICS.items():
+        for key, path in uc_rubric_keys.items():
             buckets[key].append(judge.score(path, ctx))
+
+    # Score match results — one top match per tier
+    tier_to_rubric = {
+        "delivered": "match_quality_delivered",
+        "adaptation": "match_quality_adaptation",
+        "ambitious": "match_quality_ambitious",
+    }
+    # Merge maturity composite_score into signals context for _match_vars
+    signals_ctx = dict(signals)
+    if maturity:
+        signals_ctx["composite_score"] = maturity.get("composite_score", 0.0)
+
+    for tier_key, rubric_key in tier_to_rubric.items():
+        tier_matches = match_results.get(tier_key, [])
+        if tier_matches:
+            top_match = tier_matches[0]
+            ctx = _match_vars(top_match, signals_ctx)
+            buckets[rubric_key].append(judge.score(_RUBRICS[rubric_key], ctx))
+        else:
+            buckets[rubric_key].append(0.0)
 
     return {k: round(sum(v) / len(v), 2) if v else 0.0 for k, v in buckets.items()}
 
