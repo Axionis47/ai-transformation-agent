@@ -83,12 +83,13 @@ def test_delivered_source_library():
 
 def test_adaptation_confidence_band():
     """ADAPTATION matches must have confidence in 0.55-0.79."""
-    # healthcare vs logistics gives 0.2 industry + 0.4 maturity + 0.2 size = 0.8 > 0.75 → delivered
-    # use mismatched size and maturity: 0.2 + 0.0 + 0.2 = 0.4 < 0.45 → below adaptation
-    # target: score 0.45-0.74 → related industry (0.2) + adjacent maturity (0.2) + same size (0.2) = 0.6
-    wins = [_make_delivered_record("w1", "manufacturing", "mid-market", "Emerging")]
-    result = match(_signals("logistics", "mid-market"), _maturity("Developing", 2.0), wins, [])
-    # manufacturing ~ logistics (related), Emerging adj to Developing, same size → 0.2+0.2+0.2=0.6
+    # related industry (0.2) + missing maturity → neutral 0.15 + mismatched size (0.0) = 0.35
+    # 0.35 >= 0.30 → ADAPTATION
+    record = _make_delivered_record("w1", "manufacturing", "startup", "Emerging")
+    record["maturity_at_engagement"] = ""  # missing maturity field
+    wins = [record]
+    result = match(_signals("logistics", "enterprise"), _maturity("Developing", 2.0), wins, [])
+    # manufacturing ~ logistics (related), missing maturity → 0.15, size mismatch → 0.35 ADAPTATION
     assert len(result["adaptation"]) > 0
     for mr in result["adaptation"]:
         assert 0.55 <= mr.confidence <= 0.79
@@ -97,8 +98,10 @@ def test_adaptation_confidence_band():
 
 def test_adaptation_has_base_solution_id():
     """ADAPTATION results must reference the base solution ID."""
-    wins = [_make_delivered_record("w-adapt", "manufacturing", "mid-market", "Emerging")]
-    result = match(_signals("logistics", "mid-market"), _maturity("Developing", 2.0), wins, [])
+    record = _make_delivered_record("w-adapt", "manufacturing", "startup", "Emerging")
+    record["maturity_at_engagement"] = ""
+    wins = [record]
+    result = match(_signals("logistics", "enterprise"), _maturity("Developing", 2.0), wins, [])
     for mr in result["adaptation"]:
         assert mr.base_solution_id == "w-adapt"
 
@@ -134,11 +137,13 @@ def test_ambitious_source_library():
 
 def test_record_cannot_appear_in_both_delivered_and_adaptation():
     """A Library A record may appear in DELIVERED or ADAPTATION, not both."""
+    low_record = _make_delivered_record("w2", "manufacturing", "startup", "Emerging")
+    low_record["maturity_at_engagement"] = ""  # missing maturity → 0.35 score → ADAPTATION
     wins = [
-        _make_delivered_record("w1", "logistics", "mid-market", "Developing"),  # high score → DELIVERED
-        _make_delivered_record("w2", "manufacturing", "mid-market", "Emerging"),  # related → ADAPTATION
+        _make_delivered_record("w1", "logistics", "mid-market", "Developing"),  # 1.0 → DELIVERED
+        low_record,
     ]
-    result = match(_signals("logistics", "mid-market"), _maturity("Developing", 2.0), wins, [])
+    result = match(_signals("logistics", "enterprise"), _maturity("Developing", 2.0), wins, [])
     delivered_ids = {mr.source_id for mr in result["delivered"]}
     adaptation_ids = {mr.source_id for mr in result["adaptation"]}
     assert delivered_ids.isdisjoint(adaptation_ids), "Records appear in both DELIVERED and ADAPTATION"

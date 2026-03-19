@@ -70,7 +70,10 @@ def _score_library_a(record: dict, signals_industry: str, signals_scale: str,
     else:
         industry_score = 0.0
 
-    maturity_score = _proximity_score(maturity_label, win_maturity, _MATURITY_LEVELS, 0.4)
+    if win_maturity:
+        maturity_score = _proximity_score(maturity_label, win_maturity, _MATURITY_LEVELS, 0.4)
+    else:
+        maturity_score = 0.15  # neutral score when field is missing
     size_score = _proximity_score(signals_scale, win_size, _SIZE_LEVELS, 0.2)
 
     company_process_values = {
@@ -137,7 +140,7 @@ def _build_delivered(record: dict, score: float, composite_score: float) -> Matc
         result_id=f"mr-{uuid.uuid4().hex[:6]}",
         source_library="tenex_delivered",
         match_tier="DELIVERED",
-        confidence=_map_confidence(score, 0.80, 0.95, 0.75, 1.2),
+        confidence=_map_confidence(score, 0.80, 0.95, 0.60, 1.2),
         similarity_score=round(score, 3),
         source_id=record.get("id", ""),
         source_title=record.get("engagement_title", ""),
@@ -168,7 +171,7 @@ def _build_adaptation(record: dict, score: float, composite_score: float) -> Mat
         result_id=f"mr-{uuid.uuid4().hex[:6]}",
         source_library="tenex_delivered",
         match_tier="ADAPTATION",
-        confidence=_map_confidence(score, 0.55, 0.79, 0.45, 0.74),
+        confidence=_map_confidence(score, 0.55, 0.79, 0.30, 0.59),
         similarity_score=round(score, 3),
         source_id=record.get("id", ""),
         source_title=record.get("engagement_title", ""),
@@ -220,9 +223,9 @@ def match(
 ) -> dict[str, list[MatchResult]]:
     """Return three-tier matching output from two solution libraries.
 
-    DELIVERED (confidence 0.80-0.95): Library A records with score >= 0.75.
-    ADAPTATION (confidence 0.55-0.79): Library A records with score 0.45-0.74.
-    AMBITIOUS (confidence 0.40-0.65): Library B records with score >= 0.30.
+    DELIVERED (confidence 0.80-0.95): Library A records with score >= 0.60.
+    ADAPTATION (confidence 0.55-0.79): Library A records with score 0.30-0.59.
+    AMBITIOUS (confidence 0.40-0.65): Library B records with score >= 0.20.
     A Library A record appears in at most one track.
     """
     industry = signals.get("industry", "unknown")
@@ -235,9 +238,9 @@ def match(
     adaptation: list[MatchResult] = []
     for record in delivered_results:
         score = _score_library_a(record, industry, scale, maturity_label, company_signals)
-        if score >= 0.75:
+        if score >= 0.60:
             delivered.append(_build_delivered(record, score, composite_score))
-        elif score >= 0.45:
+        elif score >= 0.30:
             adaptation.append(_build_adaptation(record, score, composite_score))
 
     delivered.sort(key=lambda r: -r.similarity_score)
@@ -246,7 +249,7 @@ def match(
     ambitious: list[MatchResult] = []
     for record in industry_results:
         score = _score_library_b(record, industry, scale, company_signals)
-        if score >= 0.30:
+        if score >= 0.20:
             ambitious.append(_build_ambitious(record, score))
     ambitious.sort(key=lambda r: -r.similarity_score)
 
