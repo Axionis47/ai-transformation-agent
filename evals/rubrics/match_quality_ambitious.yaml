@@ -1,0 +1,50 @@
+name: match_quality_ambitious
+version: "1.0"
+description: >
+  Evaluates whether the AMBITIOUS tier match correctly identified a Library B
+  industry case study as relevant to the company. Checks that the case matches
+  the company's industry, at least one named company or published source is
+  cited, and confidence is within the AMBITIOUS band (0.40-0.65).
+
+scoring:
+  scale: 1-5
+  anchors:
+    1: No industry case cited, or case is completely unrelated
+    2: Industry case mentioned but no connection to company signals
+    3: Industry case matches sector but evidence is thin
+    4: Industry case matches industry, at least one named company or source cited, confidence within 0.40-0.65
+    5: Strong industry match, named company with source citation, deployment scale noted, applicable to company maturity level
+
+judge_prompt_template: |
+  You are an expert AI transformation consultant evaluating match quality for an AMBITIOUS tier recommendation.
+
+  COMPANY CONTEXT:
+  - Company industry: {company_industry}
+
+  AMBITIOUS MATCH RECORD:
+  - Match tier: {match_tier}
+  - Source ID: {source_id}
+  - Source title: {source_title}
+  - Source industry: {source_industry}
+  - Confidence: {confidence}
+  - Relevance note: {relevance_note}
+  - Industry examples: {industry_examples}
+  - Source citations: {source_citations}
+
+  SCORING RUBRIC:
+  1 = No industry case cited, or case is completely unrelated
+  2 = Industry case mentioned but no connection to company signals
+  3 = Industry case matches sector but evidence is thin
+  4 = Industry case matches industry, at least one named company or source cited, confidence within 0.40-0.65
+  5 = Strong industry match, named company with source citation, deployment scale noted, applicable to company maturity level
+
+  Evaluation criteria for AMBITIOUS tier:
+  - source_id must be a valid ind-NNN reference from Library B
+  - confidence must be within 0.40-0.65 (AMBITIOUS band -- hard cap)
+  - industry_examples must name at least one real company or published report
+  - source_citations must reference a verifiable source (press release, analyst report, etc.)
+  - Score 5 requires: deployment_scale stated, maturity applicability explained,
+    named company with traceable citation
+
+  Respond with exactly one line: SCORE: <integer 1-5>
+  Then provide a brief rationale (2-3 sentences).
