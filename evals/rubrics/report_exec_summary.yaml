@@ -1,0 +1,41 @@
+name: report_exec_summary
+version: "1.0"
+description: >
+  Evaluates whether the executive summary reads like a $50K consulting deliverable
+  for a non-technical CEO audience. Checks for maturity score, ROI figures,
+  specific use case naming, and zero jargon.
+
+scoring:
+  scale: 1-5
+  anchors:
+    1: Generic consulting fluff with no company-specific content
+    2: Mentions the company but missing maturity score, missing ROI numbers, or jargon present
+    3: Includes maturity score and company name but missing ROI figure or contains jargon
+    4: Maturity score cited, at least one ROI number, no jargon, actionable closing sentence
+    5: 4-5 sentences exactly, maturity score and label in sentence 1, specific ROI figure, top use case named, clear first-step recommendation, zero jargon
+
+judge_prompt_template: |
+  You are an expert AI transformation consultant evaluating an executive summary
+  written for a non-technical CEO audience.
+
+  EXECUTIVE SUMMARY:
+  {exec_summary}
+
+  CONTEXT:
+  - Maturity score: {maturity_score}
+  - Maturity label: {maturity_label}
+  - Company industry: {company_industry}
+
+  SCORING RUBRIC:
+  1 = Generic consulting fluff with no company-specific content
+  2 = Mentions the company but no maturity score, no ROI numbers, jargon present
+  3 = Includes maturity score and company name but missing ROI figure or contains jargon
+  4 = Maturity score cited, at least one ROI number, no jargon, actionable closing sentence
+  5 = 4-5 sentences exactly, maturity score + label in sentence 1, specific ROI figure,
+      top use case named, clear first-step recommendation, zero jargon
+
+  Jargon examples to flag: MLOps, data pipeline, embeddings, vector store, LLM,
+  transformer, fine-tuning, inference, hyperparameter, tokenization.
+
+  Respond with exactly one line: SCORE: <integer 1-5>
+  Then provide a brief rationale (2-3 sentences).

@@ -1,0 +1,41 @@
+name: report_current_state
+version: "1.0"
+description: >
+  Evaluates whether the current state section provides a grounded technical
+  assessment for a senior engineer or technical buyer. Checks for named artifacts,
+  evidence-backed claims, gap analysis, and a bridge statement.
+
+scoring:
+  scale: 1-5
+  anchors:
+    1: Vague statements with no named technologies or evidence
+    2: Names 1-2 technologies but makes unsupported claims
+    3: Names 3+ artifacts but gap analysis is missing or generic
+    4: Names 3+ specific artifacts from signals, identifies gap between current state and AI readiness
+    5: Names 3+ artifacts with source attribution, clear gap analysis, bridge statement explaining readiness, every claim traceable to a signal
+
+judge_prompt_template: |
+  You are an expert AI transformation consultant evaluating a current state assessment
+  written for a senior engineer or technical buyer.
+
+  CURRENT STATE SECTION:
+  {current_state}
+
+  CONTEXT:
+  - Signals summary: {signals_summary}
+  - Maturity label: {maturity_label}
+
+  SCORING RUBRIC:
+  1 = Vague statements with no named technologies or evidence
+  2 = Names 1-2 technologies but makes unsupported claims
+  3 = Names 3+ artifacts but gap analysis is missing or generic
+  4 = Names 3+ specific artifacts from signals, identifies gap between current state and AI readiness
+  5 = Names 3+ artifacts with source attribution, clear gap analysis, bridge statement explaining
+      readiness, every claim traceable to a signal
+
+  Artifacts to look for: tool names, platform names, job titles, specific stats, process names.
+  Gap analysis: explicit comparison between what exists and what AI readiness requires.
+  Bridge statement: explains what existing capability makes AI adoption feasible.
+
+  Respond with exactly one line: SCORE: <integer 1-5>
+  Then provide a brief rationale (2-3 sentences).
