@@ -51,6 +51,9 @@ class AnalyzeSuccess(BaseModel):
     use_cases: list[dict[str, Any]] | None = None
     pages_fetched: list[str] | None = None
     signal_count: int | None = None
+    pitch_brief: dict[str, Any] | None = None
+    readiness: dict[str, Any] | None = None
+    suggested_questions: list[dict[str, Any]] | None = None
 
 
 class ErrorDetail(BaseModel):
@@ -122,4 +125,7 @@ async def analyze(request: AnalyzeRequest) -> AnalyzeSuccess:
         use_cases=state.use_cases,
         pages_fetched=state.pages_fetched,
         signal_count=state.signal_count,
+        pitch_brief=state.pitch_brief,
+        readiness=state.readiness,
+        suggested_questions=state.suggested_questions,
     )
