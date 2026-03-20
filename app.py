@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from infra.auth import _FIREBASE_ENABLED, get_user_from_request
 from infra.firestore_store import get_firestore_store
 from infra.health_check import health_router
 from orchestrator.pipeline import run_pipeline
@@ -37,6 +38,27 @@ def _verify_api_key(request: Request) -> None:
     key = request.headers.get("X-API-Key", "")
     if key != _API_KEY:
         raise HTTPException(status_code=401, detail="Invalid API key")
+
+
+def _get_current_user(request: Request) -> dict:
+    """Resolve caller identity from Firebase Bearer token or API key.
+
+    Auth precedence (first match wins):
+      1. FIREBASE_AUTH_ENABLED=true  -> Bearer token required
+      2. API_KEY set (Firebase off)  -> X-API-Key required
+      3. Neither configured          -> open access, anonymous user
+    """
+    user = get_user_from_request(request.headers.get("Authorization"))
+    if user is None:
+        if _FIREBASE_ENABLED:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid or missing authentication token",
+            )
+        # Fallback: enforce API key if configured
+        _verify_api_key(request)
+        return {"email": "anonymous", "name": "Anonymous", "uid": "anonymous"}
+    return user
 
 
 @asynccontextmanager
@@ -138,8 +160,12 @@ async def get_trace(run_id: str) -> dict[str, Any]:
     return {"run_id": run_id, "stages": stages}
 
 
-@app.post("/v1/analyze", response_model=AnalyzeSuccess, dependencies=[Depends(_verify_api_key)])
-async def analyze(request: AnalyzeRequest) -> AnalyzeSuccess:
+@app.post("/v1/analyze", response_model=AnalyzeSuccess)
+async def analyze(
+    request: AnalyzeRequest,
+    http_request: Request,
+    user: dict = Depends(_get_current_user),
+) -> AnalyzeSuccess:
     """Run the full AI transformation analysis pipeline."""
     state = await asyncio.to_thread(
         run_pipeline,
@@ -190,7 +216,7 @@ async def analyze(request: AnalyzeRequest) -> AnalyzeSuccess:
             store.save_run(
                 run_id=state.run_id,
                 data=response.model_dump(),
-                user_email=request.headers.get("X-User-Email"),
+                user_email=user.get("email"),
             )
         except Exception:
             pass
