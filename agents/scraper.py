@@ -74,49 +74,6 @@ class ScraperAgent(BaseAgent):
         config = input_data.get("config") or ScraperConfig()
         return self._scrape_live(url, config)
 
-    def _scrape_live(self, url: str, config: ScraperConfig) -> dict | AgentError:
-        import httpx
-        try:
-            client = httpx.Client(timeout=float(config.page_timeout_seconds), follow_redirects=True)
-            about_text, about_path = self._fetch_page(client, url, ["/about", "/about-us", "/company"])
-            jobs_text, jobs_path = self._fetch_page(client, url, ["/careers", "/jobs", "/join-us"])
-            product_text, product_path = self._fetch_page(
-                client, url,
-                ["/product", "/products", "/platform", "/solutions",
-                 "/features", "/capabilities", "/technology"],
-            )
-            client.close()
-            pages_fetched = [p for p in [about_path, jobs_path, product_path] if p]
-            return {
-                "url": url,
-                "name": url.split("//")[-1].split(".")[0].title(),
-                "about_text": about_text,
-                "job_postings": [jobs_text] if jobs_text else [],
-                "product_text": product_text,
-                "blog_text": "",
-                "team_text": "",
-                "tech_stack_mentions": [],
-                "pages_fetched": pages_fetched,
-                "last_scraped": None,
-            }
-        except httpx.HTTPError as exc:
-            return AgentError(code="SCRAPE_FAIL", message=f"HTTP error: {exc}",
-                              recoverable=True, agent_tag=self.agent_tag)
-
-    def _fetch_page(self, client, base_url: str, paths: list[str]) -> tuple[str, str | None]:
-        from bs4 import BeautifulSoup
-        for path in paths:
-            try:
-                resp = client.get(base_url.rstrip("/") + path)
-                if resp.status_code == 200:
-                    soup = BeautifulSoup(resp.text, "lxml")
-                    for tag in soup(["nav", "footer", "script", "style"]):
-                        tag.decompose()
-                    return soup.get_text(separator=" ", strip=True)[:5000], path
-            except Exception:
-                continue
-        return "", None
-
     def _parse_job_postings(self, text: str, config: ScraperConfig) -> list[str]:
         """Split careers page text into individual job postings."""
         if not text.strip():
@@ -128,3 +85,70 @@ class ScraperAgent(BaseAgent):
             cap = config.max_chars_per_posting
             chunks = [text[i:i + cap] for i in range(0, len(text), cap)]
         return [chunk[: config.max_chars_per_posting] for chunk in chunks[: config.max_job_postings]]
+
+    def _scrape_live(self, url: str, config: ScraperConfig) -> dict | AgentError:
+        """Iterate source registry; one failing source does not affect others."""
+        import httpx
+        try:
+            client = httpx.Client(timeout=float(config.page_timeout_seconds), follow_redirects=True)
+            source_results = [self._fetch_source(client, url, spec, config) for spec in config.sources]
+            client.close()
+            return self._build_output(url, source_results)
+        except httpx.HTTPError as exc:
+            return AgentError(code="SCRAPE_FAIL", message=f"HTTP error: {exc}",
+                              recoverable=True, agent_tag=self.agent_tag)
+
+    def _fetch_source(self, client, base_url: str, spec: SourceSpec, config: ScraperConfig) -> SourceResult:
+        from bs4 import BeautifulSoup
+        for path in spec.url_patterns:
+            try:
+                resp = client.get(base_url.rstrip("/") + path)
+                if resp.status_code != 200:
+                    continue
+                soup = BeautifulSoup(resp.text, "lxml")
+                for tag in soup(["nav", "footer", "script", "style"]):
+                    tag.decompose()
+                raw = soup.get_text(separator=" ", strip=True)
+                full_len = len(raw)
+                if spec.parser == "job_posting":
+                    content = self._parse_job_postings(raw[: spec.max_chars], config)
+                    return SourceResult(spec.page_type, "ok", content, full_len,
+                                        max(0, full_len - spec.max_chars), path)
+                truncated = raw[: spec.max_chars]
+                return SourceResult(spec.page_type, "ok", truncated, full_len,
+                                    max(0, full_len - spec.max_chars), path)
+            except Exception:
+                continue
+        return SourceResult(spec.page_type, "not_found", "", 0, 0, "")
+
+    def _build_output(self, url: str, results: list[SourceResult]) -> dict:
+        by_type = {r.page_type: r for r in results}
+        pages_fetched = [r.url_tried for r in results if r.status == "ok"]
+        failed = [r.page_type for r in results if r.status != "ok"]
+
+        def _text(key: str) -> str:
+            r = by_type.get(key)
+            return r.content if r and r.status == "ok" and isinstance(r.content, str) else ""
+
+        def _list(key: str) -> list:
+            r = by_type.get(key)
+            return r.content if r and r.status == "ok" and isinstance(r.content, list) else []
+
+        return {
+            "url": url,
+            "name": url.split("//")[-1].split(".")[0].title(),
+            "about_text": _text("about"),
+            "job_postings": _list("careers"),
+            "product_text": _text("product"),
+            "blog_text": _text("blog"),
+            "team_text": _text("team"),
+            "tech_stack_mentions": [],
+            "pages_fetched": pages_fetched,
+            "fetch_summary": {"attempted": len(results), "succeeded": len(pages_fetched), "failed": failed},
+            "source_results": [
+                {"page_type": r.page_type, "status": r.status,
+                 "chars_fetched": r.chars_fetched, "url_tried": r.url_tried}
+                for r in results
+            ],
+            "last_scraped": None,
+        }
