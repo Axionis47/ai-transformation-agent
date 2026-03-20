@@ -50,6 +50,12 @@ SolutionCategory = Literal[
     "computer_vision",
     "optimization",
     "scoring_model",
+    "llm_extraction",
+    "agentic_system",
+    "rag_pipeline",
+    "llm_workflow",
+    "generative_pipeline",
+    "model_orchestration",
 ]
 
 
