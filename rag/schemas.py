@@ -56,6 +56,12 @@ SolutionCategory = Literal[
     "llm_workflow",
     "generative_pipeline",
     "model_orchestration",
+    "document_intelligence",
+    "conversational_ai",
+    "knowledge_retrieval",
+    "prediction_platform",
+    "copilot",
+    "generative_content",
 ]
 
 
