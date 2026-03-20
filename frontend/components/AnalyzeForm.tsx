@@ -13,6 +13,7 @@ import URLInputForm from "@/components/URLInputForm";
 import UseCaseTierSection from "@/components/UseCaseTierSection";
 import TracePanel from "@/components/TracePanel";
 import ReportNav from "@/components/ReportNav";
+import { API_BASE, scoreColor, STRINGS } from "@/lib/config";
 
 function buildDimensions(data: AnalyzeSuccess): Record<string, number> | undefined {
   if (data.maturity?.dimensions) {
@@ -31,12 +32,6 @@ function relativeDate(iso: string): string {
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
   return `${Math.floor(hrs / 24)}d ago`;
-}
-
-function scoreColor(score: number): string {
-  if (score > 3.5) return "#2d6a4f";
-  if (score >= 2) return "#1a1714";
-  return "#c1272d";
 }
 
 export default function AnalyzeForm() {
@@ -59,8 +54,7 @@ export default function AnalyzeForm() {
     abortRef.current = controller;
     setState({ phase: "loading" });
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-      const res = await fetch(`${apiBase}/v1/analyze`, {
+      const res = await fetch(`${API_BASE}/v1/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url, dry_run: dryRun }),
@@ -109,7 +103,7 @@ export default function AnalyzeForm() {
       {showHistory && (
         <div className="pt-2">
           <p className="font-label uppercase tracking-widest text-xs text-ink-light mb-3">
-            RECENT ANALYSES
+            {STRINGS.recentAnalyses}
           </p>
           <ul>
             {history.map((entry) => (
@@ -133,7 +127,7 @@ export default function AnalyzeForm() {
             onClick={() => { clearHistory(); setHistory([]); }}
             className="font-body text-ink-light text-xs underline hover:text-ink transition-colors mt-3"
           >
-            Clear history
+            {STRINGS.clearHistory}
           </button>
         </div>
       )}
@@ -146,7 +140,7 @@ export default function AnalyzeForm() {
               onClick={() => setState({ phase: "idle" })}
               className="font-label uppercase text-xs border border-ink bg-cream text-ink px-5 py-2 rounded-none transition-colors hover:bg-red hover:text-cream hover:border-red"
             >
-              New Analysis
+              {STRINGS.newAnalysis}
             </button>
           </div>
           <MaturityBadge

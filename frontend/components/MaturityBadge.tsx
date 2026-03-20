@@ -1,11 +1,11 @@
 "use client";
 
-const DIMENSION_LABELS: { key: string; label: string }[] = [
-  { key: "data_infrastructure", label: "Data Infrastructure" },
-  { key: "ml_ai_capability", label: "ML / AI Capability" },
-  { key: "strategy_intent", label: "Strategy & Intent" },
-  { key: "operational_readiness", label: "Operational Readiness" },
-];
+import {
+  DIMENSION_LABELS,
+  scoreColor,
+  maturityTier,
+  STRINGS,
+} from "@/lib/config";
 
 interface MaturityBadgeProps {
   score?: number;
@@ -13,20 +13,6 @@ interface MaturityBadgeProps {
   elapsedSeconds?: number;
   costUsd?: number;
   dimensions?: Record<string, number>;
-}
-
-function dimensionBarColor(val: number): string {
-  if (val < 2) return "#c1272d";
-  if (val <= 3.5) return "#1a1714";
-  return "#2d6a4f";
-}
-
-function maturityTier(score: number): string {
-  if (score < 1.5) return "Initial";
-  if (score < 2.5) return "Developing";
-  if (score < 3.5) return "Advancing";
-  if (score < 4.5) return "Leading";
-  return "Transformational";
 }
 
 export default function MaturityBadge({
@@ -46,17 +32,17 @@ export default function MaturityBadge({
     <div className="py-6">
       {/* Kicker */}
       <p className="font-label uppercase tracking-[0.12em] text-xs text-red mb-2">
-        AI Maturity Score
+        {STRINGS.maturityScoreLabel}
       </p>
 
       {/* Score headline */}
       <div className="mb-1">
         <span className="font-headline text-6xl font-black text-ink leading-none">
-          {score !== undefined ? score.toFixed(1) : "–"}
+          {score !== undefined ? score.toFixed(1) : "\u2013"}
         </span>
       </div>
       <p className="font-body text-ink-light text-base mb-4">
-        out of 5.0 — {displayLabel}
+        out of 5.0 \u2014 {displayLabel}
       </p>
 
       {/* Hairline separator */}
@@ -66,11 +52,11 @@ export default function MaturityBadge({
       {dimensions && (
         <div className="space-y-3">
           <p className="font-label uppercase tracking-[0.1em] text-xs text-ink-light mb-2">
-            Dimensions
+            {STRINGS.dimensionsLabel}
           </p>
           {DIMENSION_LABELS.map(({ key, label: dimLabel }) => {
             const val = dimensions[key] ?? 0;
-            const fill = dimensionBarColor(val);
+            const fill = scoreColor(val);
             return (
               <div key={key}>
                 <div className="flex justify-between items-baseline mb-1">

@@ -1,16 +1,11 @@
 "use client";
 import { useState } from "react";
 import type { VictoryMatch } from "@/lib/types";
+import { EVIDENCE_TIER_LABELS, STRINGS } from "@/lib/config";
 
 interface EvidencePanelProps {
   wins: VictoryMatch[];
 }
-
-const TIER_LABELS: Record<VictoryMatch["match_tier"], string> = {
-  DIRECT_MATCH:      "Direct match",
-  CALIBRATION_MATCH: "Calibration match",
-  ADJACENT_MATCH:    "Adjacent match",
-};
 
 export default function EvidencePanel({ wins }: EvidencePanelProps) {
   const [open, setOpen] = useState(false);
@@ -26,7 +21,7 @@ export default function EvidencePanel({ wins }: EvidencePanelProps) {
       >
         <div className="flex items-center gap-2">
           <span className="font-label text-xs uppercase tracking-[0.12em] text-ink-light group-hover:text-ink-medium transition-colors">
-            Supporting Evidence
+            {STRINGS.supportingEvidence}
           </span>
           <span className="font-mono text-xs text-ink-faint">
             {wins.length} {wins.length === 1 ? "source" : "sources"}
@@ -54,7 +49,7 @@ export default function EvidencePanel({ wins }: EvidencePanelProps) {
                     {win.engagement_title}
                   </span>
                   <span className="font-label text-xs text-ink-light shrink-0">
-                    {TIER_LABELS[win.match_tier]}
+                    {EVIDENCE_TIER_LABELS[win.match_tier]}
                   </span>
                 </div>
 

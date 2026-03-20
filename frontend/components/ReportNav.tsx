@@ -1,29 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
-
-const SECTIONS = [
-  { id: "section-exec-summary",  label: "Executive Summary" },
-  { id: "section-current-state", label: "Current State" },
-  { id: "section-use-cases",     label: "Use Cases" },
-  { id: "section-roi",           label: "ROI Analysis" },
-  { id: "section-roadmap",       label: "Roadmap" },
-];
+import { REPORT_SECTIONS, LAYOUT } from "@/lib/config";
 
 export default function ReportNav() {
-  const [active, setActive] = useState<string>(SECTIONS[0].id);
+  const [active, setActive] = useState<string>(REPORT_SECTIONS[0].id);
 
   useEffect(() => {
     function onScroll() {
-      const offset = 120;
-      for (let i = SECTIONS.length - 1; i >= 0; i--) {
-        const el = document.getElementById(SECTIONS[i].id);
-        if (el && el.getBoundingClientRect().top <= offset) {
-          setActive(SECTIONS[i].id);
+      for (let i = REPORT_SECTIONS.length - 1; i >= 0; i--) {
+        const el = document.getElementById(REPORT_SECTIONS[i].id);
+        if (el && el.getBoundingClientRect().top <= LAYOUT.scrollOffset) {
+          setActive(REPORT_SECTIONS[i].id);
           return;
         }
       }
-      setActive(SECTIONS[0].id);
+      setActive(REPORT_SECTIONS[0].id);
     }
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -32,7 +24,7 @@ export default function ReportNav() {
   function scrollTo(id: string) {
     const el = document.getElementById(id);
     if (!el) return;
-    const y = el.getBoundingClientRect().top + window.scrollY - 80;
+    const y = el.getBoundingClientRect().top + window.scrollY - LAYOUT.smoothScrollOffset;
     window.scrollTo({ top: y, behavior: "smooth" });
     setActive(id);
   }
@@ -42,7 +34,7 @@ export default function ReportNav() {
       className="sticky top-0 z-10 bg-cream border-b border-rule flex flex-wrap items-stretch gap-0"
       aria-label="Report sections"
     >
-      {SECTIONS.map(({ id, label }) => {
+      {REPORT_SECTIONS.map(({ id, label }) => {
         const isActive = active === id;
         return (
           <button

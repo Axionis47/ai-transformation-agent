@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { TieredUseCase } from "@/lib/types";
+import { ROI_LABELS, DATA_FLOW_LABELS, STRINGS } from "@/lib/config";
 
 interface UseCaseCardProps {
   useCase: TieredUseCase;
@@ -11,12 +12,7 @@ export default function UseCaseCard({ useCase }: UseCaseCardProps) {
   const [dataFlowOpen, setDataFlowOpen] = useState(false);
   const confidencePct = Math.round(useCase.confidence * 100);
 
-  const roiLabel =
-    useCase.tier === "LOW_HANGING_FRUIT"
-      ? "Proven ROI"
-      : useCase.tier === "MEDIUM_SOLUTION"
-      ? "Adapted ROI"
-      : "Estimated ROI";
+  const roiLabel = ROI_LABELS[useCase.tier] ?? "ROI";
 
   return (
     <div className="py-6">
@@ -154,7 +150,7 @@ export default function UseCaseCard({ useCase }: UseCaseCardProps) {
           aria-expanded={dataFlowOpen}
         >
           <span className="font-label text-xs uppercase tracking-[0.1em] text-ink-light group-hover:text-ink-medium transition-colors">
-            Data Flow
+            {STRINGS.dataFlow}
           </span>
           <span
             className="text-ink-light text-xs transition-transform duration-200"
@@ -166,13 +162,11 @@ export default function UseCaseCard({ useCase }: UseCaseCardProps) {
 
         {dataFlowOpen && (
           <dl className="mt-3 space-y-2 pl-1">
-            {[
-              { label: "Inputs", value: useCase.data_flow.data_inputs.join(", ") },
-              { label: "Model", value: useCase.data_flow.model_approach },
-              { label: "Output", value: useCase.data_flow.output_consumer },
-              { label: "Feedback", value: useCase.data_flow.feedback_loop },
-              { label: "Measurement", value: useCase.data_flow.value_measurement },
-            ].map(({ label, value }) => (
+            {DATA_FLOW_LABELS.map(({ label, field }) => {
+              const raw = useCase.data_flow[field as keyof typeof useCase.data_flow];
+              const value = Array.isArray(raw) ? raw.join(", ") : String(raw ?? "");
+              return { label, value };
+            }).map(({ label, value }) => (
               <div key={label} className="flex gap-3 text-xs">
                 <dt className="font-label uppercase tracking-[0.08em] text-ink-light min-w-[90px] shrink-0">
                   {label}
