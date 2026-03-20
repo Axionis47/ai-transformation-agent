@@ -15,6 +15,7 @@ import TracePanel from "@/components/TracePanel";
 import ReportNav from "@/components/ReportNav";
 import UserHintsPanel from "@/components/UserHintsPanel";
 import type { UserHintsPanelHandle } from "@/components/UserHintsPanel";
+import MatchResultCard from "@/components/MatchResultCard";
 import { API_BASE, scoreColor, STRINGS } from "@/lib/config";
 
 function buildDimensions(data: AnalyzeSuccess): Record<string, number> | undefined {
@@ -34,6 +35,27 @@ function relativeDate(iso: string): string {
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
   return `${Math.floor(hrs / 24)}d ago`;
+}
+
+function MatchResultsSection({ data }: { data: AnalyzeSuccess }) {
+  const mr = data.match_results!;
+  const shown = [
+    ...mr.delivered.slice(0, 2),
+    ...mr.adaptation.slice(0, 1),
+    ...mr.ambitious.slice(0, 1),
+  ];
+  if (shown.length === 0) return null;
+  return (
+    <div>
+      <p className="font-label uppercase tracking-[0.1em] text-xs text-ink-light mb-3">
+        Victory Matches
+        {data.has_user_hints && (
+          <span className="ml-2 font-mono normal-case text-ink-faint">enhanced with your context</span>
+        )}
+      </p>
+      {shown.map((r, i) => <MatchResultCard key={r.result_id ?? i} result={r} />)}
+    </div>
+  );
 }
 
 export default function AnalyzeForm() {
@@ -155,6 +177,9 @@ export default function AnalyzeForm() {
             costUsd={state.data.cost_usd}
             dimensions={buildDimensions(state.data)}
           />
+          {state.data.match_results && (
+            <MatchResultsSection data={state.data} />
+          )}
           <ReportCard
             id="section-exec-summary"
             title="Executive Summary"
