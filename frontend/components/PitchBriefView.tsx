@@ -99,6 +99,15 @@ export default function PitchBriefView({ data }: PitchBriefViewProps) {
           ))}
         </div>
       </div>
+
+      {brief.honest_conversation && (
+        <div>
+          <SectionHeading>From a Similar Engagement</SectionHeading>
+          <p className="font-body leading-[1.75] pl-4" style={{ color: "var(--ink-medium)" }}>
+            {brief.honest_conversation}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
