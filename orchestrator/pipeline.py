@@ -194,7 +194,7 @@ def run_pipeline(
     t = time.time()
     logger.log_agent_call("RAG", prompt_file="prompts/rag_query.md", prompt_version="1.0",
                           input_summary=rag_input(state.signals, state.company_data))
-    result = _run_with_timeout(RAGQueryAgent(), {"company_data": state.company_data})
+    result = _run_with_timeout(RAGQueryAgent(), {"company_data": state.company_data, "signals": state.signals})
     if isinstance(result, AgentError):
         _log_stage(logger, "RAG", "error", code=result.code, message=result.message)
         return _fail(state, result, start, logger)
