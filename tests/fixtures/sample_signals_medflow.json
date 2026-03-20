@@ -1,0 +1,74 @@
+{
+  "company_url": "https://medflowhealth.com",
+  "industry": "healthcare SaaS",
+  "scale": "mid-market",
+  "scale_rationale": "150 employees serving 40+ clinics with 50K monthly encounters",
+  "signals": [
+    {
+      "signal_id": "sig-001",
+      "type": "pain_point",
+      "value": "manual clinical documentation",
+      "source": "about_text",
+      "confidence": 0.92,
+      "raw_quote": "reducing administrative burden for clinicians"
+    },
+    {
+      "signal_id": "sig-002",
+      "type": "pain_point",
+      "value": "manual prior authorization approvals",
+      "source": "about_text",
+      "confidence": 0.9,
+      "raw_quote": "prior authorization tracking"
+    },
+    {
+      "signal_id": "sig-003",
+      "type": "tech_stack",
+      "value": "AWS",
+      "source": "product_page",
+      "confidence": 0.95,
+      "raw_quote": "Built on AWS with FHIR-native APIs"
+    },
+    {
+      "signal_id": "sig-004",
+      "type": "tech_stack",
+      "value": "PostgreSQL",
+      "source": "job_posting",
+      "confidence": 0.9,
+      "raw_quote": "PostgreSQL and React experience required"
+    },
+    {
+      "signal_id": "sig-005",
+      "type": "process_signal",
+      "value": "EHR integration via HL7/FHIR",
+      "source": "about_text",
+      "confidence": 0.95,
+      "raw_quote": "integrates with major EHR systems via HL7/FHIR"
+    },
+    {
+      "signal_id": "sig-006",
+      "type": "industry_hint",
+      "value": "healthcare",
+      "source": "about_text",
+      "confidence": 0.98,
+      "raw_quote": "ambulatory care clinics and medical groups"
+    },
+    {
+      "signal_id": "sig-007",
+      "type": "hiring_signal",
+      "value": "data analyst",
+      "source": "job_posting",
+      "confidence": 0.9,
+      "raw_quote": "Data Analyst — Analyze clinical workflow data"
+    },
+    {
+      "signal_id": "sig-008",
+      "type": "data_signal",
+      "value": "50,000 patient encounters monthly",
+      "source": "about_text",
+      "confidence": 0.88,
+      "raw_quote": "processes over 50,000 patient encounters monthly"
+    }
+  ],
+  "signal_count": 8,
+  "extraction_notes": "Healthcare domain with EHR integration depth. Documentation and prior auth are explicit pain points. No ML detected. Data analyst hiring signals early data maturity."
+}

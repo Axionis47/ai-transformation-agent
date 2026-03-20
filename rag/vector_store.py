@@ -164,6 +164,9 @@ class MockStore(VectorStore):
             else:
                 source = self._VICTORIES if self._VICTORIES.exists() else self._SEEDS_FALLBACK
             records = json.loads(source.read_text())
+            detected = _detect_industry(text)
+            if detected:
+                return _filter_by_industry(records, detected, k)
             return records[:k]
         except FileNotFoundError:
             return [{"id": "win-000", "embed_text": "Mock seed: AI transformation solution", "industry": "general"}]
