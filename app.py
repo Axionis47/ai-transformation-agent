@@ -34,6 +34,7 @@ app.include_router(health_router)
 class AnalyzeRequest(BaseModel):
     url: str
     dry_run: bool = False
+    user_hints: dict | None = None
 
 
 class AnalyzeSuccess(BaseModel):
@@ -85,7 +86,11 @@ async def get_trace(run_id: str) -> dict[str, Any]:
 @app.post("/v1/analyze", response_model=AnalyzeSuccess)
 async def analyze(request: AnalyzeRequest) -> AnalyzeSuccess:
     """Run the full AI transformation analysis pipeline."""
-    state = run_pipeline(url=request.url, dry_run=request.dry_run)
+    state = run_pipeline(
+        url=request.url,
+        dry_run=request.dry_run,
+        user_hints=request.user_hints,
+    )
 
     if state.status == PipelineStatus.FAILED:
         err = state.error or {}
