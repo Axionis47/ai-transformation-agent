@@ -78,6 +78,11 @@ class VectorStore(ABC):
         """Query for similar documents."""
         ...
 
+    @abstractmethod
+    def query_all(self) -> list[dict[str, Any]] | AgentError:
+        """Return all documents; falls back to similarity search at scale."""
+        ...
+
 
 class ChromaStore(VectorStore):
     """ChromaDB-backed vector store with local persistence."""
@@ -143,6 +148,33 @@ class ChromaStore(VectorStore):
                 agent_tag="RAG",
             )
 
+    def query_all(self) -> list[dict[str, Any]] | AgentError:
+        """Return all documents when count <= 50; else fall back to query()."""
+        try:
+            self._init_chroma()
+            count = self._collection.count()
+            if count > 50:
+                return self.query("", k=8)
+            results = self._collection.get()
+            docs = []
+            for i, doc_text in enumerate((results.get("documents") or [])):
+                entry = {"text": doc_text}
+                metas = results.get("metadatas") or []
+                if metas and i < len(metas) and metas[i]:
+                    entry.update(metas[i])
+                if "full_record" in entry:
+                    full = json.loads(entry.pop("full_record"))
+                    entry.update(full)
+                docs.append(entry)
+            return docs
+        except Exception as exc:
+            return AgentError(
+                code="VECTOR_QUERY_FAIL",
+                message=f"ChromaDB query_all error: {exc}",
+                recoverable=True,
+                agent_tag="RAG",
+            )
+
 
 class MockStore(VectorStore):
     """Returns fixture data for dry-run mode — zero external calls."""
@@ -171,6 +203,19 @@ class MockStore(VectorStore):
             if detected:
                 return _filter_by_industry(records, detected, k)
             return records[:k]
+        except FileNotFoundError:
+            return [{"id": "win-000", "embed_text": "Mock seed: AI transformation solution", "industry": "general"}]
+
+    def query_all(self) -> list[dict[str, Any]]:
+        """Return all records from the fixture file."""
+        try:
+            if self._collection_name == "industry_cases":
+                source = self._INDUSTRY_CASES
+                if not source.exists():
+                    return [{"id": "ind-000", "embed_text": "Mock industry case", "industry": "general"}]
+            else:
+                source = self._VICTORIES if self._VICTORIES.exists() else self._SEEDS_FALLBACK
+            return json.loads(source.read_text())
         except FileNotFoundError:
             return [{"id": "win-000", "embed_text": "Mock seed: AI transformation solution", "industry": "general"}]
 
