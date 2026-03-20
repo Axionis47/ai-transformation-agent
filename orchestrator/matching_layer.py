@@ -163,13 +163,24 @@ def _score_library_a(record: dict, signals_industry: str, signals_scale: str,
         maturity_score = 0.15  # neutral score when field is missing
     size_score = _proximity_score(signals_scale, win_size, _SIZE_LEVELS, 0.2)
 
-    company_process_values = {
-        s.get("value", "").lower()
-        for s in company_signals
-        if s.get("type") in ("process_signal", "ops_signal")
+    _sector_signal_types = {
+        "process_signal", "ops_signal",
+        "pain_point", "hiring_signal", "intent_signal", "industry_hint",
     }
-    sector_tags = {t.lower() for t in record.get("sector_tags", [])}
-    sector_bonus = 0.1 if company_process_values & sector_tags else 0.0
+    company_sector_values = [
+        s.get("value", "").lower().replace("_", " ")
+        for s in company_signals
+        if s.get("type") in _sector_signal_types and s.get("value")
+    ]
+    sector_tags_norm = [t.lower().replace("_", " ") for t in record.get("sector_tags", [])]
+    sector_bonus = 0.0
+    for tag in sector_tags_norm:
+        for val in company_sector_values:
+            if tag in val or val in tag:
+                sector_bonus = 0.1
+                break
+        if sector_bonus:
+            break
 
     company_signal_types = {s.get("type", "") for s in company_signals}
     applicable = set(record.get("applicable_signals", []))
