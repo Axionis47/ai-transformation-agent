@@ -1,0 +1,19 @@
+{
+  "url": "https://finvault.co",
+  "name": "FinVault",
+  "about_text": "FinVault is a compliance and document processing platform for financial services firms. Founded in 2022, we serve 25+ regional banks and credit unions with tools for KYC document collection, AML screening, and regulatory reporting. Our team of 45 is focused on making compliance affordable for institutions that cannot staff a large compliance operations team.",
+  "job_postings": [
+    "Compliance Operations Analyst — Review KYC documents and flag discrepancies for our banking clients. Familiarity with BSA/AML regulations required.",
+    "Python Developer — Build internal tooling and automation scripts. AWS Lambda and MongoDB experience preferred."
+  ],
+  "product_text": "FinVault handles the compliance paperwork that banks hate. We collect, store, and route KYC documents, run name-matching against sanctions lists, and generate the reports your regulators require. Built for teams of one — not teams of ten.",
+  "tech_stack_mentions": [
+    "AWS Lambda",
+    "Python",
+    "MongoDB",
+    "document OCR"
+  ],
+  "pages_fetched": ["/about", "/careers", "/product"],
+  "signal_count": 4,
+  "last_scraped": "2026-03-14T10:30:00Z"
+}

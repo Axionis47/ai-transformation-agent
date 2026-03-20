@@ -1,0 +1,10 @@
+{
+  "pain_points": [
+    "KYC document reviewers spend 4 hours per customer onboarding — most of it reading the same document types",
+    "Compliance reports for regulators take 3 days to compile and are done entirely in Excel"
+  ],
+  "known_tech": ["AWS S3", "Textract", "MongoDB Atlas"],
+  "industry": "financial_services",
+  "employee_count": 45,
+  "context": "Met with founder and Head of Compliance. They already use AWS Textract for basic OCR but extract nothing from the results — raw text goes into MongoDB unstructured. No analytics. The compliance report problem is urgent: they have a regulator audit in 6 months and the current Excel process will not scale to their 3 new clients. They have never evaluated an AI vendor and have no ML budget, but the founder is technical and willing to prototype."
+}
