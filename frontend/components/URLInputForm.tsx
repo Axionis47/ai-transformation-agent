@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { STRINGS } from "@/lib/config";
 
 interface URLInputFormProps {
   onSubmit: (url: string, dryRun: boolean) => void;
@@ -24,7 +25,7 @@ export default function URLInputForm({ onSubmit, isLoading }: URLInputFormProps)
 
       {/* Section label */}
       <span className="font-label uppercase tracking-[0.12em] text-xs text-ink-light font-semibold">
-        Begin Assessment
+        {STRINGS.beginAssessment}
       </span>
 
       {/* Input row: URL field + submit button */}
@@ -33,7 +34,7 @@ export default function URLInputForm({ onSubmit, isLoading }: URLInputFormProps)
           id="url"
           type="url"
           value={url}
-          placeholder="https://stripe.com"
+          placeholder={STRINGS.placeholder}
           onChange={(e) => setUrl(e.target.value)}
           disabled={isLoading}
           required
@@ -57,7 +58,7 @@ export default function URLInputForm({ onSubmit, isLoading }: URLInputFormProps)
             !canSubmit ? "opacity-40 cursor-not-allowed" : "",
           ].join(" ")}
         >
-          {isLoading ? "Analyzing..." : "Analyze \u2192"}
+          {isLoading ? STRINGS.analyzing : STRINGS.analyzeCta}
         </button>
       </div>
 
@@ -74,10 +75,10 @@ export default function URLInputForm({ onSubmit, isLoading }: URLInputFormProps)
             style={{ accentColor: "var(--red)" }}
           />
           <span className="font-mono text-xs text-ink-light select-none">
-            Dry run — use fixture data
+            {STRINGS.dryRunLabel}
           </span>
         </label>
-        <span className="font-mono text-xs text-ink-light">dry run is instant</span>
+        <span className="font-mono text-xs text-ink-light">{STRINGS.dryRunMeta}</span>
       </div>
 
     </form>

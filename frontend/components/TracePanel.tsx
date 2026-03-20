@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import TraceStageRow from "@/components/TraceStageRow";
 import type { TraceStage } from "@/components/TraceStageRow";
+import { API_BASE, STRINGS } from "@/lib/config";
 
 interface TraceResponse {
   run_id: string;
@@ -20,8 +21,7 @@ type FetchState =
   | { status: "error" };
 
 async function fetchTrace(runId: string): Promise<TraceResponse> {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-  const res = await fetch(`${apiBase}/v1/trace/${runId}`);
+  const res = await fetch(`${API_BASE}/v1/trace/${runId}`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
@@ -55,9 +55,9 @@ export default function TracePanel({ runId }: TracePanelProps) {
       >
         <div className="flex items-center gap-2">
           <span className="font-label text-xs uppercase tracking-[0.12em] text-ink-light group-hover:text-ink-medium transition-colors">
-            Pipeline Trace
+            {STRINGS.pipelineTrace}
           </span>
-          <span className="font-label text-xs text-ink-faint">developer details</span>
+          <span className="font-label text-xs text-ink-faint">{STRINGS.traceSubtitle}</span>
         </div>
         <span
           className="text-ink-light text-xs transition-transform duration-200"
@@ -71,7 +71,7 @@ export default function TracePanel({ runId }: TracePanelProps) {
         <div className="pb-6 pt-1 space-y-0">
           {!runId && (
             <p className="font-body text-xs text-ink-faint py-4 text-center">
-              No run ID available.
+              {STRINGS.noRunId}
             </p>
           )}
 
@@ -89,13 +89,13 @@ export default function TracePanel({ runId }: TracePanelProps) {
 
           {runId && fetchState.status === "error" && (
             <p className="font-body text-xs text-ink-faint py-4 text-center">
-              Trace data unavailable.
+              {STRINGS.traceUnavailable}
             </p>
           )}
 
           {runId && fetchState.status === "success" && completeStages.length === 0 && (
             <p className="font-body text-xs text-ink-faint py-4 text-center">
-              No completed stages found.
+              {STRINGS.noStages}
             </p>
           )}
 

@@ -2,20 +2,11 @@
 
 // SolutionCard: displays a single delivered solution from Library A (Tenex wins)
 
-const INDUSTRY_BADGE: Record<string, { bg: string; text: string; border: string }> = {
-  logistics:          { bg: "#eff6ff", text: "#2563eb", border: "#bfdbfe" },
-  financial_services: { bg: "#faf5ff", text: "#7c3aed", border: "#ddd6fe" },
-  healthcare:         { bg: "#f0fdf4", text: "#16a34a", border: "#bbf7d0" },
-  retail:             { bg: "#fdf4ff", text: "#a21caf", border: "#f0abfc" },
-  manufacturing:      { bg: "#fff7ed", text: "#c2410c", border: "#fed7aa" },
-  default:            { bg: "#f8fafc", text: "#475569", border: "#e2e8f0" },
-};
-
-const SIZE_BADGE: Record<string, { bg: string; text: string }> = {
-  startup:    { bg: "#f0fdf4", text: "#15803d" },
-  "mid-market": { bg: "#fffbeb", text: "#b45309" },
-  enterprise: { bg: "#eff6ff", text: "#1d4ed8" },
-};
+import {
+  INDUSTRY_BADGE_COLORS,
+  SIZE_BADGE_COLORS,
+  SOLUTIONS_ACCENT,
+} from "@/lib/config";
 
 export interface SolutionRecord {
   id: string;
@@ -43,9 +34,9 @@ interface SolutionCardProps {
 
 export default function SolutionCard({ solution }: SolutionCardProps) {
   const industryStyle =
-    INDUSTRY_BADGE[solution.industry] ?? INDUSTRY_BADGE.default;
+    INDUSTRY_BADGE_COLORS[solution.industry] ?? INDUSTRY_BADGE_COLORS.default;
   const sizeStyle =
-    SIZE_BADGE[solution.company_profile.size_label] ?? SIZE_BADGE["mid-market"];
+    SIZE_BADGE_COLORS[solution.company_profile.size_label] ?? SIZE_BADGE_COLORS["mid-market"];
 
   return (
     <div className="neo-flat p-5 space-y-4 border-l-[3px] border-green-500 flex flex-col">
@@ -72,7 +63,7 @@ export default function SolutionCard({ solution }: SolutionCardProps) {
         </span>
         <span
           className="text-[11px] font-medium px-2 py-0.5 rounded-full"
-          style={{ background: "#f1f5f9", color: "#64748b" }}
+          style={{ background: SOLUTIONS_ACCENT.maturityBg, color: SOLUTIONS_ACCENT.maturityText }}
         >
           {solution.maturity_at_engagement}
         </span>
@@ -81,7 +72,7 @@ export default function SolutionCard({ solution }: SolutionCardProps) {
       {/* Title */}
       <h3
         className="text-sm font-bold leading-snug"
-        style={{ color: "#1e2433" }}
+        style={{ color: SOLUTIONS_ACCENT.darkText }}
       >
         {solution.engagement_title}
       </h3>
@@ -89,17 +80,17 @@ export default function SolutionCard({ solution }: SolutionCardProps) {
       {/* Primary metric — visually prominent */}
       <div
         className="rounded-xl px-4 py-3 border"
-        style={{ background: "#f0fdf4", borderColor: "#bbf7d0" }}
+        style={{ background: SOLUTIONS_ACCENT.metricBg, borderColor: SOLUTIONS_ACCENT.metricBorder }}
       >
         <p
           className="text-[10px] font-semibold uppercase tracking-widest mb-1"
-          style={{ color: "#16a34a" }}
+          style={{ color: SOLUTIONS_ACCENT.green }}
         >
           {solution.results.primary_metric.label}
         </p>
         <p
           className="text-lg font-extrabold"
-          style={{ color: "#15803d" }}
+          style={{ color: SOLUTIONS_ACCENT.metricText }}
         >
           {solution.results.primary_metric.value}
         </p>
@@ -109,7 +100,11 @@ export default function SolutionCard({ solution }: SolutionCardProps) {
       <div className="flex items-center justify-between gap-2 mt-auto pt-1">
         <span
           className="text-[11px] font-medium px-2.5 py-1 rounded-full border"
-          style={{ background: "#f8fafc", color: "#475569", borderColor: "#e2e8f0" }}
+          style={{
+            background: SOLUTIONS_ACCENT.neutralBg,
+            color: SOLUTIONS_ACCENT.neutralText,
+            borderColor: SOLUTIONS_ACCENT.neutralBorder,
+          }}
         >
           {solution.solution_category.replace("_", " ")}
         </span>
