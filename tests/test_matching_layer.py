@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import pytest
-from orchestrator.matching_layer import match
+from orchestrator.matching_layer import match, _pain_point_score, _tokenize
 
 
 def _make_delivered_record(win_id: str, industry: str, size: str, maturity: str,
@@ -166,3 +166,79 @@ def test_partial_empty_inputs():
     result = match(_signals("logistics", "mid-market"), _maturity("Developing", 2.0), wins, [])
     assert result["ambitious"] == []
     assert len(result["delivered"]) + len(result["adaptation"]) > 0
+
+
+# --- Pain point scoring tests ---
+
+def test_tokenize_removes_stopwords():
+    """Tokenize should strip stopwords and return lowercase tokens."""
+    tokens = _tokenize("the manual route planning is slow")
+    assert "the" not in tokens
+    assert "is" not in tokens
+    assert "manual" in tokens
+    assert "route" in tokens
+    assert "planning" in tokens
+
+
+def test_pain_point_score_no_pain_signals():
+    """Returns 0.0 when no pain_point signals are present."""
+    record = {"problem_statement": "manual route planning dispatch", "solution_summary": "ML routing"}
+    signals: list[dict] = [{"type": "ops_signal", "value": "manual dispatch"}]
+    assert _pain_point_score(record, signals) == 0.0
+
+
+def test_pain_point_score_overlap_raises_score():
+    """Pain tokens matching problem_statement should produce a non-zero score."""
+    record = {
+        "problem_statement": "manual route planning dispatch slow inefficient",
+        "solution_summary": "optimised routing engine reduces manual work",
+    }
+    signals = [{"type": "pain_point", "value": "manual route planning"}]
+    score = _pain_point_score(record, signals)
+    assert score > 0.0
+    assert score <= 0.15
+
+
+def test_pain_point_score_max_cap_and_empty_record():
+    """Score is capped at 0.15 even with full overlap; empty record returns 0.0."""
+    record = {
+        "problem_statement": "manual dispatch slow routes inefficient planning",
+        "solution_summary": "route optimisation engine",
+    }
+    signals = [{"type": "pain_point", "value": "manual dispatch slow"}]
+    assert _pain_point_score(record, signals) <= 0.15
+    assert _pain_point_score({}, signals) == 0.0
+
+
+def test_pain_point_influences_library_a_score():
+    """Library A score increases when pain_point signals match problem_statement."""
+    base_record = {
+        "id": "w-pain",
+        "engagement_title": "Pain Point Test",
+        "industry": "logistics",
+        "sector_tags": [],
+        "company_profile": {"size_label": "mid-market", "size_employees": 200, "geography": "US"},
+        "maturity_at_engagement": "Developing",
+        "problem_statement": "manual route planning dispatch slow",
+        "solution_summary": "routing optimisation",
+        "results": {"primary_metric": {"label": "Cost", "value": "10%"}, "measurement_period": "3m"},
+        "applicable_signals": [],
+        "tech_stack": {"ml_approach": "XGBoost"},
+        "engagement_details": {"duration_months": 3},
+    }
+    sigs_no_pain = {"industry": "logistics", "scale": "mid-market", "signals": []}
+    sigs_with_pain = {
+        "industry": "logistics",
+        "scale": "mid-market",
+        "signals": [{"type": "pain_point", "value": "manual route planning", "confidence": 0.9}],
+    }
+    mat = _maturity("Developing", 2.0)
+    result_no = match(sigs_no_pain, mat, [base_record], [])
+    result_with = match(sigs_with_pain, mat, [base_record], [])
+
+    all_no = result_no["delivered"] + result_no["adaptation"]
+    all_with = result_with["delivered"] + result_with["adaptation"]
+    assert len(all_no) > 0 and len(all_with) > 0
+    score_no = all_no[0].similarity_score
+    score_with = all_with[0].similarity_score
+    assert score_with > score_no, "Pain point match should increase similarity score"
