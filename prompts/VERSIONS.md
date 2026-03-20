@@ -67,3 +67,4 @@ PM owns this file. Update at every prompt version bump.
 | Version | Date | Description | ADR |
 |---------|------|-------------|-----|
 | 1.0 | 2026-03-20 | Initial prompt. Five-section pre-meeting brief: opening_line, story, roi_conversation, questions, objection_prep. All numbers must trace to input data. Handles DELIVERED/ADAPTATION/AMBITIOUS match tiers with appropriate confidence labeling. Under-500-word output constraint. | -- |
+| 1.1 | 2026-03-20 | Added honest_conversation as 6th output section. Uses lessons_learned from match to give pitcher conversation ammo. First-person plural tone, ends with discovery question. Updated word limit to 600. | -- |
