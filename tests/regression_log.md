@@ -256,3 +256,49 @@ Dry-run pipeline state verified:
 - Signal budget enforced at 25 max
 - Signal fixtures updated with blog, team_page sources and org_signal type
 - No regressions detected
+
+## Sprint 9 — lessons_learned and honest_conversation Flow — 2026-03-20
+
+### Tests
+- Total: 291 passing, 0 failing
+- Command: `python3 -m pytest tests/ -q --tb=short --ignore=tests/test_consultant.py`
+- Dry-run: PASS (exit code 0)
+
+### New test files
+- `tests/test_lessons_learned.py` — 6 tests, LessonsLearned schema and victories fixture coverage
+- `tests/test_honest_conversation.py` — 7 tests, PitchBriefAgent and pipeline honest_conversation
+
+### Feature verified: lessons_learned flow
+
+Victories fixture:
+- All 12 victory records have structured lessons_learned (dict)
+- All 12 records have primary_challenge, risk_factors (>=2), timeline_reality, what_we_would_do_differently
+- LessonsLearned schema validates correctly with defaults and populated fields
+
+MockStore:
+- query_all() returns 12/12 records with lessons_learned present
+- query() returns records with lessons_learned in result dicts
+
+PitchBriefAgent._build_honest_conversation:
+- Returns engagement-specific string when primary_challenge is present
+- Returns fallback "insufficient data..." when called with None, empty dict, or missing challenge
+- Uses challenge text and discovery question format: "In a similar engagement, [challenge]."
+
+Pipeline dry-run honest_conversation:
+- pitch_brief["honest_conversation"] is present and non-empty (>20 chars)
+- Content begins with "In a similar engagement" — confirms real lessons_learned reached the agent
+- Pipeline status: COMPLETE
+
+### Test delta vs Signal Acquisition Refactor check (2026-03-20)
+- Previous: 278 tests
+- Now: 291 tests (+13 tests added)
+
+### Eval Scores
+- No eval run this check (GCP quota blocker from Sprint 6 still applies)
+- Sprint 7 baselines unchanged: tier_classification=5.0, evidence_grounding=4.4, roi_basis=3.8
+
+### Verdict: PASS
+- All 291 tests pass
+- Dry-run pipeline completes successfully
+- lessons_learned present in all 12 victories, flows through pipeline to honest_conversation
+- No regressions detected
