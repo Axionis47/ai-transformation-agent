@@ -7,6 +7,7 @@ import {
 } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
+import { STRINGS, LAYOUT } from "@/lib/config";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -37,8 +38,8 @@ const barlow = Barlow_Condensed({
 });
 
 export const metadata: Metadata = {
-  title: "AI Transformation Discovery Agent",
-  description: "AI maturity assessment and transformation roadmap generator",
+  title: STRINGS.siteTitle,
+  description: STRINGS.siteDescription,
 };
 
 export default function RootLayout({
@@ -64,10 +65,10 @@ export default function RootLayout({
         <header className="w-full">
           <div
             className="mx-auto flex items-center justify-between py-3"
-            style={{ maxWidth: "920px", padding: "0.75rem clamp(1.5rem, 5vw, 4rem)" }}
+            style={{ maxWidth: `${LAYOUT.maxContentWidth}px`, padding: "0.75rem clamp(1.5rem, 5vw, 4rem)" }}
           >
             <span className="font-label font-semibold uppercase tracking-widest text-sm text-ink">
-              DISCOVERY AGENT
+              {STRINGS.siteName}
             </span>
             <nav className="flex items-center gap-5">
               <Link
@@ -94,7 +95,7 @@ export default function RootLayout({
         {/* Main content */}
         <main
           className="mx-auto w-full flex-1"
-          style={{ maxWidth: "920px", padding: "2.5rem clamp(1.5rem, 5vw, 4rem)" }}
+          style={{ maxWidth: `${LAYOUT.maxContentWidth}px`, padding: "2.5rem clamp(1.5rem, 5vw, 4rem)" }}
         >
           {children}
         </main>
@@ -104,13 +105,13 @@ export default function RootLayout({
           <div className="rule-hairline" />
           <div
             className="mx-auto flex items-center justify-between py-4"
-            style={{ maxWidth: "920px", padding: "1rem clamp(1.5rem, 5vw, 4rem)" }}
+            style={{ maxWidth: `${LAYOUT.maxContentWidth}px`, padding: "1rem clamp(1.5rem, 5vw, 4rem)" }}
           >
             <span className="font-mono text-xs text-ink-light">
-              Built for Tenex — AI transformation for the mid-market
+              {STRINGS.footerText}
             </span>
             <span className="font-mono text-xs text-ink-faint">
-              Multi-agent showcase
+              {STRINGS.footerMeta}
             </span>
           </div>
         </footer>

@@ -1,37 +1,5 @@
 import AnalyzeForm from "@/components/AnalyzeForm";
-
-const PIPELINE_STAGES = [
-  {
-    num: "01",
-    title: "SCRAPE",
-    desc: "Fetches company pages, careers listings, and public content via HTTP",
-  },
-  {
-    num: "02",
-    title: "EXTRACT",
-    desc: "LLM extracts AI readiness signals and classifies by dimension",
-  },
-  {
-    num: "03",
-    title: "SCORE",
-    desc: "LLM scores maturity across four dimensions using extracted signals",
-  },
-  {
-    num: "04",
-    title: "MATCH",
-    desc: "RAG retrieves similar engagements from the victory library",
-  },
-  {
-    num: "05",
-    title: "PRIORITIZE",
-    desc: "LLM generates tiered use cases grounded in matched victories",
-  },
-  {
-    num: "06",
-    title: "REPORT",
-    desc: "LLM writes five report sections in parallel",
-  },
-];
+import { PIPELINE_STAGES, STRINGS } from "@/lib/config";
 
 export default function HomePage() {
   return (
@@ -42,27 +10,24 @@ export default function HomePage() {
         {/* Left column: kicker + headline */}
         <div className="reveal-up delay-150">
           <span className="font-label uppercase tracking-[0.15em] text-sm text-red">
-            — AI-POWERED ANALYSIS
+            {STRINGS.kicker}
           </span>
           <h1
             className="font-headline font-black mt-3 text-ink"
             style={{ fontSize: "clamp(2.2rem, 4.5vw, 3.3rem)", lineHeight: 1.1 }}
           >
-            Enterprise AI readiness,{" "}
-            <em className="font-headline font-normal italic">diagnosed in seconds</em>
+            {STRINGS.headline}{" "}
+            <em className="font-headline font-normal italic">{STRINGS.headlineItalic}</em>
           </h1>
         </div>
 
         {/* Right column: two body paragraphs */}
         <div className="reveal-up delay-350 space-y-4">
           <p className="font-body text-ink-medium text-base leading-relaxed">
-            Enter any company URL. A six-stage pipeline scrapes public data,
-            extracts signals, scores AI maturity across four dimensions, matches
-            against past engagements, and writes a transformation roadmap.
+            {STRINGS.heroBody1}
           </p>
           <p className="font-body text-ink-medium text-base leading-relaxed">
-            Traditional discovery takes weeks and costs five figures.
-            This runs in under two minutes.
+            {STRINGS.heroBody2}
           </p>
         </div>
 
@@ -80,7 +45,7 @@ export default function HomePage() {
       {/* The Pipeline section */}
       <section className="reveal-up delay-500">
         <h2 className="font-headline font-black text-ink mb-8" style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)" }}>
-          The Pipeline
+          {STRINGS.pipelineTitle}
         </h2>
 
         {/* 3-col on desktop, 2-col on tablet, 1-col on mobile */}

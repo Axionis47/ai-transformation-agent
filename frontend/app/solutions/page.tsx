@@ -1,5 +1,6 @@
 import SolutionCard from "@/components/SolutionCard";
 import { SOLUTIONS } from "@/lib/solutionsData";
+import { SOLUTIONS_ACCENT } from "@/lib/config";
 
 export const metadata = {
   title: "Delivered Solutions | AI Transformation Discovery Agent",
@@ -15,23 +16,23 @@ export default function SolutionsPage() {
         <div className="flex items-center gap-2">
           <span
             className="inline-block w-2 h-2 rounded-full"
-            style={{ background: "#16a34a" }}
+            style={{ background: SOLUTIONS_ACCENT.green }}
             aria-hidden="true"
           />
           <span
             className="text-[11px] font-semibold uppercase tracking-widest"
-            style={{ color: "#16a34a" }}
+            style={{ color: SOLUTIONS_ACCENT.green }}
           >
             Library A
           </span>
         </div>
         <h1
           className="text-2xl font-extrabold tracking-tight"
-          style={{ color: "#1e2433" }}
+          style={{ color: SOLUTIONS_ACCENT.darkText }}
         >
           Delivered Solutions
         </h1>
-        <p className="text-sm" style={{ color: "#4a5568" }}>
+        <p className="text-sm" style={{ color: SOLUTIONS_ACCENT.mutedText }}>
           Tenex engagement history — proven AI deliveries
         </p>
       </div>
@@ -41,13 +42,13 @@ export default function SolutionsPage() {
         <div>
           <span
             className="text-xl font-bold"
-            style={{ color: "#1e2433" }}
+            style={{ color: SOLUTIONS_ACCENT.darkText }}
           >
             {SOLUTIONS.length}
           </span>
           <span
             className="text-xs ml-1.5"
-            style={{ color: "#718096" }}
+            style={{ color: SOLUTIONS_ACCENT.grayText }}
           >
             active engagements
           </span>
@@ -57,14 +58,14 @@ export default function SolutionsPage() {
           <span
             className="text-[11px] font-semibold px-2 py-0.5 rounded-full border"
             style={{
-              background: "#f0fdf4",
-              color: "#16a34a",
-              borderColor: "#bbf7d0",
+              background: SOLUTIONS_ACCENT.metricBg,
+              color: SOLUTIONS_ACCENT.green,
+              borderColor: SOLUTIONS_ACCENT.metricBorder,
             }}
           >
             All Active
           </span>
-          <span className="text-xs" style={{ color: "#718096" }}>
+          <span className="text-xs" style={{ color: SOLUTIONS_ACCENT.grayText }}>
             Tenex wins only
           </span>
         </div>
