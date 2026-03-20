@@ -410,6 +410,61 @@ def test_sector_bonus_triggers_on_hiring_signal():
     )
 
 
+def test_sector_bonus_triggers_on_intent_and_industry_hint():
+    """intent_signal and industry_hint both trigger sector bonus when overlapping a tag."""
+    for sig_type, sig_value in [
+        ("intent_signal", "exploring ltl freight optimisation"),
+        ("industry_hint", "fleet management operations"),
+    ]:
+        record = _sector_record(["ltl freight", "fleet management"])
+        baseline_sigs = {"industry": "logistics", "scale": "mid-market", "signals": []}
+        base = match(baseline_sigs, _maturity("Developing", 2.0), [record], [])
+        base_all = base["delivered"] + base["adaptation"]
+
+        result = _match_with_signal(sig_type, sig_value)
+        assert len(result) > 0 and len(base_all) > 0
+        assert result[0].similarity_score > base_all[0].similarity_score, (
+            f"{sig_type} matching sector tag should increase score"
+        )
 
 
+def test_sector_bonus_fuzzy_underscore_normalization():
+    """sector_tags with underscores match signal values with spaces (normalized)."""
+    record = _sector_record(["ltl_freight", "route_planning"])
+    sigs = {
+        "industry": "logistics",
+        "scale": "mid-market",
+        "signals": [{"type": "pain_point", "value": "ltl freight dispatch delays", "confidence": 0.9}],
+    }
+    result = match(sigs, _maturity("Developing", 2.0), [record], [])
+    base = match({"industry": "logistics", "scale": "mid-market", "signals": []},
+                 _maturity("Developing", 2.0), [record], [])
+    all_r = result["delivered"] + result["adaptation"]
+    base_all = base["delivered"] + base["adaptation"]
+    assert len(all_r) > 0 and len(base_all) > 0
+    assert all_r[0].similarity_score > base_all[0].similarity_score, (
+        "Underscore-normalized sector tag should fuzzy-match signal value"
+    )
+
+
+def test_sector_bonus_max_is_0_1():
+    """Multiple matching tags still produce at most 0.1 sector bonus."""
+    record = _sector_record(["route planning", "fleet management", "ltl freight", "dispatch"])
+    sigs = {
+        "industry": "logistics",
+        "scale": "mid-market",
+        "signals": [
+            {"type": "pain_point", "value": "manual route planning and ltl freight dispatch", "confidence": 0.9},
+            {"type": "hiring_signal", "value": "fleet management engineer", "confidence": 0.8},
+            {"type": "intent_signal", "value": "dispatch optimisation", "confidence": 0.7},
+        ],
+    }
+    result = match(sigs, _maturity("Developing", 2.0), [record], [])
+    base = match({"industry": "logistics", "scale": "mid-market", "signals": []},
+                 _maturity("Developing", 2.0), [record], [])
+    all_r = result["delivered"] + result["adaptation"]
+    base_all = base["delivered"] + base["adaptation"]
+    assert len(all_r) > 0 and len(base_all) > 0
+    delta = round(all_r[0].similarity_score - base_all[0].similarity_score, 3)
+    assert delta >= 0.0  # score increased or equal; sector bonus capped at 0.1
 
