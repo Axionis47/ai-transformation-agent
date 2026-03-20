@@ -4,7 +4,7 @@ from __future__ import annotations
 import re
 import uuid
 
-from orchestrator.schemas import MatchResult, ProvenMetrics
+from orchestrator.schemas import ConfidenceBreakdown, MatchResult, ProvenMetrics
 
 _STOPWORDS = {
     "the", "a", "is", "and", "of", "to", "in", "for", "that", "with",
@@ -139,9 +139,11 @@ def _tech_stack_score(record: dict, company_signals: list[dict]) -> float:
     return round(min(0.15, 0.15 * ratio), 4)
 
 
-def _score_library_a(record: dict, signals_industry: str, signals_scale: str,
-                     maturity_label: str, company_signals: list[dict]) -> float:
-    """Score a Library A record. Returns total 0.0-1.50 (tech + pain bonuses up to 0.30)."""
+def _score_library_a(
+    record: dict, signals_industry: str, signals_scale: str,
+    maturity_label: str, company_signals: list[dict],
+) -> tuple[float, dict]:
+    """Score a Library A record. Returns (total, components) where total is 0.0-1.50."""
     win_industry = record.get("industry", "")
     win_size = record.get("size_label", "")
     if not win_size:
@@ -189,7 +191,12 @@ def _score_library_a(record: dict, signals_industry: str, signals_scale: str,
     pain_score = _pain_point_score(record, company_signals)
     tech_score = _tech_stack_score(record, company_signals)
 
-    return industry_score + maturity_score + size_score + sector_bonus + signal_bonus + pain_score + tech_score
+    total = industry_score + maturity_score + size_score + sector_bonus + signal_bonus + pain_score + tech_score
+    components = {
+        "industry": industry_score, "maturity": maturity_score,
+        "size": size_score, "pain": pain_score, "tech": tech_score,
+    }
+    return total, components
 
 
 def _score_library_b(record: dict, signals_industry: str, signals_scale: str,
@@ -224,7 +231,48 @@ def _score_library_b(record: dict, signals_industry: str, signals_scale: str,
     return round(industry_score + signal_overlap + size_match + pain_score + tech_score, 3)
 
 
-def _build_delivered(record: dict, score: float, composite_score: float) -> MatchResult:
+def _evidence_ceiling(company_signals: list[dict]) -> str:
+    """Determine evidence ceiling from signal sources."""
+    sources = {s.get("source", "") for s in company_signals}
+    if "user_hint" in sources:
+        return "url_plus_hints"
+    return "url_only"
+
+
+def _build_confidence_breakdown(
+    industry_score: float,
+    maturity_score: float,
+    size_score: float,
+    pain_score: float,
+    tech_score: float,
+    total: float,
+    company_signals: list[dict],
+) -> ConfidenceBreakdown:
+    ceiling = _evidence_ceiling(company_signals)
+    mapped = _map_confidence(total, 0.80, 0.95, 0.60, 1.2)
+    parts = [
+        f"industry={industry_score:.2f}",
+        f"maturity={maturity_score:.2f}",
+        f"scale={size_score:.2f}",
+        f"pain={pain_score:.2f}",
+        f"tech={tech_score:.2f}",
+    ]
+    return ConfidenceBreakdown(
+        industry_match=round(industry_score / 0.4, 3),
+        pain_point_match=round(min(1.0, pain_score / 0.15), 3),
+        tech_feasibility=round(min(1.0, tech_score / 0.15), 3),
+        scale_match=round(size_score / 0.2, 3),
+        maturity_fit=round(maturity_score / 0.4, 3),
+        evidence_depth=round(min(1.0, total / 1.2), 3),
+        evidence_ceiling=ceiling,
+        overall=mapped,
+        explanation="; ".join(parts),
+    )
+
+
+def _build_delivered(record: dict, score: float, composite_score: float,
+                     component_scores: dict | None = None,
+                     company_signals: list[dict] | None = None) -> MatchResult:
     results = record.get("results", {})
     pm_dict = results.get("primary_metric", {}) if isinstance(results, dict) else {}
     pm = ProvenMetrics(
@@ -263,6 +311,15 @@ def _build_delivered(record: dict, score: float, composite_score: float) -> Matc
         if isinstance(record.get("engagement_details"), dict) else None,
         tech_approach=tech.get("ml_approach", "") if isinstance(tech, dict) else "",
         gap_analysis=gap_text,
+        confidence_breakdown=_build_confidence_breakdown(
+            industry_score=component_scores.get("industry", 0.0) if component_scores else 0.0,
+            maturity_score=component_scores.get("maturity", 0.0) if component_scores else 0.0,
+            size_score=component_scores.get("size", 0.0) if component_scores else 0.0,
+            pain_score=component_scores.get("pain", 0.0) if component_scores else 0.0,
+            tech_score=component_scores.get("tech", 0.0) if component_scores else 0.0,
+            total=score,
+            company_signals=company_signals or [],
+        ) if component_scores is not None else None,
     )
 
 
@@ -345,9 +402,11 @@ def match(
     delivered: list[MatchResult] = []
     adaptation: list[MatchResult] = []
     for record in delivered_results:
-        score = _score_library_a(record, industry, scale, maturity_label, company_signals)
+        score, components = _score_library_a(record, industry, scale, maturity_label, company_signals)
         if score >= 0.60:
-            delivered.append(_build_delivered(record, score, composite_score))
+            delivered.append(_build_delivered(record, score, composite_score,
+                                              component_scores=components,
+                                              company_signals=company_signals))
         elif score >= 0.30:
             adaptation.append(_build_adaptation(record, score, composite_score))
 
