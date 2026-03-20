@@ -127,6 +127,15 @@ class ConfidenceBreakdown(BaseModel):
     explanation: str = ""
 
 
+class LessonsLearned(BaseModel):
+    """Engagement-specific lessons from a delivered victory."""
+
+    primary_challenge: str = ""
+    risk_factors: list[str] = []
+    timeline_reality: str = ""
+    what_we_would_do_differently: str = ""
+
+
 class MatchResult(BaseModel):
     """Three-tier matching output — one schema covering DELIVERED, ADAPTATION, AMBITIOUS."""
 
@@ -146,6 +155,7 @@ class MatchResult(BaseModel):
     engagement_duration: int | None = None
     tech_approach: str = ""
     gap_analysis: str | None = None
+    lessons_learned: LessonsLearned | None = None
     # ADAPTATION tier fields
     base_solution_id: str = ""
     adaptation_notes: str = ""
