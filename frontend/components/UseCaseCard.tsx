@@ -231,6 +231,51 @@ export default function UseCaseCard({ useCase, signals, matchResults }: UseCaseC
                   </div>
                 </div>
               )}
+
+              {relatedMatch && (
+                <div>
+                  <p className="font-label text-xs uppercase tracking-[0.1em] text-ink-light mb-2">
+                    Victory Match
+                  </p>
+                  <div className="pl-3 border-l" style={{ borderColor: "var(--rule)" }}>
+                    <p className="font-body text-sm text-ink font-bold leading-snug">
+                      {relatedMatch.source_title}
+                    </p>
+                    {relatedMatch.relevance_note && (
+                      <p className="font-body text-sm text-ink-medium leading-relaxed mt-1">
+                        {relatedMatch.relevance_note}
+                      </p>
+                    )}
+                    {relatedMatch.proven_metrics && (
+                      <div className="mt-2 flex items-baseline gap-2 flex-wrap">
+                        <span className="font-label text-xs uppercase tracking-[0.06em] text-ink-light">
+                          {relatedMatch.proven_metrics.primary_label}
+                        </span>
+                        <span className="font-mono text-sm text-ink font-bold">
+                          {relatedMatch.proven_metrics.primary_value}
+                        </span>
+                        <span className="font-mono text-xs text-ink-faint">
+                          {relatedMatch.proven_metrics.measurement_period}
+                        </span>
+                      </div>
+                    )}
+                    {relatedMatch.confidence_breakdown && (
+                      <ConfidenceBreakdownBar breakdown={relatedMatch.confidence_breakdown} />
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {useCase.tier === "HARD_EXPERIMENT" && !relatedMatch && useCase.rag_benchmark && (
+                <div>
+                  <p className="font-label text-xs uppercase tracking-[0.1em] text-ink-light mb-1">
+                    Industry Reference
+                  </p>
+                  <p className="font-body text-sm text-ink-medium leading-relaxed pl-3 border-l" style={{ borderColor: "var(--rule)" }}>
+                    {useCase.rag_benchmark}
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
