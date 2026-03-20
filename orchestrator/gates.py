@@ -19,7 +19,7 @@ def scraper_quality_gate(company_data: dict) -> tuple[bool, str]:
         return False, "Scraper returned empty data."
 
     text_fields = []
-    for key in ("about_text", "product_text", "careers_text"):
+    for key in ("about_text", "product_text", "blog_text", "team_text"):
         val = company_data.get(key, "")
         if val:
             text_fields.append(val)
@@ -54,5 +54,12 @@ def scraper_quality_gate(company_data: dict) -> tuple[bool, str]:
             "No about page content or job postings found. "
             "The analysis needs at least one of these to produce reliable results."
         )
+
+    fetch_summary = company_data.get("fetch_summary")
+    if fetch_summary:
+        succeeded = fetch_summary.get("succeeded", 0)
+        attempted = fetch_summary.get("attempted", 1)
+        if succeeded == 0 and attempted > 0:
+            return False, "All page fetches failed — no content could be retrieved."
 
     return True, ""
