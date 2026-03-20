@@ -468,3 +468,46 @@ def test_sector_bonus_max_is_0_1():
     delta = round(all_r[0].similarity_score - base_all[0].similarity_score, 3)
     assert delta >= 0.0  # score increased or equal; sector bonus capped at 0.1
 
+
+# --- Integration test: win-001 scoring with realistic fixture data ---
+
+def _win_001_record() -> dict:
+    """Return the win-001 fixture record: Route Optimization for Regional LTL Carrier."""
+    return {
+        "id": "win-001",
+        "engagement_title": "Route Optimization for Regional LTL Carrier",
+        "industry": "logistics",
+        "sector_tags": ["ltl_freight", "route_planning", "fleet_management"],
+        "company_profile": {
+            "size_label": "mid-market",
+            "size_employees": 520,
+            "geography": "US Midwest",
+        },
+        "maturity_at_engagement": "Developing",
+        "problem_statement": (
+            "The carrier dispatched routes manually using a combination of dispatcher "
+            "experience and a legacy TMS. Route planners spent 3-4 hours per day on "
+            "manual adjustments to handle exceptions, weather, and driver availability. "
+            "Fuel costs had risen 18% year-over-year while on-time delivery rates dropped."
+        ),
+        "solution_summary": (
+            "Tenex built an ML-based route optimisation engine ingesting GPS telemetry, "
+            "delivery time windows, driver shift constraints, and historical traffic "
+            "patterns. The model used XGBoost regression to predict optimal route "
+            "sequences and flag at-risk deliveries before estimated late."
+        ),
+        "results": {
+            "primary_metric": {"label": "Fuel Cost Reduction", "value": "14%"},
+            "measurement_period": "4 months post-deployment",
+        },
+        "engagement_details": {"duration_months": 4},
+        "tech_stack": {
+            "infrastructure": ["GCP Vertex AI", "BigQuery", "Cloud Run for API serving"],
+            "data_sources": ["GPS telemetry (18 months)", "ERP order data"],
+            "ml_approach": "XGBoost regression for route scoring",
+            "client_systems_integrated": ["Legacy TMS REST API"],
+        },
+        "applicable_signals": [],
+    }
+
+
