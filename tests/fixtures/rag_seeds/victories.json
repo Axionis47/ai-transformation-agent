@@ -1783,5 +1783,59 @@
     "ingestion_date": "2026-03-19",
     "applicable_signals": [],
     "solution_category": "agentic_system"
+  },
+  {
+    "id": "win-023",
+    "engagement_title": "Internal Knowledge Retrieval System for Management Consultancy",
+    "industry": "professional_services",
+    "sector_tags": ["management_consulting", "knowledge_management", "internal_tooling"],
+    "company_profile": {
+      "size_employees": 310,
+      "size_label": "mid-market",
+      "annual_revenue_usd": "$65M-$85M",
+      "geography": "US (offices in New York, Chicago, San Francisco)",
+      "business_model": "Independent management consultancy specialising in operational transformation for mid-market industrials and healthcare systems; 140 billable consultants across 3 offices"
+    },
+    "problem_statement": "Consultants spent an estimated 6-8 hours per week searching for prior engagement deliverables — slide decks, process maps, benchmarking studies, and client-facing models — stored across SharePoint, email, and personal drives with no consistent taxonomy. Senior consultants fielded repeated questions from junior staff that could have been answered by existing internal knowledge, and new hire ramp time to self-sufficient was averaging 5 months. The firm estimated 15-20% of billable work was being redone from scratch when prior deliverables existed.",
+    "solution_summary": "Tenex built a RAG-based knowledge retrieval system indexing 4,200 prior engagement documents — presentations, models, benchmarking studies, and process frameworks. Documents were chunked and embedded using text-embedding-3-large, stored in Pinecone, and retrieved via a LangChain retrieval pipeline. A GPT-4o generation layer synthesised answers with citations back to source documents. The system was deployed as a Slack slash command and an internal web app, so consultants could query in natural language and receive sourced answers with links to original files.",
+    "results": {
+      "primary_metric": {
+        "label": "Time spent searching for prior work",
+        "value": "71% reduction",
+        "baseline": "6-8 hours per consultant per week on internal knowledge search and retrieval",
+        "outcome": "1.8-2.3 hours per consultant per week — measured via time-tracking survey"
+      },
+      "secondary_metrics": [
+        {"label": "New hire ramp time to self-sufficient", "value": "Reduced from 5 months to 3.1 months average across first 2 new hire cohorts post-deployment"},
+        {"label": "Duplicate work estimated reduction", "value": "Estimated 60% reduction in from-scratch rework based on document retrieval audit"},
+        {"label": "System adoption", "value": "81% of consultants active weekly users at 90-day mark"}
+      ],
+      "measurement_period": "4 months post-deployment",
+      "measurement_basis": "Time-tracking survey (consultant self-report, n=98); new hire ramp measured by manager assessment at 90 and 180 days; adoption from system access logs"
+    },
+    "engagement_details": {
+      "duration_months": 4,
+      "tenex_team_size": 3,
+      "tenex_roles": ["AI Engineer", "Data Engineer", "Engagement Lead"],
+      "client_team_involvement": "1 knowledge management director as primary stakeholder, 1 IT administrator for SharePoint access, 3 senior consultants as subject matter experts for retrieval quality evaluation",
+      "delivery_model": "project"
+    },
+    "tech_stack": {
+      "data_sources": ["SharePoint document library (4,200 documents)", "Email attachment archive (selective — partner-approved only)", "Internal project database for engagement metadata"],
+      "ml_approach": "OpenAI text-embedding-3-large for chunked document embedding; Pinecone vector store for retrieval; LangChain retrieval pipeline with hybrid search (dense + BM25); GPT-4o for answer synthesis with citation tracking",
+      "infrastructure": ["Pinecone serverless index", "AWS Lambda for retrieval API", "Slack API for slash command integration", "Vercel for internal web app hosting"],
+      "client_systems_integrated": ["Microsoft SharePoint", "Slack Workspace", "Microsoft Entra ID (authentication)"]
+    },
+    "maturity_at_engagement": "Beginner",
+    "follow_on_engagement": true,
+    "lessons_learned": "Chunking strategy had more impact on retrieval quality than embedding model choice. Documents with inconsistent formatting required custom chunking logic per document type. Spend week 1 on document profiling before building the ingestion pipeline.",
+    "embed_text": "Professional Services / Management Consulting — Mid-market independent consultancy, 310 employees, ~$75M revenue, US (NY, Chicago, SF)\n\nProblem: Consultants spent 6-8 hours per week searching for prior engagement deliverables across SharePoint, email, and personal drives with no consistent taxonomy. New hire ramp to self-sufficient averaged 5 months. Estimated 15-20% of billable work was redone from scratch when prior deliverables existed.\n\nSolution: Tenex built a RAG knowledge retrieval system indexing 4,200 prior engagement documents. Chunks embedded with text-embedding-3-large, stored in Pinecone, retrieved via LangChain hybrid search. GPT-4o synthesises answers with citations to source documents. Deployed as Slack slash command and internal web app.\n\nApproach: RAG pipeline with hybrid search (dense + BM25), OpenAI embeddings, Pinecone, GPT-4o synthesis\n\nResults: Knowledge search time: 71% reduction (6-8 hours to 1.8-2.3 hours per week). New hire ramp: 5 months to 3.1 months. 81% weekly active usage at 90 days.",
+    "industry_benchmark": "71% reduction in consultant knowledge search time, recovering 4-6 billable hours per consultant per week",
+    "success_threshold": "Most applicable when the firm has at least 1,000 prior engagement documents in accessible storage and consultants are spending 5+ hours per week on internal knowledge search.",
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — RAG knowledge retrieval ROI scales directly with document volume and consultant headcount; breakeven typically occurs within 3 months.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "rag_pipeline"
   }
 ]
