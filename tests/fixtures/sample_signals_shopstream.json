@@ -1,0 +1,74 @@
+{
+  "company_url": "https://shopstream.io",
+  "industry": "ecommerce SaaS",
+  "scale": "startup",
+  "scale_rationale": "80 employees serving 500+ small retailers — pre-Series A startup scale",
+  "signals": [
+    {
+      "signal_id": "sig-001",
+      "type": "pain_point",
+      "value": "manual product description writing",
+      "source": "job_posting",
+      "confidence": 0.9,
+      "raw_quote": "Write and edit product descriptions for our retailer catalog. Must manage 10,000+ SKUs"
+    },
+    {
+      "signal_id": "sig-002",
+      "type": "pain_point",
+      "value": "spreadsheet-based inventory forecasting",
+      "source": "about_text",
+      "confidence": 0.8,
+      "raw_quote": "inventory management"
+    },
+    {
+      "signal_id": "sig-003",
+      "type": "tech_stack",
+      "value": "Python",
+      "source": "job_posting",
+      "confidence": 0.95,
+      "raw_quote": "Build APIs and data pipelines on GCP with Python and BigQuery"
+    },
+    {
+      "signal_id": "sig-004",
+      "type": "tech_stack",
+      "value": "GCP",
+      "source": "job_posting",
+      "confidence": 0.95,
+      "raw_quote": "Build APIs and data pipelines on GCP with Python and BigQuery"
+    },
+    {
+      "signal_id": "sig-005",
+      "type": "tech_stack",
+      "value": "BigQuery",
+      "source": "job_posting",
+      "confidence": 0.95,
+      "raw_quote": "Build APIs and data pipelines on GCP with Python and BigQuery"
+    },
+    {
+      "signal_id": "sig-006",
+      "type": "intent_signal",
+      "value": "exploring AI for content operations",
+      "source": "job_posting",
+      "confidence": 0.75,
+      "raw_quote": "Content Operations Specialist — Write and edit product descriptions"
+    },
+    {
+      "signal_id": "sig-007",
+      "type": "scale_hint",
+      "value": "startup",
+      "source": "about_text",
+      "confidence": 0.85,
+      "raw_quote": "team of 80 working to make ecommerce accessible"
+    },
+    {
+      "signal_id": "sig-008",
+      "type": "data_signal",
+      "value": "BigQuery analytics with Looker dashboards",
+      "source": "job_posting",
+      "confidence": 0.88,
+      "raw_quote": "Analyze conversion and retention using BigQuery. Build dashboards in Looker"
+    }
+  ],
+  "signal_count": 8,
+  "extraction_notes": "Ecommerce startup with GCP/BigQuery data stack. Content operations bottleneck is explicit. No ML or AI signals. Data analyst role suggests basic analytics maturity but no forecasting infrastructure."
+}
