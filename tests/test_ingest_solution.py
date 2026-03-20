@@ -122,7 +122,7 @@ def test_ensure_seeds_loaded_uses_tenex_delivered(monkeypatch, tmp_path):
 
     store = ChromaStore(collection_name="tenex_delivered")
     store._init_chroma()
-    assert store._collection.count() == 20
+    assert store._collection.count() == 26
 
     # ai_solutions collection should NOT have been created
     import chromadb
