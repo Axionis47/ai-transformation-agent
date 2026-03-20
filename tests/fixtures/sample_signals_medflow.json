@@ -67,8 +67,24 @@
       "source": "about_text",
       "confidence": 0.88,
       "raw_quote": "processes over 50,000 patient encounters monthly"
+    },
+    {
+      "signal_id": "sig-009",
+      "type": "intent_signal",
+      "value": "partnership with Epic to expand AI-assisted documentation",
+      "source": "blog",
+      "confidence": 0.87,
+      "raw_quote": "partnering with Epic to pilot AI-assisted clinical documentation"
+    },
+    {
+      "signal_id": "sig-010",
+      "type": "org_signal",
+      "value": "No ML or data science roles — clinical and engineering only",
+      "source": "team_page",
+      "confidence": 0.82,
+      "raw_quote": "Clinical Informatics, Engineering, Customer Success"
     }
   ],
-  "signal_count": 8,
+  "signal_count": 10,
   "extraction_notes": "Healthcare domain with EHR integration depth. Documentation and prior auth are explicit pain points. No ML detected. Data analyst hiring signals early data maturity."
 }

@@ -99,8 +99,24 @@
       "source": "about_text",
       "confidence": 0.85,
       "raw_quote": "investing in data infrastructure to support our next generation of intelligent logistics tools"
+    },
+    {
+      "signal_id": "sig-013",
+      "type": "intent_signal",
+      "value": "Series B announcement — expanding AI capabilities",
+      "source": "blog",
+      "confidence": 0.88,
+      "raw_quote": "Series B to accelerate our AI-powered logistics roadmap"
+    },
+    {
+      "signal_id": "sig-014",
+      "type": "org_signal",
+      "value": "No dedicated ML team — 0 ML roles out of 8 open positions",
+      "source": "team_page",
+      "confidence": 0.8,
+      "raw_quote": "Engineering, Product, Customer Success, Sales"
     }
   ],
-  "signal_count": 12,
+  "signal_count": 14,
   "extraction_notes": "Strong data infrastructure signals. No ML/AI roles or deployed models detected. Process automation opportunities visible in route optimization and shipment tracking."
 }

@@ -67,8 +67,24 @@
       "source": "job_posting",
       "confidence": 0.88,
       "raw_quote": "Analyze conversion and retention using BigQuery. Build dashboards in Looker"
+    },
+    {
+      "signal_id": "sig-009",
+      "type": "intent_signal",
+      "value": "investing in AI-powered product recommendations",
+      "source": "blog",
+      "confidence": 0.83,
+      "raw_quote": "building toward AI-powered recommendations for our retailer base"
+    },
+    {
+      "signal_id": "sig-010",
+      "type": "org_signal",
+      "value": "Single data analyst, no ML or data science headcount",
+      "source": "team_page",
+      "confidence": 0.79,
+      "raw_quote": "Data & Analytics: 1 analyst"
     }
   ],
-  "signal_count": 8,
+  "signal_count": 10,
   "extraction_notes": "Ecommerce startup with GCP/BigQuery data stack. Content operations bottleneck is explicit. No ML or AI signals. Data analyst role suggests basic analytics maturity but no forecasting infrastructure."
 }

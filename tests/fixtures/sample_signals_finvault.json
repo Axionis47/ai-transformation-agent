@@ -67,8 +67,24 @@
       "source": "about_text",
       "confidence": 0.82,
       "raw_quote": "KYC document collection"
+    },
+    {
+      "signal_id": "sig-009",
+      "type": "intent_signal",
+      "value": "exploring AI for automated compliance checks",
+      "source": "blog",
+      "confidence": 0.84,
+      "raw_quote": "our roadmap includes AI-assisted compliance screening for 2025"
+    },
+    {
+      "signal_id": "sig-010",
+      "type": "org_signal",
+      "value": "No engineering leadership — CTO not listed, 3 engineers total",
+      "source": "team_page",
+      "confidence": 0.78,
+      "raw_quote": "Team: 2 founders, 3 engineers, 5 compliance analysts"
     }
   ],
-  "signal_count": 8,
+  "signal_count": 10,
   "extraction_notes": "Fintech compliance startup with clear manual bottlenecks. KYC review and report generation are explicit pain points. No ML or AI tooling signals. MongoDB unstructured store suggests raw data exists but is not ML-ready."
 }

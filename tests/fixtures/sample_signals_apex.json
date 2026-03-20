@@ -67,8 +67,24 @@
       "source": "about_text",
       "confidence": 0.88,
       "raw_quote": "300 consultants across 6 US offices"
+    },
+    {
+      "signal_id": "sig-009",
+      "type": "intent_signal",
+      "value": "launching AI practice focused on enterprise GenAI adoption",
+      "source": "blog",
+      "confidence": 0.86,
+      "raw_quote": "We are launching a dedicated AI practice to help clients navigate GenAI"
+    },
+    {
+      "signal_id": "sig-010",
+      "type": "org_signal",
+      "value": "No data or analytics team — all delivery roles are BA and PM",
+      "source": "team_page",
+      "confidence": 0.81,
+      "raw_quote": "Consulting Practices: Strategy, Digital Transformation, IT Advisory"
     }
   ],
-  "signal_count": 8,
+  "signal_count": 10,
   "extraction_notes": "Professional services firm with Microsoft ecosystem. Knowledge silo and proposal bottleneck are implied pain points. No data pipeline, analytics stack, or ML signals. Power BI mentioned but no data infrastructure context."
 }
