@@ -199,7 +199,38 @@ export default function UseCaseCard({ useCase, signals, matchResults }: UseCaseC
           </button>
           {evidenceOpen && (
             <div className="mt-3 space-y-5">
-              {/* content rendered below */}
+              {supportingSignals.length > 0 && (
+                <div>
+                  <p className="font-label text-xs uppercase tracking-[0.1em] text-ink-light mb-2">
+                    Supporting Signals
+                  </p>
+                  <div className="space-y-3">
+                    {supportingSignals.map((sig) => (
+                      <div key={sig.signal_id} className="pl-3 border-l" style={{ borderColor: "var(--rule)" }}>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-label text-xs uppercase tracking-[0.06em] text-ink-medium">
+                            {sig.type}
+                          </span>
+                          <span
+                            className="font-mono text-xs px-1"
+                            style={{ background: "var(--rule)", color: "var(--ink-light)" }}
+                          >
+                            {SOURCE_LABELS[sig.source] ?? sig.source}
+                          </span>
+                        </div>
+                        <p className="font-body text-sm text-ink leading-relaxed">
+                          {sig.value}
+                        </p>
+                        {sig.raw_quote && (
+                          <p className="font-body text-xs italic text-ink-faint mt-0.5">
+                            &ldquo;{sig.raw_quote}&rdquo;
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
