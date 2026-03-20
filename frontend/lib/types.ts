@@ -135,6 +135,25 @@ export interface AnalyzeSuccess {
     ambitious: MatchResult[];
   };
   has_user_hints?: boolean;
+  pitch_brief?: {
+    opening_line: string;
+    story: string;
+    roi_conversation: string;
+    questions: string[];
+    objection_prep: string;
+  };
+  readiness?: {
+    score: number;
+    label: string;
+    components: Record<string, number>;
+    next_action: string;
+  };
+  suggested_questions?: Array<{
+    question: string;
+    dimension: string;
+    potential_lift: number;
+    why: string;
+  }>;
   // backward compat — present in older responses
   analysis?: {
     maturity_score?: number;
