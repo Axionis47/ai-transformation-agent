@@ -29,6 +29,7 @@ PM owns this file. Update at every prompt version bump.
 |---------|------|-------------|-----|
 | 1.0 | 2026-03-16 | Initial prompt. Extraction-only agent: seven signal types, confidence bands, verbatim raw_quote rule, no scoring or analysis, industry/scale always required. | -- |
 | 1.1 | 2026-03-17 | Added process_signal, hiring_signal, pain_point extraction rules; clarified intent_signal triggers. | -- |
+| 1.2 | 2026-03-20 | Added org_signal type; blog and team_page source values; 25-signal budget rule with priority order; job posting body guidance; blog/team page extraction notes. | -- |
 
 ## maturity_scorer.md
 
