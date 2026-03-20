@@ -1,0 +1,21 @@
+{
+  "url": "https://shopstream.io",
+  "name": "ShopStream",
+  "about_text": "ShopStream is an ecommerce platform startup helping 500+ independent retailers sell online. Founded in 2021, we provide storefront tooling, inventory management, and order fulfilment integrations. Our platform is built on GCP and connects to Shopify, WooCommerce, and major marketplaces. We are a team of 80 working to make ecommerce accessible for small and mid-market retailers.",
+  "job_postings": [
+    "Backend Engineer — Build APIs and data pipelines on GCP with Python and BigQuery. Own the inventory data layer that powers our forecasting features.",
+    "Content Operations Specialist — Write and edit product descriptions for our retailer catalog. Must manage 10,000+ SKUs across multiple categories.",
+    "Growth Analyst — Analyze conversion and retention using BigQuery. Build dashboards in Looker to surface merchandising insights."
+  ],
+  "product_text": "ShopStream gives independent retailers everything they need to compete online. Storefront builder, inventory sync, order routing, and performance analytics — all in one platform. We connect to Shopify APIs, Google Shopping, and Amazon Seller Central so retailers can list everywhere without duplicating work.",
+  "tech_stack_mentions": [
+    "Python",
+    "GCP",
+    "BigQuery",
+    "Shopify APIs",
+    "Looker"
+  ],
+  "pages_fetched": ["/about", "/careers", "/product"],
+  "signal_count": 5,
+  "last_scraped": "2026-03-14T10:30:00Z"
+}

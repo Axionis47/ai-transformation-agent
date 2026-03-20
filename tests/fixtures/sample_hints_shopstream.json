@@ -1,0 +1,10 @@
+{
+  "pain_points": [
+    "Writing product descriptions for new SKUs takes 2 full-time employees and still has a 2-week backlog",
+    "Inventory forecasting is done in Google Sheets — they stockout on bestsellers every Q4"
+  ],
+  "known_tech": ["GCP Cloud Run", "Shopify Partner API", "Google Sheets"],
+  "industry": "retail",
+  "employee_count": 80,
+  "context": "Met with CEO and Head of Operations. They are pre-Series A and cost-sensitive but losing margin to manual content ops. The CEO mentioned a competitor uses AI for product descriptions and they feel behind. Their BigQuery instance has 18 months of sales data but no one is running forecasting models against it. They would try a content AI POC immediately if it required no ML team."
+}
