@@ -266,6 +266,17 @@ export default function UseCaseCard({ useCase, signals, matchResults }: UseCaseC
                 </div>
               )}
 
+              {relatedMatch?.lessons_learned && (
+                <div className="pl-3 border-l border-rule">
+                  <p className="font-label text-xs uppercase tracking-[0.1em] text-ink-light mb-1">
+                    From a similar engagement:
+                  </p>
+                  <p className="font-body text-sm text-ink-medium leading-relaxed">
+                    {relatedMatch.lessons_learned.primary_challenge}
+                  </p>
+                </div>
+              )}
+
               {useCase.tier === "HARD_EXPERIMENT" && !relatedMatch && useCase.rag_benchmark && (
                 <div>
                   <p className="font-label text-xs uppercase tracking-[0.1em] text-ink-light mb-1">
