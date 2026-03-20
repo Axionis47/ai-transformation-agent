@@ -1,0 +1,10 @@
+{
+  "pain_points": [
+    "Proposal writing takes 3-4 weeks per engagement and relies on individual consultants remembering past projects",
+    "Resource allocation is done by the VP of Delivery on a whiteboard — no system, no data"
+  ],
+  "known_tech": ["Microsoft Copilot (evaluating)", "SharePoint Online", "Salesforce CRM"],
+  "industry": "professional_services",
+  "employee_count": 300,
+  "context": "Met with VP of Delivery and Managing Director. They are actively evaluating Microsoft Copilot but have not deployed it. The biggest pain is institutional knowledge loss — when a senior consultant leaves, their project knowledge disappears. They have 15 years of project documents in SharePoint but nobody has ever searched it systematically. Resource scheduling is the second pain: they miss billable hours because the right consultant is on the wrong project. No analytics team, no data warehouse, no one who can code."
+}

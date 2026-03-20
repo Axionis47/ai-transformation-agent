@@ -1,0 +1,20 @@
+{
+  "url": "https://apexconsulting.com",
+  "name": "Apex Consulting",
+  "about_text": "Apex Consulting is an IT consulting and managed services firm with 300 consultants across 6 US offices. Founded in 2005, we deliver digital transformation, cloud migration, and IT strategy engagements for mid-market enterprises. Our clients include manufacturers, distributors, and regional healthcare systems. We leverage Microsoft 365, SharePoint, and Salesforce as our internal platforms.",
+  "job_postings": [
+    "Business Analyst — Support client engagement delivery. Gather requirements, run workshops, and document current-state processes. Salesforce experience a plus.",
+    "Project Manager — Manage delivery of IT transformation projects. Resource planning, status reporting, and client communication. PMP certification preferred.",
+    "SharePoint Developer — Build internal knowledge portals and client collaboration sites on SharePoint Online."
+  ],
+  "product_text": "Apex helps mid-market companies modernize their IT. We offer strategy consulting, cloud migration, ERP implementations, and ongoing managed services. Our consultants bring deep sector expertise in manufacturing, distribution, and healthcare IT.",
+  "tech_stack_mentions": [
+    "Microsoft 365",
+    "SharePoint",
+    "Salesforce",
+    "Power BI"
+  ],
+  "pages_fetched": ["/about", "/careers", "/services"],
+  "signal_count": 4,
+  "last_scraped": "2026-03-14T10:30:00Z"
+}
