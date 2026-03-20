@@ -41,6 +41,10 @@ class PipelineState(BaseModel):
     pages_fetched: list[str] | None = None
     signal_count: int | None = None
 
+    # User-provided context hints
+    user_hints: dict[str, Any] | None = None
+    has_user_hints: bool = False
+
     # Metadata
     status: PipelineStatus = PipelineStatus.PENDING
     error: dict[str, Any] | None = None

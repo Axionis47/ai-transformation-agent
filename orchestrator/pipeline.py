@@ -15,6 +15,8 @@ from agents.rag_query import RAGQueryAgent
 from agents.report_writer import ReportWriterAgent
 from agents.signal_extractor import SignalExtractorAgent
 from agents.use_case_generator import UseCaseGeneratorAgent
+from orchestrator.schemas import UserHints
+from orchestrator.signal_merger import merge_signals
 from orchestrator.tool_registry import registry
 from ops.logger import PipelineLogger, get_logger
 from orchestrator.gates import scraper_quality_gate
@@ -98,13 +100,29 @@ def _parallel_report_sections(
     return report
 
 
-def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
+def run_pipeline(
+    url: str,
+    dry_run: bool = False,
+    user_hints: dict | None = None,
+) -> PipelineState:
     """Execute the 7-stage AI transformation pipeline."""
     os.environ["DRY_RUN"] = "true" if dry_run else "false"
     if not dry_run:
         ensure_seeds_loaded()
 
-    state = PipelineState(url=url, dry_run=dry_run)
+    _hints: UserHints | None = None
+    if user_hints:
+        try:
+            _hints = UserHints(**user_hints)
+        except Exception:
+            _hints = None  # invalid hints — proceed without them
+
+    state = PipelineState(
+        url=url,
+        dry_run=dry_run,
+        user_hints=user_hints if _hints else None,
+        has_user_hints=(_hints is not None),
+    )
     state.status = PipelineStatus.RUNNING
     start = time.time()
     logger: PipelineLogger = get_logger(state.run_id)
@@ -144,8 +162,9 @@ def run_pipeline(url: str, dry_run: bool = False) -> PipelineState:
     validated = validate_signals(result)
     if isinstance(validated, AgentError):
         return _fail(state, validated, start, logger)
-    state.signals = validated.model_dump()
-    state.signal_count = len([v for v in state.signals.values() if v])
+    merged = merge_signals(validated.model_dump(), _hints)
+    state.signals = merged
+    state.signal_count = len(merged.get("signals", []))
     if not dry_run:
         state.cost_usd += _COST_SIGNAL
     logger.log_agent_call("SIGNAL_EXTRACTOR", result=True, start_time=t, prompt_version="1.0",
