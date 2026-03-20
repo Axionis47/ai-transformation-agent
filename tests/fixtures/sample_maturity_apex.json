@@ -1,0 +1,27 @@
+{
+  "dimensions": {
+    "data_infrastructure": {
+      "score": 1.5,
+      "signals_used": ["sig-003", "sig-004", "sig-005"],
+      "rationale": "Microsoft 365, SharePoint, and Salesforce are operational tools, not a data infrastructure. Power BI is present but no data warehouse, ETL pipeline, or structured analytics layer detected. Data is siloed across systems."
+    },
+    "ml_ai_capability": {
+      "score": 1.0,
+      "signals_used": [],
+      "rationale": "No ML or AI tools, roles, or language detected. Business Analyst and Project Manager roles are delivery-focused. No data science or analytics engineering capability."
+    },
+    "strategy_intent": {
+      "score": 1.5,
+      "signals_used": ["sig-001", "sig-002"],
+      "rationale": "Knowledge management and proposal acceleration are implicit pain points that align with AI opportunity, but no explicit AI roadmap or investment language detected. Company is selling AI transformation to clients but has not adopted it internally."
+    },
+    "operational_readiness": {
+      "score": 2.0,
+      "signals_used": ["sig-003"],
+      "rationale": "Microsoft 365 cloud deployment provides a foundation. SharePoint and Salesforce are enterprise-grade operational systems. No engineering team capable of deploying AI workloads internally."
+    }
+  },
+  "composite_score": 1.5,
+  "composite_label": "Beginner",
+  "composite_rationale": "Apex Consulting scores 1.5 (Beginner) with operational Microsoft ecosystem but no data infrastructure or ML capability. The company sells digital transformation engagements to clients but has not applied those capabilities to its own operations. Knowledge silos and manual proposal writing are high-value, low-complexity AI targets."
+}
