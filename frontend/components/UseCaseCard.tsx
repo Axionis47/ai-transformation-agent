@@ -1,16 +1,53 @@
 "use client";
 
 import { useState } from "react";
-import type { TieredUseCase } from "@/lib/types";
+import type { TieredUseCase, Signal, MatchResult } from "@/lib/types";
 import { ROI_LABELS, DATA_FLOW_LABELS, STRINGS } from "@/lib/config";
+import ConfidenceBreakdownBar from "@/components/ConfidenceBreakdownBar";
 
 interface UseCaseCardProps {
   useCase: TieredUseCase;
+  signals?: Signal[];
+  matchResults?: MatchResult[];
 }
 
-export default function UseCaseCard({ useCase }: UseCaseCardProps) {
+// Source badge display — maps raw source values to readable labels
+const SOURCE_LABELS: Record<string, string> = {
+  about_text: "About",
+  job_posting: "Jobs",
+  blog: "Blog",
+  team_page: "Team",
+  user_hint: "Your input",
+};
+
+function resolveMatchForUseCase(
+  useCase: TieredUseCase,
+  matchResults?: MatchResult[]
+): MatchResult | undefined {
+  if (!matchResults || matchResults.length === 0) return undefined;
+  if (useCase.tier === "LOW_HANGING_FRUIT" && useCase.win_id) {
+    return matchResults.find((m) => m.source_id === useCase.win_id);
+  }
+  if (useCase.tier === "MEDIUM_SOLUTION" && useCase.base_win_id) {
+    return matchResults.find((m) => m.source_id === useCase.base_win_id);
+  }
+  return undefined;
+}
+
+export default function UseCaseCard({ useCase, signals, matchResults }: UseCaseCardProps) {
   const [dataFlowOpen, setDataFlowOpen] = useState(false);
+  const [evidenceOpen, setEvidenceOpen] = useState(false);
   const confidencePct = Math.round(useCase.confidence * 100);
+
+  const supportingSignals = signals?.filter((s) =>
+    useCase.evidence_signal_ids.includes(s.signal_id)
+  ) ?? [];
+
+  const relatedMatch = resolveMatchForUseCase(useCase, matchResults);
+  const hasEvidence =
+    supportingSignals.length > 0 ||
+    relatedMatch !== undefined ||
+    (useCase.tier === "HARD_EXPERIMENT" && !!useCase.rag_benchmark);
 
   const roiLabel = ROI_LABELS[useCase.tier] ?? "ROI";
 
@@ -138,6 +175,32 @@ export default function UseCaseCard({ useCase }: UseCaseCardProps) {
           )}
           {useCase.rag_benchmark && (
             <p className="text-ink-faint">Industry ref: {useCase.rag_benchmark}</p>
+          )}
+        </div>
+      )}
+
+      {/* Evidence collapsible — placeholder, filled in next step */}
+      {hasEvidence && (
+        <div className="pt-3 border-t" style={{ borderColor: "var(--rule)" }}>
+          <button
+            onClick={() => setEvidenceOpen(!evidenceOpen)}
+            className="w-full flex items-center justify-between gap-2 text-left group"
+            aria-expanded={evidenceOpen}
+          >
+            <span className="font-label text-xs uppercase tracking-[0.1em] text-ink-light group-hover:text-ink-medium transition-colors">
+              Evidence
+            </span>
+            <span
+              className="text-ink-light text-xs transition-transform duration-200"
+              style={{ transform: evidenceOpen ? "rotate(180deg)" : "rotate(0deg)", display: "inline-block" }}
+            >
+              ▾
+            </span>
+          </button>
+          {evidenceOpen && (
+            <div className="mt-3 space-y-5">
+              {/* content rendered below */}
+            </div>
           )}
         </div>
       )}

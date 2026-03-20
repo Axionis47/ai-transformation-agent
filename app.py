@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from infra.firestore_store import get_firestore_store
 from infra.health_check import health_router
 from orchestrator.pipeline import run_pipeline
 from orchestrator.state import PipelineStatus
@@ -95,6 +96,28 @@ class AnalyzeError(BaseModel):
     error: ErrorDetail
 
 
+@app.get("/v1/results/{run_id}")
+async def get_result(run_id: str) -> dict[str, Any]:
+    """Retrieve a saved analysis result from Firestore by run_id."""
+    store = get_firestore_store()
+    if not store:
+        raise HTTPException(status_code=404, detail="Persistence not enabled")
+    result = store.get_run(run_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Run not found")
+    return result
+
+
+@app.get("/v1/runs")
+async def list_runs(request: Request) -> dict[str, Any]:
+    """List recent analysis runs for a user (identified by X-User-Email header)."""
+    store = get_firestore_store()
+    if not store:
+        return {"runs": []}
+    email = request.headers.get("X-User-Email", "anonymous")
+    return {"runs": store.list_runs(email)}
+
+
 @app.get("/v1/trace/{run_id}")
 async def get_trace(run_id: str) -> dict[str, Any]:
     """Return all log entries for a pipeline run."""
@@ -141,7 +164,7 @@ async def analyze(request: AnalyzeRequest) -> AnalyzeSuccess:
             },
         )
 
-    return AnalyzeSuccess(
+    response = AnalyzeSuccess(
         run_id=state.run_id,
         status=state.status,
         elapsed_seconds=state.elapsed_seconds,
@@ -159,3 +182,17 @@ async def analyze(request: AnalyzeRequest) -> AnalyzeSuccess:
         readiness=state.readiness,
         suggested_questions=state.suggested_questions,
     )
+
+    # Persist to Firestore (optional, non-blocking — never fails the request)
+    store = get_firestore_store()
+    if store:
+        try:
+            store.save_run(
+                run_id=state.run_id,
+                data=response.model_dump(),
+                user_email=request.headers.get("X-User-Email"),
+            )
+        except Exception:
+            pass
+
+    return response
