@@ -12,7 +12,7 @@ from orchestrator.question_engine import generate_questions
 
 _PROMPT = Path(__file__).resolve().parent.parent / "prompts" / "pitch_brief.md"
 
-_BRIEF_KEYS = ["opening_line", "story", "roi_conversation", "questions", "objection_prep"]
+_BRIEF_KEYS = ["opening_line", "story", "roi_conversation", "questions", "objection_prep", "honest_conversation"]
 
 
 class PitchBriefAgent(BaseAgent):
@@ -63,6 +63,10 @@ class PitchBriefAgent(BaseAgent):
 
         roi_estimate = top_uc.get("roi_estimate", "15-25% cost reduction")
 
+        honest_conversation = self._build_honest_conversation(
+            input_data.get("lessons_learned") or top_match.get("lessons_learned")
+        )
+
         return {
             "opening_line": (
                 f"You're spending significant resources on {pain_value}. "
@@ -87,7 +91,48 @@ class PitchBriefAgent(BaseAgent):
                 f"Timeline concerns: Our typical engagement is {duration} months.\n"
                 "We don't have the team: confirm team involvement requirements in meeting."
             ),
+            "honest_conversation": honest_conversation,
         }
+
+    def _build_honest_conversation(self, lessons_learned: dict | None) -> str:
+        """Generate honest_conversation string from lessons_learned data.
+
+        Format: "In a similar engagement, [primary_challenge]. [timeline_reality].
+        [discovery question based on the challenge]."
+        Returns fallback string when lessons_learned is absent or empty.
+        """
+        if not lessons_learned or not isinstance(lessons_learned, dict):
+            return (
+                "insufficient data to share a lessons-learned story"
+                " - ask the client what their biggest concern is."
+            )
+        challenge = lessons_learned.get("primary_challenge", "")
+        timeline = lessons_learned.get("timeline_reality", "")
+        differently = lessons_learned.get("what_we_would_do_differently", "")
+        if not challenge:
+            return (
+                "insufficient data to share a lessons-learned story"
+                " - ask the client what their biggest concern is."
+            )
+        parts = [f"In a similar engagement, {challenge}."]
+        if timeline:
+            parts.append(f" {timeline}.")
+        discovery_hint = differently if differently else challenge
+        # Derive a discovery question from the challenge topic
+        challenge_lower = challenge.lower()
+        if "format" in challenge_lower or "template" in challenge_lower or "document" in challenge_lower:
+            question = "How standardized are your incoming documents?"
+        elif "escalat" in challenge_lower or "support" in challenge_lower or "customer" in challenge_lower:
+            question = "What is your current escalation rate and how are you handling it?"
+        elif "data" in challenge_lower or "quality" in challenge_lower:
+            question = "How clean and consistent is your underlying data today?"
+        else:
+            # Generic fallback derived from the what_we_would_do_differently hint
+            action = differently.split(" ")[0:5] if differently else []
+            question = f"What would you prioritize first to avoid a similar issue: {' '.join(action)}?" if action else "What is your biggest concern going into this?"
+        parts.append(f" The lesson: {discovery_hint}." if differently else "")
+        parts.append(f" {question}")
+        return "".join(p for p in parts if p)
 
     def _load_system_prompt(self) -> str:
         try:
@@ -99,7 +144,7 @@ class PitchBriefAgent(BaseAgent):
         return (
             f"Analysis data:\n{json.dumps(input_data, indent=2)}\n\n"
             "Generate the pitch brief as JSON with keys: "
-            "opening_line, story, roi_conversation, questions, objection_prep."
+            "opening_line, story, roi_conversation, questions, objection_prep, honest_conversation."
         )
 
     def _parse_response(self, response: str) -> dict | AgentError:
