@@ -1,0 +1,10 @@
+{
+  "pain_points": [
+    "Clinicians spend 2-3 hours per day on documentation that should take 30 minutes",
+    "Prior auth denials are not tracked — the team re-submits the same denials repeatedly"
+  ],
+  "known_tech": ["Epic", "Dragon Medical One", "AWS RDS"],
+  "industry": "healthcare",
+  "employee_count": 150,
+  "context": "Met with CTO and VP of Product. They are evaluating ambient AI documentation tools but have no ML team internally. Budget for a POC is available in Q3. The prior auth problem is their biggest clinical complaint — they lose 15% of submissions to avoidable denials. They have 3 years of encounter data in PostgreSQL but have never done any analytics beyond basic reporting."
+}

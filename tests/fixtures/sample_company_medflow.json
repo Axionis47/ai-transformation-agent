@@ -1,0 +1,22 @@
+{
+  "url": "https://medflowhealth.com",
+  "name": "MedFlow Health",
+  "about_text": "MedFlow Health is a healthcare SaaS company serving 40+ ambulatory care clinics and medical groups across the Midwest. Founded in 2019, we provide EHR workflow automation, prior authorization tracking, and clinical documentation tools. Our platform integrates with major EHR systems via HL7/FHIR and processes over 50,000 patient encounters monthly. We are a team of 150 focused on reducing administrative burden for clinicians.",
+  "job_postings": [
+    "Data Analyst — Analyze clinical workflow data to identify documentation bottlenecks. Experience with SQL, AWS, and healthcare data required. Help us understand where time is being lost in the documentation process.",
+    "Integration Engineer — Build and maintain HL7/FHIR integrations with Epic, Cerner, and Athena. PostgreSQL and React experience required.",
+    "Clinical Product Manager — Own our prior authorization workflow product. Partner with clinical staff to streamline insurance approval processes."
+  ],
+  "product_text": "MedFlow Health automates the administrative side of clinical care. Our tools reduce time spent on clinical documentation, prior authorizations, and care coordination. Built on AWS with FHIR-native APIs, our platform slots into existing EHR workflows without ripping and replacing.",
+  "tech_stack_mentions": [
+    "AWS",
+    "React",
+    "PostgreSQL",
+    "HL7/FHIR",
+    "Epic integration",
+    "Cerner integration"
+  ],
+  "pages_fetched": ["/about", "/careers", "/product"],
+  "signal_count": 6,
+  "last_scraped": "2026-03-14T10:30:00Z"
+}
