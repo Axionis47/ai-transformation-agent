@@ -51,10 +51,21 @@ class SignalExtractorAgent(BaseAgent):
             sections.append(f"=== ABOUT PAGE ===\n{company_data['about_text'][:3000]}")
         if company_data.get("job_postings"):
             postings = company_data["job_postings"]
-            text = "\n".join(str(p)[:1000] for p in postings[:5]) if isinstance(postings, list) else str(postings)[:3000]
+            if isinstance(postings, list):
+                labelled = [
+                    f"[JOB POSTING {i + 1}]\n{str(p)[:600]}"
+                    for i, p in enumerate(postings[:15])
+                ]
+                text = "\n\n".join(labelled)
+            else:
+                text = str(postings)[:3000]
             sections.append(f"=== JOB POSTINGS ===\n{text}")
         if company_data.get("product_text"):
-            sections.append(f"=== PRODUCT/SOLUTIONS PAGE ===\n{company_data['product_text'][:3000]}")
+            sections.append(f"=== PRODUCT/SOLUTIONS PAGE ===\n{company_data['product_text'][:2000]}")
+        if company_data.get("blog_text"):
+            sections.append(f"=== BLOG / PRESS ===\n{company_data['blog_text'][:2000]}")
+        if company_data.get("team_text"):
+            sections.append(f"=== TEAM PAGE ===\n{company_data['team_text'][:1500]}")
 
         if not sections:
             sections.append("No content available.")
