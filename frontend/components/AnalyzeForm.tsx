@@ -5,17 +5,18 @@ import type { PageState, AnalyzeSuccess } from "@/lib/types";
 import { parseApiError } from "@/lib/types";
 import { saveAnalysis, getHistory, getAnalysis, clearHistory } from "@/lib/history";
 import type { HistoryEntry } from "@/lib/history";
-import ReportCard from "@/components/ReportCard";
 import MaturityBadge from "@/components/MaturityBadge";
 import PipelineProgress from "@/components/PipelineProgress";
 import ErrorMessage from "@/components/ErrorMessage";
 import URLInputForm from "@/components/URLInputForm";
-import UseCaseTierSection from "@/components/UseCaseTierSection";
-import TracePanel from "@/components/TracePanel";
-import ReportNav from "@/components/ReportNav";
 import UserHintsPanel from "@/components/UserHintsPanel";
 import type { UserHintsPanelHandle } from "@/components/UserHintsPanel";
-import MatchResultCard from "@/components/MatchResultCard";
+import DashboardTabs from "@/components/DashboardTabs";
+import type { TabId } from "@/components/DashboardTabs";
+import ReadinessMeter from "@/components/ReadinessMeter";
+import PitchBriefView from "@/components/PitchBriefView";
+import FullReportView from "@/components/FullReportView";
+import EvidenceView from "@/components/EvidenceView";
 import { API_BASE, scoreColor, STRINGS } from "@/lib/config";
 
 function buildDimensions(data: AnalyzeSuccess): Record<string, number> | undefined {
@@ -37,30 +38,10 @@ function relativeDate(iso: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-function MatchResultsSection({ data }: { data: AnalyzeSuccess }) {
-  const mr = data.match_results!;
-  const shown = [
-    ...mr.delivered.slice(0, 2),
-    ...mr.adaptation.slice(0, 1),
-    ...mr.ambitious.slice(0, 1),
-  ];
-  if (shown.length === 0) return null;
-  return (
-    <div>
-      <p className="font-label uppercase tracking-[0.1em] text-xs text-ink-light mb-3">
-        Victory Matches
-        {data.has_user_hints && (
-          <span className="ml-2 font-mono normal-case text-ink-faint">enhanced with your context</span>
-        )}
-      </p>
-      {shown.map((r, i) => <MatchResultCard key={r.result_id ?? i} result={r} />)}
-    </div>
-  );
-}
-
 export default function AnalyzeForm() {
   const [state, setState] = useState<PageState>({ phase: "idle" });
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [activeTab, setActiveTab] = useState<TabId>("brief");
   const abortRef = useRef<AbortController | null>(null);
   const hintsRef = useRef<UserHintsPanelHandle>(null);
 
@@ -160,16 +141,23 @@ export default function AnalyzeForm() {
       )}
 
       {state.phase === "success" && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            <ReportNav />
+            <div className="flex-1" />
             <button
-              onClick={() => setState({ phase: "idle" })}
+              onClick={() => { setState({ phase: "idle" }); setActiveTab("brief"); }}
               className="font-label uppercase text-xs border border-ink bg-cream text-ink px-5 py-2 rounded-none transition-colors hover:bg-red hover:text-cream hover:border-red"
             >
               {STRINGS.newAnalysis}
             </button>
           </div>
+          {state.data.readiness && (
+            <ReadinessMeter
+              score={state.data.readiness.score}
+              label={state.data.readiness.label}
+              nextAction={state.data.readiness.next_action}
+            />
+          )}
           <MaturityBadge
             score={state.data.maturity.composite_score}
             label={state.data.maturity.composite_label}
@@ -177,44 +165,16 @@ export default function AnalyzeForm() {
             costUsd={state.data.cost_usd}
             dimensions={buildDimensions(state.data)}
           />
-          {state.data.match_results && (
-            <MatchResultsSection data={state.data} />
-          )}
-          <ReportCard
-            id="section-exec-summary"
-            title="Executive Summary"
-            content={state.data.report.exec_summary}
-            wins={state.data.victory_matches}
-          />
-          <ReportCard
-            id="section-current-state"
-            title="Current State"
-            content={state.data.report.current_state}
-          />
-          {state.data.use_cases && state.data.use_cases.length > 0 ? (
-            <UseCaseTierSection
-              id="section-use-cases"
-              useCases={state.data.use_cases}
-            />
-          ) : (
-            <ReportCard
-              id="section-use-cases"
-              title="AI Use Cases"
-              content={state.data.report.use_cases}
-              wins={state.data.victory_matches}
-            />
-          )}
-          <ReportCard
-            id="section-roi"
-            title="ROI Analysis"
-            content={state.data.report.roi_analysis}
-          />
-          <ReportCard
-            id="section-roadmap"
-            title="Transformation Roadmap"
-            content={state.data.report.roadmap}
-          />
-          <TracePanel runId={state.data.run_id} />
+          <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
+          <div
+            id={`tabpanel-${activeTab}`}
+            role="tabpanel"
+            aria-labelledby={`tab-${activeTab}`}
+          >
+            {activeTab === "brief" && <PitchBriefView data={state.data} />}
+            {activeTab === "report" && <FullReportView data={state.data} />}
+            {activeTab === "evidence" && <EvidenceView data={state.data} />}
+          </div>
         </div>
       )}
     </div>
