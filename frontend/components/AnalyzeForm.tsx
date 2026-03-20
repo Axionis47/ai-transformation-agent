@@ -42,8 +42,10 @@ export default function AnalyzeForm() {
   const [state, setState] = useState<PageState>({ phase: "idle" });
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [activeTab, setActiveTab] = useState<TabId>("brief");
+  const [cancelledMsg, setCancelledMsg] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const hintsRef = useRef<UserHintsPanelHandle>(null);
+  const isTimeoutRef = useRef(false);
 
   useEffect(() => {
     setHistory(getHistory());
@@ -52,14 +54,23 @@ export default function AnalyzeForm() {
   const handleCancel = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
-    setState({ phase: "idle" });
+    setCancelledMsg("Analysis cancelled");
+    setTimeout(() => {
+      setCancelledMsg(null);
+      setState({ phase: "idle" });
+    }, 2000);
   }, []);
 
   async function handleSubmit(url: string, dryRun: boolean) {
     const controller = new AbortController();
     abortRef.current = controller;
+    isTimeoutRef.current = false;
     setState({ phase: "loading" });
     const hints = hintsRef.current?.getHints() ?? null;
+    const timeoutId = setTimeout(() => {
+      isTimeoutRef.current = true;
+      controller.abort();
+    }, 300_000);
     try {
       const res = await fetch(`${API_BASE}/v1/analyze`, {
         method: "POST",
@@ -83,10 +94,19 @@ export default function AnalyzeForm() {
       setState({ phase: "success", data: result });
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") {
-        setState({ phase: "idle" });
+        if (isTimeoutRef.current) {
+          setState({
+            phase: "error",
+            message:
+              "Analysis timed out after 5 minutes. The backend may be overloaded — try again.",
+          });
+        }
+        // user cancel is handled by handleCancel — state already set there
         return;
       }
       setState({ phase: "error", message: "Could not reach the analysis server. Is it running?" });
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 
@@ -102,7 +122,13 @@ export default function AnalyzeForm() {
       <URLInputForm onSubmit={handleSubmit} isLoading={state.phase === "loading"} />
       <UserHintsPanel ref={hintsRef} />
 
-      {state.phase === "loading" && <PipelineProgress onCancel={handleCancel} />}
+      {cancelledMsg && (
+        <p className="font-label uppercase tracking-widest text-xs text-ink-light">
+          {cancelledMsg}
+        </p>
+      )}
+
+      {state.phase === "loading" && !cancelledMsg && <PipelineProgress onCancel={handleCancel} />}
 
       {state.phase === "error" && (
         <ErrorMessage message={state.message} onReset={() => setState({ phase: "idle" })} />
