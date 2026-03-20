@@ -110,6 +110,20 @@ class ProvenMetrics(BaseModel):
     measurement_period: str = ""
 
 
+class ConfidenceBreakdown(BaseModel):
+    """Component-level confidence scores for a match result."""
+
+    industry_match: float = 0.0
+    pain_point_match: float = 0.0
+    tech_feasibility: float = 0.0
+    scale_match: float = 0.0
+    maturity_fit: float = 0.0
+    evidence_depth: float = 0.0
+    evidence_ceiling: Literal["url_only", "url_plus_hints", "confirmed"] = "url_only"
+    overall: float = 0.0
+    explanation: str = ""
+
+
 class MatchResult(BaseModel):
     """Three-tier matching output — one schema covering DELIVERED, ADAPTATION, AMBITIOUS."""
 
@@ -122,6 +136,7 @@ class MatchResult(BaseModel):
     source_title: str = ""
     source_industry: str = ""
     relevance_note: str = ""
+    confidence_breakdown: ConfidenceBreakdown | None = None
     # DELIVERED tier fields
     proven_metrics: ProvenMetrics | None = None
     client_profile_summary: str = ""
