@@ -11,10 +11,13 @@ from concurrent.futures import TimeoutError as FuturesTimeout
 
 from agents.base import AgentError, BaseAgent
 from agents.maturity_scorer import MaturityScorerAgent
+from agents.pitch_brief import PitchBriefAgent
 from agents.rag_query import RAGQueryAgent
 from agents.report_writer import ReportWriterAgent
 from agents.signal_extractor import SignalExtractorAgent
 from agents.use_case_generator import UseCaseGeneratorAgent
+from orchestrator.question_engine import generate_questions
+from orchestrator.readiness import compute_readiness
 from orchestrator.schemas import UserHints
 from orchestrator.signal_merger import merge_signals
 from orchestrator.tool_registry import registry
@@ -284,6 +287,32 @@ def run_pipeline(
     logger.log_agent_call("REPORT_WRITER", result=True, start_time=t,
                           prompt_file="prompts/report_writer.md", prompt_version="1.0",
                           output_summary=report_writer_output(state.report, _REPORT_SECTIONS))
+
+    # Stage 8: Pitch brief + readiness + questions
+    t = time.time()
+    brief_input = {
+        "signals": state.signals,
+        "maturity": state.maturity,
+        "use_cases": state.use_cases,
+        "match_results": state.match_results or {},
+    }
+    brief_result = _run_with_timeout(PitchBriefAgent(), brief_input)
+    if isinstance(brief_result, AgentError):
+        _log_stage(logger, "PITCH_BRIEF", "error", code=brief_result.code, message=brief_result.message)
+        # Non-fatal — continue pipeline without brief
+        state.pitch_brief = None
+    else:
+        state.pitch_brief = brief_result
+    state.suggested_questions = generate_questions(
+        match_results=state.match_results or {},
+        signals=state.signals or {},
+    )
+    state.readiness = compute_readiness(
+        signals=state.signals or {},
+        match_results=state.match_results or {},
+        has_hints=state.has_user_hints,
+    )
+    logger.log("PITCH_BRIEF", "stage_complete", elapsed_seconds=round(time.time() - t, 2))
 
     state.status = PipelineStatus.COMPLETE
     state.elapsed_seconds = round(time.time() - start, 2)
