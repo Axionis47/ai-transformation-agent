@@ -298,3 +298,40 @@ def test_tech_stack_score_no_overlap():
     record = _tech_record(infra=["AWS SageMaker", "Redshift"])
     sigs = _tech_signals("BigQuery", "Vertex AI", "Airflow")
     assert _tech_stack_score(record, sigs) == 0.0
+
+
+def test_tech_stack_influences_library_a_score():
+    """Library A score increases when company tech matches victory tech_stack."""
+    base_record = {
+        "id": "w-tech",
+        "engagement_title": "Tech Stack Test",
+        "industry": "logistics",
+        "sector_tags": [],
+        "company_profile": {"size_label": "mid-market", "size_employees": 200, "geography": "US"},
+        "maturity_at_engagement": "Developing",
+        "results": {"primary_metric": {"label": "Cost", "value": "10%"}, "measurement_period": "3m"},
+        "applicable_signals": [],
+        "tech_stack": {
+            "infrastructure": ["BigQuery", "GCP Vertex AI", "Cloud Run"],
+            "data_sources": ["GPS telemetry"],
+            "ml_approach": "XGBoost regression",
+            "client_systems_integrated": [],
+        },
+        "engagement_details": {"duration_months": 3},
+    }
+    sigs_no_tech = {"industry": "logistics", "scale": "mid-market", "signals": []}
+    sigs_with_tech = {
+        "industry": "logistics",
+        "scale": "mid-market",
+        "signals": [{"type": "tech_stack", "value": "BigQuery", "confidence": 0.9}],
+    }
+    mat = _maturity("Developing", 2.0)
+    result_no = match(sigs_no_tech, mat, [base_record], [])
+    result_with = match(sigs_with_tech, mat, [base_record], [])
+
+    all_no = result_no["delivered"] + result_no["adaptation"]
+    all_with = result_with["delivered"] + result_with["adaptation"]
+    assert len(all_no) > 0 and len(all_with) > 0
+    assert all_with[0].similarity_score > all_no[0].similarity_score, (
+        "Tech stack match should increase similarity score"
+    )
