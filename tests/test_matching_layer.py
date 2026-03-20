@@ -335,3 +335,81 @@ def test_tech_stack_influences_library_a_score():
     assert all_with[0].similarity_score > all_no[0].similarity_score, (
         "Tech stack match should increase similarity score"
     )
+
+
+# --- Sector bonus broad signal coverage tests ---
+
+def _sector_record(sector_tags: list[str]) -> dict:
+    """Minimal Library A record with given sector tags."""
+    return {
+        "id": "w-sector",
+        "engagement_title": "Sector Test",
+        "industry": "logistics",
+        "sector_tags": sector_tags,
+        "company_profile": {"size_label": "mid-market", "size_employees": 200, "geography": "US"},
+        "maturity_at_engagement": "Developing",
+        "results": {"primary_metric": {"label": "Cost", "value": "10%"}, "measurement_period": "3m"},
+        "applicable_signals": [],
+        "tech_stack": {"ml_approach": "XGBoost"},
+        "engagement_details": {"duration_months": 3},
+    }
+
+
+def _match_with_signal(signal_type: str, signal_value: str) -> list:
+    """Run match with a single signal of given type and return all A-track results."""
+    record = _sector_record(["route planning", "fleet management", "ltl freight"])
+    sigs = {
+        "industry": "logistics",
+        "scale": "mid-market",
+        "signals": [{"type": signal_type, "value": signal_value, "confidence": 0.9}],
+    }
+    result = match(sigs, _maturity("Developing", 2.0), [record], [])
+    return result["delivered"] + result["adaptation"]
+
+
+def _match_no_sector_signal(signal_type: str) -> list:
+    """Run match with a signal type that has no value overlapping sector tags."""
+    record = _sector_record(["route planning", "fleet management"])
+    sigs = {
+        "industry": "logistics",
+        "scale": "mid-market",
+        "signals": [{"type": signal_type, "value": "unrelated office supplies", "confidence": 0.9}],
+    }
+    result = match(sigs, _maturity("Developing", 2.0), [record], [])
+    return result["delivered"] + result["adaptation"]
+
+
+def test_sector_bonus_triggers_on_pain_point():
+    """pain_point signal matching a sector tag gives sector bonus (score increases)."""
+    # baseline — same record, no signals at all
+    record = _sector_record(["route planning", "fleet management"])
+    baseline_sigs = {"industry": "logistics", "scale": "mid-market", "signals": []}
+    base = match(baseline_sigs, _maturity("Developing", 2.0), [record], [])
+    base_all = base["delivered"] + base["adaptation"]
+
+    # with pain_point containing a sector_tag substring
+    with_pain = _match_with_signal("pain_point", "manual route planning is slow")
+    assert len(with_pain) > 0
+    assert len(base_all) > 0
+    assert with_pain[0].similarity_score > base_all[0].similarity_score, (
+        "pain_point matching sector tag should increase score"
+    )
+
+
+def test_sector_bonus_triggers_on_hiring_signal():
+    """hiring_signal containing a sector tag triggers sector bonus."""
+    record = _sector_record(["route planning", "fleet management"])
+    baseline_sigs = {"industry": "logistics", "scale": "mid-market", "signals": []}
+    base = match(baseline_sigs, _maturity("Developing", 2.0), [record], [])
+    base_all = base["delivered"] + base["adaptation"]
+
+    with_hiring = _match_with_signal("hiring_signal", "fleet management engineer")
+    assert len(with_hiring) > 0
+    assert with_hiring[0].similarity_score > base_all[0].similarity_score, (
+        "hiring_signal matching sector tag should increase score"
+    )
+
+
+
+
+
