@@ -25,6 +25,9 @@ pytest==8.3.0
 pytest-asyncio==0.24.0
 pytest-cov==5.0.0
 
+# Cloud persistence (optional — active only when FIRESTORE_ENABLED=true)
+google-cloud-firestore>=2.16.0
+
 # Utilities
 python-dotenv==1.0.1
 pyyaml==6.0.2
