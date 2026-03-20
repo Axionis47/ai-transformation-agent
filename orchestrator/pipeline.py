@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -32,7 +31,6 @@ from orchestrator.stage_io import (
 from orchestrator.state import PipelineState, PipelineStatus
 from orchestrator.validators import validate_maturity, validate_signals, validate_use_cases
 from orchestrator.victory_matcher import get_full_match_results, match_victories
-from rag.ingest import ensure_seeds_loaded
 
 _STAGE_TIMEOUT_S = 60
 _COST_SIGNAL = 0.001

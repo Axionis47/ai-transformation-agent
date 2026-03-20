@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import re
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -15,11 +17,23 @@ from pydantic import BaseModel
 from infra.health_check import health_router
 from orchestrator.pipeline import run_pipeline
 from orchestrator.state import PipelineStatus
+from rag.ingest import ensure_seeds_loaded
 
 _LOG_DIR = Path("logs/runs")
 _RUN_ID_RE = re.compile(r"^[a-zA-Z0-9\-]+$")
 
-app = FastAPI(title="AI Transformation Discovery Agent", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Run startup tasks once; yield to serve requests; clean up on shutdown."""
+    try:
+        ensure_seeds_loaded()
+    except Exception:
+        pass  # ChromaDB unavailable — dry-run mode still works
+    yield
+
+
+app = FastAPI(title="AI Transformation Discovery Agent", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -89,7 +103,8 @@ async def get_trace(run_id: str) -> dict[str, Any]:
 @app.post("/v1/analyze", response_model=AnalyzeSuccess)
 async def analyze(request: AnalyzeRequest) -> AnalyzeSuccess:
     """Run the full AI transformation analysis pipeline."""
-    state = run_pipeline(
+    state = await asyncio.to_thread(
+        run_pipeline,
         url=request.url,
         dry_run=request.dry_run,
         user_hints=request.user_hints,
