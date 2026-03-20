@@ -194,3 +194,65 @@ API:
 - Dry-run pipeline completes successfully
 - User hints flow end-to-end through pipeline and API
 - No regressions detected
+
+## Signal Acquisition Refactor — 2026-03-20
+
+### Tests
+- Total: 278 passing, 0 failing
+- Command: `python3 -m pytest tests/ -q --tb=short --ignore=tests/test_consultant.py`
+- Dry-run: PASS (exit code 0)
+
+### New test coverage (this check)
+- `tests/test_scraper.py` — expanded with source registry, fault tolerance, and job posting parser coverage
+- `tests/test_signal_extractor.py` — expanded with budget ranking and structured input coverage
+
+### Features verified: signal acquisition refactor
+
+Scraper output shape:
+- `blog_text` field present in company_data
+- `team_text` field present in company_data
+- `job_postings` is a list (up to 10, each up to 600 chars)
+- `fetch_summary` dict present: keys `attempted`, `succeeded`, `failed`
+- `pages_fetched` reflects all 5 page types: about, careers, product, blog, team
+- Source registry pattern returns 5 sources attempted, 5 succeeded (dry-run)
+
+Signal budget:
+- `_rank_and_budget(40 signals, max_signals=25)` returns exactly 25 signals
+- Budget enforced at 25 signals max
+
+Signal fixtures:
+- All 5 fixture files (default, apex, finvault, medflow, shopstream) include:
+  - source="blog" signals
+  - source="team_page" signals
+  - type="org_signal" signals
+
+Dry-run pipeline state verified:
+- All 5 report sections present and >100 chars
+- exec_summary: 744 chars
+- current_state: 1044 chars
+- use_cases: 1430 chars
+- roadmap: 991 chars
+- roi_analysis: 791 chars
+- signal_count: 14
+- use_cases: 3
+- pitch_brief: present
+- readiness: present
+- cost_usd: 0.0 (no real API calls)
+- status: COMPLETE
+- error: None
+
+### Eval Scores
+- No eval run this check (GCP quota blocker from Sprint 6 still applies)
+- Sprint 7 baselines unchanged: tier_classification=5.0, evidence_grounding=4.4, roi_basis=3.8
+
+### Test delta vs Pitch-Ready Tool check (2026-03-20)
+- Previous: 257 tests
+- Now: 278 tests (+21 tests added)
+
+### Verdict: PASS
+- All 278 tests pass
+- Dry-run pipeline completes successfully (exit code 0)
+- Source registry scraper output has blog_text, team_text, job_postings, fetch_summary
+- Signal budget enforced at 25 max
+- Signal fixtures updated with blog, team_page sources and org_signal type
+- No regressions detected
