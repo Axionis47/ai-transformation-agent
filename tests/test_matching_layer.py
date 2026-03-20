@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import pytest
-from orchestrator.matching_layer import match, _pain_point_score, _tokenize
+from orchestrator.matching_layer import match, _pain_point_score, _tech_stack_score, _tokenize
 
 
 def _make_delivered_record(win_id: str, industry: str, size: str, maturity: str,
@@ -242,3 +242,59 @@ def test_pain_point_influences_library_a_score():
     score_no = all_no[0].similarity_score
     score_with = all_with[0].similarity_score
     assert score_with > score_no, "Pain point match should increase similarity score"
+
+
+# --- Tech stack scoring tests ---
+
+def _tech_record(infra=None, data_sources=None, ml_approach="", client_systems=None) -> dict:
+    return {
+        "tech_stack": {
+            "infrastructure": infra or [],
+            "data_sources": data_sources or [],
+            "ml_approach": ml_approach,
+            "client_systems_integrated": client_systems or [],
+        }
+    }
+
+
+def _tech_signals(*values: str) -> list[dict]:
+    return [{"type": "tech_stack", "value": v, "confidence": 0.9} for v in values]
+
+
+def test_tech_stack_score_no_signals():
+    """Returns 0.0 when no tech_stack signals are present."""
+    record = _tech_record(infra=["BigQuery", "GCP Vertex AI"])
+    assert _tech_stack_score(record, []) == 0.0
+    ops_only = [{"type": "ops_signal", "value": "BigQuery"}]
+    assert _tech_stack_score(record, ops_only) == 0.0
+
+
+def test_tech_stack_score_no_record_tech():
+    """Returns 0.0 when the record has no tech_stack entries."""
+    sigs = _tech_signals("BigQuery")
+    assert _tech_stack_score({}, sigs) == 0.0
+    assert _tech_stack_score({"tech_stack": {}}, sigs) == 0.0
+
+
+def test_tech_stack_score_full_overlap():
+    """Exact token overlap should return 0.15 (capped maximum)."""
+    record = _tech_record(infra=["BigQuery"], ml_approach="XGBoost regression")
+    sigs = _tech_signals("BigQuery", "XGBoost")
+    score = _tech_stack_score(record, sigs)
+    assert score > 0.0
+    assert score <= 0.15
+
+
+def test_tech_stack_score_partial_overlap():
+    """Partial overlap returns a score between 0.0 and 0.15."""
+    record = _tech_record(infra=["BigQuery", "Cloud Run", "Vertex AI"])
+    sigs = _tech_signals("BigQuery", "Airflow", "Python")  # only BigQuery overlaps
+    score = _tech_stack_score(record, sigs)
+    assert 0.0 < score < 0.15
+
+
+def test_tech_stack_score_no_overlap():
+    """Completely different stacks should return 0.0."""
+    record = _tech_record(infra=["AWS SageMaker", "Redshift"])
+    sigs = _tech_signals("BigQuery", "Vertex AI", "Airflow")
+    assert _tech_stack_score(record, sigs) == 0.0
