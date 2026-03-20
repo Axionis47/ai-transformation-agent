@@ -83,3 +83,40 @@ for `anthropic-claude-opus-4-6` on Vertex AI. To get real eval scores:
 ### No regressions
 - All 140 tests pass
 - No previously-passing tests broke
+
+## Sprint 8 Regression Check — 2026-03-19
+
+### Tests
+- Total: 231 passing, 0 failing
+- Command: `python3 -m pytest tests/ -q --tb=short`
+- New test: `tests/test_matching_layer.py::test_win001_scores_higher_with_pain_and_tech_signals`
+
+### Matching Layer — New Scoring Dimensions (Sprint 8)
+Three new scoring channels added to `orchestrator/matching_layer.py`:
+- `_pain_point_score`: keyword overlap between company pain_point signals and victory problem_statement/solution_summary. Weight: 0.0-0.15.
+- `_tech_stack_score`: token overlap between company tech_stack signals and victory tech_stack fields. Weight: 0.0-0.15.
+- Broadened sector_bonus: now checks 6 signal types (pain_point, hiring_signal, intent_signal, industry_hint, process_signal, ops_signal) with fuzzy substring matching. Weight: 0.1 max.
+
+### Integration Test Result — win-001 score lift
+- Baseline (industry+maturity only): score=1.000, tier=DELIVERED
+- Rich signals (+ pain_point "manual route planning" + tech_stack "BigQuery"): score=1.310, tier=DELIVERED
+- Score delta: +0.310 (well above the 0.1 minimum threshold)
+- win-001 stays DELIVERED in both cases; rich signals produce a measurably higher confidence match.
+
+### Pipeline
+- Dry-run: PASS (exit code 0)
+- All 7 stages execute without errors in dry-run mode
+
+### Eval Scores
+- No eval run this sprint (quota blocker from Sprint 6 still applies)
+- Baseline scores unchanged from Sprint 6 (0.0 quota-failure artifacts, not real scores)
+
+### Test delta vs Sprint 6
+- Sprint 6: 140 tests
+- Sprint 8: 231 tests (+91 tests added in Sprints 7-8)
+
+### Verdict: PASS
+- All 231 tests pass
+- Dry-run pipeline completes successfully
+- No previously-passing tests broke
+- New scoring dimensions verified to produce measurable score lift (delta >= 0.1)
