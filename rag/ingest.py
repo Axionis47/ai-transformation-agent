@@ -79,9 +79,10 @@ def _load_industry_cases() -> tuple[list[str], list[str], list[dict]]:
     return ids, documents, metadatas
 
 
-def ensure_seeds_loaded() -> None:
+def ensure_seeds_loaded(dry_run: bool | None = None) -> None:
     """Upsert seed documents into both ChromaDB collections — idempotent."""
-    if os.getenv("DRY_RUN", "").lower() in ("true", "1", "yes"):
+    _dry = dry_run if dry_run is not None else os.getenv("DRY_RUN", "").lower() in ("true", "1", "yes")
+    if _dry:
         return  # MockStore handles dry-run; no ChromaDB needed
 
     from rag.vector_store import ChromaStore  # local import avoids circular at module level

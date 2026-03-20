@@ -71,7 +71,7 @@ def _fail(state: PipelineState, error: AgentError, start: float,
 
 
 def _parallel_report_sections(
-    analysis: dict, logger: PipelineLogger
+    analysis: dict, logger: PipelineLogger, dry_run: bool = False
 ) -> dict | AgentError:
     """Generate all 5 report sections concurrently (max 3 workers).
 
@@ -80,6 +80,7 @@ def _parallel_report_sections(
     Falls back to single-call ReportWriterAgent on unexpected executor error.
     """
     agent = ReportWriterAgent()
+    agent._dry_run_flag = dry_run  # propagate without touching public interface
 
     def _generate(section: str) -> tuple[str, str | None]:
         result = agent.generate_section(section, analysis)
@@ -109,9 +110,7 @@ def run_pipeline(
     user_hints: dict | None = None,
 ) -> PipelineState:
     """Execute the 7-stage AI transformation pipeline."""
-    os.environ["DRY_RUN"] = "true" if dry_run else "false"
-    if not dry_run:
-        ensure_seeds_loaded()
+    # Never mutate os.environ — concurrent requests would race on a shared env var.
 
     _hints: UserHints | None = None
     if user_hints:
@@ -158,7 +157,7 @@ def run_pipeline(
     t = time.time()
     logger.log_agent_call("SIGNAL_EXTRACTOR", prompt_version="1.0",
                           input_summary=signal_input(state.company_data))
-    result = _run_with_timeout(SignalExtractorAgent(), {"company_data": state.company_data})
+    result = _run_with_timeout(SignalExtractorAgent(), {"company_data": state.company_data, "dry_run": dry_run})
     if isinstance(result, AgentError):
         _log_stage(logger, "SIGNAL_EXTRACTOR", "error", code=result.code, message=result.message)
         return _fail(state, result, start, logger)
@@ -177,7 +176,7 @@ def run_pipeline(
     t = time.time()
     logger.log_agent_call("MATURITY_SCORER", prompt_version="1.0",
                           input_summary=maturity_input(state.signals))
-    result = _run_with_timeout(MaturityScorerAgent(), {"signals": state.signals})
+    result = _run_with_timeout(MaturityScorerAgent(), {"signals": state.signals, "dry_run": dry_run})
     if isinstance(result, AgentError):
         _log_stage(logger, "MATURITY_SCORER", "error", code=result.code, message=result.message)
         return _fail(state, result, start, logger)
@@ -194,7 +193,7 @@ def run_pipeline(
     t = time.time()
     logger.log_agent_call("RAG", prompt_file="prompts/rag_query.md", prompt_version="1.0",
                           input_summary=rag_input(state.signals, state.company_data))
-    result = _run_with_timeout(RAGQueryAgent(), {"company_data": state.company_data, "signals": state.signals})
+    result = _run_with_timeout(RAGQueryAgent(), {"company_data": state.company_data, "signals": state.signals, "dry_run": dry_run})
     if isinstance(result, AgentError):
         _log_stage(logger, "RAG", "error", code=result.code, message=result.message)
         return _fail(state, result, start, logger)
@@ -243,6 +242,7 @@ def run_pipeline(
         "maturity": state.maturity,
         "victory_matches": state.victory_matches,
         "match_results": state.match_results,
+        "dry_run": dry_run,
     })
     if isinstance(result, AgentError):
         _log_stage(logger, "USE_CASE_GENERATOR", "error", code=result.code, message=result.message)
@@ -274,7 +274,7 @@ def run_pipeline(
         "signals": state.signals, "use_cases": state.use_cases,
         "victory_matches": state.victory_matches,
     }
-    report = _parallel_report_sections(analysis_payload, logger)
+    report = _parallel_report_sections(analysis_payload, logger, dry_run=dry_run)
     if isinstance(report, AgentError):
         _log_stage(logger, "REPORT_WRITER", "error", code=report.code, message=report.message)
         return _fail(state, report, start, logger)
@@ -295,6 +295,7 @@ def run_pipeline(
         "maturity": state.maturity,
         "use_cases": state.use_cases,
         "match_results": state.match_results or {},
+        "dry_run": dry_run,
     }
     brief_result = _run_with_timeout(PitchBriefAgent(), brief_input)
     if isinstance(brief_result, AgentError):

@@ -220,9 +220,14 @@ class MockStore(VectorStore):
             return [{"id": "win-000", "embed_text": "Mock seed: AI transformation solution", "industry": "general"}]
 
 
-def get_vector_store(collection_name: str = "tenex_delivered") -> VectorStore:
-    """Factory — returns the correct store based on env vars."""
-    if os.getenv("DRY_RUN", "").lower() in ("true", "1", "yes"):
+def get_vector_store(collection_name: str = "tenex_delivered", dry_run: bool | None = None) -> VectorStore:
+    """Factory — returns the correct store.
+
+    dry_run param takes priority over the DRY_RUN env var so concurrent
+    requests each use their own mode without racing on shared env state.
+    """
+    _dry = dry_run if dry_run is not None else os.getenv("DRY_RUN", "").lower() in ("true", "1", "yes")
+    if _dry:
         return MockStore(collection_name=collection_name)
 
     store_type = os.getenv("VECTOR_STORE", "chroma").lower()

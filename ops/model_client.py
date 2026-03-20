@@ -82,9 +82,14 @@ class MockProvider(ModelClient):
             return json.dumps({"mock": True, "note": "No fixture file found"})
 
 
-def get_model_client() -> ModelClient:
-    """Factory — returns the correct provider based on env vars."""
-    if os.getenv("DRY_RUN", "").lower() in ("true", "1", "yes"):
+def get_model_client(dry_run: bool | None = None) -> ModelClient:
+    """Factory — returns the correct provider.
+
+    dry_run param takes priority over the DRY_RUN env var so concurrent
+    requests each use their own mode without racing on shared env state.
+    """
+    _dry = dry_run if dry_run is not None else os.getenv("DRY_RUN", "").lower() in ("true", "1", "yes")
+    if _dry:
         return MockProvider()
 
     provider = os.getenv("MODEL_PROVIDER", "vertex").lower()

@@ -21,10 +21,5 @@ class WebsiteScraperTool(Tool):
         self._agent = ScraperAgent()
 
     def run(self, input_data: dict) -> dict | AgentError:
-        """Run the scraper. Honours dry_run flag from input_data."""
-        import os
-
-        dry_run = input_data.get("dry_run", False)
-        os.environ["DRY_RUN"] = "true" if dry_run else "false"
-
+        """Run the scraper. dry_run is read from input_data, not from os.environ."""
         return self._agent.run(input_data)

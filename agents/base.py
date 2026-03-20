@@ -26,13 +26,21 @@ class BaseAgent(ABC):
     """
 
     agent_tag: str = "BASE"
+    _dry_run_flag: bool | None = None  # set by run() from input_data
 
     @property
     def dry_run(self) -> bool:
+        """Return dry_run flag: explicit input_data value takes priority over env var."""
+        if self._dry_run_flag is not None:
+            return self._dry_run_flag
         return os.getenv("DRY_RUN", "").lower() in ("true", "1", "yes")
 
     def run(self, input_data: dict) -> Any | AgentError:
         """Execute the agent safely. Never raises — returns AgentError on failure."""
+        # Capture dry_run from input_data so concurrent requests don't interfere.
+        flag = input_data.get("dry_run")
+        if flag is not None:
+            self._dry_run_flag = bool(flag)
         try:
             return self._run(input_data)
         except Exception as exc:
