@@ -1,0 +1,27 @@
+{
+  "dimensions": {
+    "data_infrastructure": {
+      "score": 1.5,
+      "signals_used": ["sig-003", "sig-004", "sig-005", "sig-008"],
+      "rationale": "AWS Lambda with MongoDB is functional but not a data pipeline. Documents are stored as raw text with no structured extraction or analytics layer. No data warehouse or reporting infrastructure."
+    },
+    "ml_ai_capability": {
+      "score": 1.0,
+      "signals_used": [],
+      "rationale": "No ML roles, tools, or model signals. Document OCR output goes unprocessed into MongoDB. No classification, extraction, or scoring logic detected."
+    },
+    "strategy_intent": {
+      "score": 1.0,
+      "signals_used": ["sig-001", "sig-002"],
+      "rationale": "Pain points are explicit but no AI strategy language present. Hiring a human Compliance Analyst to review documents rather than automating signals low strategic intent toward AI."
+    },
+    "operational_readiness": {
+      "score": 1.0,
+      "signals_used": ["sig-003"],
+      "rationale": "AWS Lambda provides serverless execution but no orchestration, monitoring, or deployment pipeline detected. Startup scale with minimal ops tooling."
+    }
+  },
+  "composite_score": 1.0,
+  "composite_label": "Beginner",
+  "composite_rationale": "FinVault scores 1.0 (Beginner) — the lowest of the evaluated companies. Manual KYC review and Excel-based compliance reporting are clear AI targets but the company has no data infrastructure, no ML capability, and no AI strategy. AWS Lambda and MongoDB exist but serve operational needs, not analytics."
+}
