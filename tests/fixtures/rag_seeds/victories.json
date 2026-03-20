@@ -1837,5 +1837,59 @@
     "ingestion_date": "2026-03-19",
     "applicable_signals": [],
     "solution_category": "rag_pipeline"
+  },
+  {
+    "id": "win-024",
+    "engagement_title": "LLM Clinical Documentation Automation for Ambulatory Surgery Center",
+    "industry": "healthcare",
+    "sector_tags": ["ambulatory_surgery", "clinical_documentation", "administrative_automation"],
+    "company_profile": {
+      "size_employees": 220,
+      "size_label": "mid-market",
+      "annual_revenue_usd": "$45M-$60M",
+      "geography": "US Mid-Atlantic",
+      "business_model": "Multi-specialty ambulatory surgery center operating 6 operating rooms across 2 locations; 18 surgeons and 40 clinical staff; 8,400 procedures annually"
+    },
+    "problem_statement": "Clinical staff spent 35-45 minutes per procedure on post-procedure documentation — operative notes, discharge summaries, and insurance prior authorisation letters — most of which was templated content with procedure-specific variable fields. Surgeons were completing documentation after hours to avoid impacting procedure throughput, and documentation turnaround for prior authorisation averaged 3.8 days, delaying scheduled cases and causing 6-8% of bookings to fall through before insurance clearance.",
+    "solution_summary": "Tenex built an LLM-powered documentation workflow that pre-populated operative notes, discharge summaries, and prior authorisation letters from structured procedure data pulled from the EHR. Claude claude-3-5-sonnet-20241022 generated draft documents following specialty-specific templates approved by the medical director. Clinical staff reviewed and attested to generated drafts rather than composing from scratch. A compliance guardrail layer blocked generation when required clinical data fields were missing from the EHR record, preventing incomplete submissions.",
+    "results": {
+      "primary_metric": {
+        "label": "Post-procedure documentation time per case",
+        "value": "68% reduction",
+        "baseline": "35-45 minutes per procedure across 8,400 annual procedures",
+        "outcome": "11-15 minutes per procedure — clinical staff reviewing and attesting generated drafts"
+      },
+      "secondary_metrics": [
+        {"label": "Prior authorisation turnaround", "value": "Reduced from 3.8 days to 1.1 days average"},
+        {"label": "Case fall-through rate before insurance clearance", "value": "Reduced from 6.8% to 2.4% of scheduled cases"},
+        {"label": "After-hours documentation by surgeons", "value": "Eliminated for 91% of standard procedure types within 60 days of deployment"}
+      ],
+      "measurement_period": "5 months post-deployment",
+      "measurement_basis": "EHR audit log timestamps for documentation completion; authorisation turnaround from revenue cycle system; fall-through rate from scheduling system; surgeon after-hours activity from EHR login timestamps"
+    },
+    "engagement_details": {
+      "duration_months": 4,
+      "tenex_team_size": 2,
+      "tenex_roles": ["AI Engineer", "Engagement Lead"],
+      "client_team_involvement": "Medical director for template approval and compliance sign-off, 1 clinical informatics specialist for EHR API access, 2 surgical coordinators as subject matter experts during testing",
+      "delivery_model": "project"
+    },
+    "tech_stack": {
+      "data_sources": ["EHR structured procedure data (real-time API)", "Approved specialty-specific documentation templates (18 templates across 6 specialties)", "Prior authorisation payer requirement database"],
+      "ml_approach": "Claude claude-3-5-sonnet-20241022 API for document generation using structured prompting with specialty templates; deterministic compliance guardrail layer checking required field presence before generation; no fine-tuning — prompt-only approach",
+      "infrastructure": ["HIPAA-compliant AWS environment (VPC, encryption at rest and in transit)", "AWS Lambda for generation workflow", "Audit logging to CloudTrail for compliance", "Internal web app for draft review and attestation"],
+      "client_systems_integrated": ["ModMed EHR REST API", "Revenue cycle management system (read-only for auth status)", "Fax API for prior authorisation submission"]
+    },
+    "maturity_at_engagement": "Developing",
+    "follow_on_engagement": true,
+    "lessons_learned": "Medical director sign-off on every template before deployment was non-negotiable — clinical staff would not use the tool without it. Build the template approval workflow into week 1, not as an afterthought. HIPAA compliance architecture review added 3 weeks but prevented post-launch issues.",
+    "embed_text": "Healthcare — Mid-market ambulatory surgery center, 220 employees, ~$52M revenue, US Mid-Atlantic, 8,400 procedures annually\n\nProblem: Clinical staff spent 35-45 minutes per procedure on post-procedure documentation. Surgeons completed documentation after hours. Prior authorisation turnaround averaged 3.8 days, causing 6.8% of bookings to fall through before insurance clearance.\n\nSolution: Tenex built an LLM documentation workflow using Claude claude-3-5-sonnet-20241022 to pre-populate operative notes, discharge summaries, and prior auth letters from EHR structured data. Clinical staff review and attest to generated drafts. Compliance guardrails block generation when required EHR fields are missing.\n\nApproach: Claude API with structured specialty templates, HIPAA-compliant AWS, ModMed EHR integration, deterministic compliance layer\n\nResults: Documentation time: 68% reduction (35-45 min to 11-15 min per case). Prior auth turnaround: 3.8 days to 1.1 days. Case fall-through rate: 6.8% to 2.4%.",
+    "industry_benchmark": "68% reduction in post-procedure documentation time, recovering 20-30 minutes per case across all procedure volume",
+    "success_threshold": "Most applicable when clinical documentation follows specialty templates with structured variable fields, EHR API is accessible, and documentation volume exceeds 5,000 procedures annually.",
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — clinical documentation automation ROI is direct when prior authorisation delays are causing case fall-through and documentation is templated and structured.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "llm_workflow"
   }
 ]
