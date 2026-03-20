@@ -4,7 +4,7 @@ from __future__ import annotations
 import re
 import uuid
 
-from orchestrator.schemas import ConfidenceBreakdown, MatchResult, ProvenMetrics
+from orchestrator.schemas import ConfidenceBreakdown, LessonsLearned, MatchResult, ProvenMetrics
 
 _STOPWORDS = {
     "the", "a", "is", "and", "of", "to", "in", "for", "that", "with",
@@ -292,6 +292,15 @@ def _build_delivered(record: dict, score: float, composite_score: float,
             gap_text += f" {record['success_threshold']}"
         gap_text += f" {template.format(gap=f'{gap:.1f}')}"
     tech = record.get("tech_stack", {})
+    raw_ll = record.get("lessons_learned")
+    ll: LessonsLearned | None = None
+    if isinstance(raw_ll, dict) and raw_ll:
+        ll = LessonsLearned(
+            primary_challenge=raw_ll.get("primary_challenge", ""),
+            risk_factors=raw_ll.get("risk_factors", []),
+            timeline_reality=raw_ll.get("timeline_reality", ""),
+            what_we_would_do_differently=raw_ll.get("what_we_would_do_differently", ""),
+        )
     return MatchResult(
         result_id=f"mr-{uuid.uuid4().hex[:6]}",
         source_library="tenex_delivered",
@@ -311,6 +320,7 @@ def _build_delivered(record: dict, score: float, composite_score: float,
         if isinstance(record.get("engagement_details"), dict) else None,
         tech_approach=tech.get("ml_approach", "") if isinstance(tech, dict) else "",
         gap_analysis=gap_text,
+        lessons_learned=ll,
         confidence_breakdown=_build_confidence_breakdown(
             industry_score=component_scores.get("industry", 0.0) if component_scores else 0.0,
             maturity_score=component_scores.get("maturity", 0.0) if component_scores else 0.0,

@@ -288,11 +288,15 @@ def run_pipeline(
 
     # Stage 8: Pitch brief + readiness + questions
     t = time.time()
+    _delivered_matches = (state.match_results or {}).get("delivered", [])
+    _top_delivered = _delivered_matches[0] if _delivered_matches else {}
+    _top_lessons = _top_delivered.get("lessons_learned") if _top_delivered else None
     brief_input = {
         "signals": state.signals,
         "maturity": state.maturity,
         "use_cases": state.use_cases,
         "match_results": state.match_results or {},
+        "lessons_learned": _top_lessons,
         "dry_run": dry_run,
     }
     brief_result = _run_with_timeout(PitchBriefAgent(), brief_input)
