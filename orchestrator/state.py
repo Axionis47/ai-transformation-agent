@@ -45,6 +45,11 @@ class PipelineState(BaseModel):
     user_hints: dict[str, Any] | None = None
     has_user_hints: bool = False
 
+    # Sprint pitch-ready — Stage 8 outputs
+    pitch_brief: dict[str, Any] | None = None
+    readiness: dict[str, Any] | None = None
+    suggested_questions: list[dict[str, Any]] | None = None
+
     # Metadata
     status: PipelineStatus = PipelineStatus.PENDING
     error: dict[str, Any] | None = None
