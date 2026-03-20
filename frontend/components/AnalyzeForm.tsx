@@ -13,6 +13,8 @@ import URLInputForm from "@/components/URLInputForm";
 import UseCaseTierSection from "@/components/UseCaseTierSection";
 import TracePanel from "@/components/TracePanel";
 import ReportNav from "@/components/ReportNav";
+import UserHintsPanel from "@/components/UserHintsPanel";
+import type { UserHintsPanelHandle } from "@/components/UserHintsPanel";
 import { API_BASE, scoreColor, STRINGS } from "@/lib/config";
 
 function buildDimensions(data: AnalyzeSuccess): Record<string, number> | undefined {
@@ -38,6 +40,7 @@ export default function AnalyzeForm() {
   const [state, setState] = useState<PageState>({ phase: "idle" });
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const abortRef = useRef<AbortController | null>(null);
+  const hintsRef = useRef<UserHintsPanelHandle>(null);
 
   useEffect(() => {
     setHistory(getHistory());
@@ -53,11 +56,12 @@ export default function AnalyzeForm() {
     const controller = new AbortController();
     abortRef.current = controller;
     setState({ phase: "loading" });
+    const hints = hintsRef.current?.getHints() ?? null;
     try {
       const res = await fetch(`${API_BASE}/v1/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, dry_run: dryRun }),
+        body: JSON.stringify({ url, dry_run: dryRun, ...(hints ? { user_hints: hints } : {}) }),
         signal: controller.signal,
       });
       const body = await res.json();
@@ -93,6 +97,7 @@ export default function AnalyzeForm() {
   return (
     <div className="space-y-8">
       <URLInputForm onSubmit={handleSubmit} isLoading={state.phase === "loading"} />
+      <UserHintsPanel ref={hintsRef} />
 
       {state.phase === "loading" && <PipelineProgress onCancel={handleCancel} />}
 
