@@ -109,6 +109,12 @@ export interface MatchResult {
     measurement_period: string;
   };
   gap_analysis?: string;
+  lessons_learned?: {
+    primary_challenge: string;
+    risk_factors: string[];
+    timeline_reality: string;
+    what_we_would_do_differently: string;
+  };
 }
 
 export interface ReportSections {
@@ -141,6 +147,7 @@ export interface AnalyzeSuccess {
     roi_conversation: string;
     questions: string[];
     objection_prep: string;
+    honest_conversation?: string;
   };
   readiness?: {
     score: number;
