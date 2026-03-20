@@ -1891,5 +1891,59 @@
     "ingestion_date": "2026-03-19",
     "applicable_signals": [],
     "solution_category": "llm_workflow"
+  },
+  {
+    "id": "win-025",
+    "engagement_title": "Automated Product Content Generation for Specialty Outdoor Retailer",
+    "industry": "ecommerce",
+    "sector_tags": ["specialty_retail", "product_content", "generative_ai"],
+    "company_profile": {
+      "size_employees": 95,
+      "size_label": "startup",
+      "annual_revenue_usd": "$14M-$20M",
+      "geography": "US (nationally distributed; HQ Denver, CO)",
+      "business_model": "DTC specialty outdoor and hiking gear retailer; 3,800 active SKUs across apparel, equipment, and footwear; primary sales channel is owned ecommerce site"
+    },
+    "problem_statement": "The merchandising team of 4 wrote all product descriptions, category page copy, and email campaign content manually. With 3,800 active SKUs and 400-600 new SKUs introduced annually, the team was 6-8 weeks behind on new product listings, which delayed catalog launches and suppressed search ranking for new arrivals. Email campaign copy required 3-4 days of writing time per campaign and limited the team to 2 campaigns per month during peak season.",
+    "solution_summary": "Tenex built a generative content pipeline using GPT-4o fine-tuned on 800 hand-curated product descriptions that the merchandising team selected as brand voice exemplars. The pipeline ingested structured product attributes from the PIM system and generated product descriptions, meta descriptions, and email snippet variants in the brand voice. A content moderation layer checked outputs against a brand guidelines ruleset before surfacing to the merchandising team for single-click approval or light editing. A/B test integration automatically routed approved variants through the ecommerce platform's built-in experiment framework.",
+    "results": {
+      "primary_metric": {
+        "label": "New SKU listing time",
+        "value": "82% reduction",
+        "baseline": "45-60 minutes per SKU for full content package (description, meta, email snippet)",
+        "outcome": "8-12 minutes per SKU — merchandiser reviewing and approving generated content"
+      },
+      "secondary_metrics": [
+        {"label": "New SKU catalog lag", "value": "Reduced from 6-8 week backlog to same-week listing for new arrivals"},
+        {"label": "Email campaign output", "value": "Increased from 2 campaigns per month to 6 per month without adding headcount"},
+        {"label": "Organic search ranking for new SKUs", "value": "Average position for new arrivals improved from page 4 to page 2 within 60 days (measured by SEMrush)"}
+      ],
+      "measurement_period": "4 months post-deployment",
+      "measurement_basis": "PIM system timestamps for listing completion; campaign send data from Klaviyo; SEMrush position tracking for 120 new SKUs launched post-deployment"
+    },
+    "engagement_details": {
+      "duration_months": 3,
+      "tenex_team_size": 2,
+      "tenex_roles": ["AI Engineer", "Engagement Lead"],
+      "client_team_involvement": "Head of merchandising as primary stakeholder, 2 senior copywriters for brand voice curation and output evaluation, 1 developer for PIM API integration",
+      "delivery_model": "project"
+    },
+    "tech_stack": {
+      "data_sources": ["PIM system structured product attributes (real-time API)", "800 curated brand voice exemplar descriptions", "Brand guidelines document (PDF, parsed to ruleset)"],
+      "ml_approach": "GPT-4o fine-tuned on 800 brand voice exemplars for description generation; rule-based content moderation layer checking brand guideline compliance; A/B test variant routing via Shopify experiment API",
+      "infrastructure": ["AWS Lambda for generation pipeline", "S3 for content draft storage", "Internal review dashboard (Next.js)", "Klaviyo API for email variant delivery"],
+      "client_systems_integrated": ["Akeneo PIM REST API", "Shopify storefront (content publishing API)", "Klaviyo email platform", "SEMrush API for ranking tracking"]
+    },
+    "maturity_at_engagement": "Beginner",
+    "follow_on_engagement": false,
+    "lessons_learned": "Fine-tuning on brand voice exemplars was worth the 2-week investment — zero-shot GPT-4o outputs required heavy editing and had low team adoption. The quality bar for the 800 exemplars was the determining factor in output quality. Merchandisers curated the training set themselves over 3 days, which also built ownership of the tool.",
+    "embed_text": "Ecommerce / Specialty Retail — Startup specialty outdoor gear retailer, 95 employees, ~$17M revenue, Denver CO, 3,800 active SKUs\n\nProblem: Merchandising team of 4 wrote all product descriptions manually. With 3,800 SKUs and 400-600 new SKUs annually, the team ran 6-8 weeks behind on new listings, delaying catalog launches and suppressing search ranking. Email campaigns limited to 2 per month during peak season.\n\nSolution: Tenex built a generative content pipeline using GPT-4o fine-tuned on 800 brand voice exemplars. Pipeline ingests PIM attributes and generates descriptions, meta descriptions, and email snippets. Content moderation layer checks brand guideline compliance. A/B variants routed through Shopify experiments.\n\nApproach: GPT-4o fine-tuning on brand exemplars, PIM integration, rule-based content moderation, Shopify A/B testing\n\nResults: New SKU listing time: 82% reduction (60 min to 10 min per SKU). Catalog lag eliminated. Email campaigns: 2 to 6 per month. Organic search: page 4 to page 2 for new arrivals.",
+    "industry_benchmark": "82% reduction in new SKU content production time, enabling same-week catalog launch for new arrivals at 3,800+ SKU scale",
+    "success_threshold": "Most applicable when the catalog exceeds 1,000 SKUs with structured attributes in a PIM system and the merchandising team is running more than 8 weeks behind on content production.",
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — generative content pipeline ROI accelerates with SKU volume; at 1,000+ SKUs the time savings compound across every new product launch.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "generative_pipeline"
   }
 ]
