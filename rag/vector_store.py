@@ -130,6 +130,9 @@ class ChromaStore(VectorStore):
                 metas = results.get("metadatas") or []
                 if metas and metas[0] and i < len(metas[0]) and metas[0][i]:
                     entry.update(metas[0][i])
+                if "full_record" in entry:
+                    full = json.loads(entry.pop("full_record"))
+                    entry.update(full)
                 docs.append(entry)
             return docs
         except Exception as exc:
