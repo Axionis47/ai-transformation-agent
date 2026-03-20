@@ -1,9 +1,15 @@
 """Inter-agent contract schemas — all typed artifacts flow through these."""
 from __future__ import annotations
 
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+_KNOWN_INDUSTRIES = {
+    "logistics", "healthcare", "financial_services", "retail", "insurance",
+    "professional_services", "manufacturing", "energy", "real_estate",
+    "construction", "ecommerce", "fintech",
+}
 
 
 class Signal(BaseModel):
@@ -14,9 +20,67 @@ class Signal(BaseModel):
         "process_signal", "hiring_signal", "pain_point"
     ]
     value: str
-    source: Literal["about_text", "job_posting", "product_page", "careers_page"]
+    source: Literal["about_text", "job_posting", "product_page", "careers_page", "user_hint"]
     confidence: float = 1.0
     raw_quote: str = ""
+
+
+class UserHints(BaseModel):
+    """Optional consultant-provided context to enrich scraped signals."""
+
+    pain_points: list[str] = Field(default_factory=list, max_length=5)
+    known_tech: list[str] = Field(default_factory=list, max_length=10)
+    industry: str = ""
+    employee_count: int | None = None
+    context: str = Field(default="", max_length=1000)
+
+    @field_validator("pain_points", mode="before")
+    @classmethod
+    def _validate_pain_points(cls, v: list) -> list:
+        result = []
+        for item in v:
+            item = item.strip()
+            if len(item) < 10 or len(item) > 500:
+                raise ValueError(
+                    f"pain_point '{item[:30]}...' must be 10-500 chars"
+                )
+            result.append(item)
+        return result
+
+    @field_validator("known_tech", mode="before")
+    @classmethod
+    def _validate_known_tech(cls, v: list) -> list:
+        result = []
+        for item in v:
+            item = item.strip()
+            if len(item) < 2 or len(item) > 50:
+                raise ValueError(
+                    f"known_tech '{item}' must be 2-50 chars"
+                )
+            result.append(item)
+        return result
+
+    @field_validator("industry", mode="before")
+    @classmethod
+    def _validate_industry(cls, v: str) -> str:
+        v = v.strip()
+        if v and v not in _KNOWN_INDUSTRIES:
+            raise ValueError(
+                f"industry '{v}' not in known list: {sorted(_KNOWN_INDUSTRIES)}"
+            )
+        return v
+
+    @field_validator("employee_count", mode="before")
+    @classmethod
+    def _validate_employee_count(cls, v: int | None) -> int | None:
+        if v is not None and not (1 <= v <= 1_000_000):
+            raise ValueError("employee_count must be 1-1000000")
+        return v
+
+    @field_validator("context", mode="before")
+    @classmethod
+    def _validate_context(cls, v: str) -> str:
+        return v.strip()
 
 
 class SignalSet(BaseModel):
