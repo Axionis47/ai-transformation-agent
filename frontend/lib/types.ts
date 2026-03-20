@@ -74,6 +74,43 @@ export interface VictoryMatch {
   gap_analysis?: string;
 }
 
+export interface UserHints {
+  pain_points: string[];
+  known_tech: string[];
+  industry: string;
+  employee_count: number | null;
+  context: string;
+}
+
+export interface ConfidenceBreakdown {
+  industry_match: number;
+  pain_point_match: number;
+  tech_feasibility: number;
+  scale_match: number;
+  maturity_fit: number;
+  evidence_depth: number;
+  evidence_ceiling: "url_only" | "url_plus_hints" | "confirmed";
+  overall: number;
+  explanation: string;
+}
+
+export interface MatchResult {
+  result_id: string;
+  match_tier: "DELIVERED" | "ADAPTATION" | "AMBITIOUS";
+  confidence: number;
+  confidence_breakdown?: ConfidenceBreakdown;
+  source_id: string;
+  source_title: string;
+  source_industry: string;
+  relevance_note: string;
+  proven_metrics?: {
+    primary_label: string;
+    primary_value: string;
+    measurement_period: string;
+  };
+  gap_analysis?: string;
+}
+
 export interface ReportSections {
   exec_summary: string;
   current_state: string;
@@ -92,6 +129,12 @@ export interface AnalyzeSuccess {
   signals?: SignalSet;
   victory_matches?: VictoryMatch[];
   use_cases?: TieredUseCase[];
+  match_results?: {
+    delivered: MatchResult[];
+    adaptation: MatchResult[];
+    ambitious: MatchResult[];
+  };
+  has_user_hints?: boolean;
   // backward compat — present in older responses
   analysis?: {
     maturity_score?: number;
