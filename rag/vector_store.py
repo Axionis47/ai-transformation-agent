@@ -10,6 +10,60 @@ from typing import Any
 
 from agents.base import AgentError
 
+_INDUSTRY_KEYWORDS: dict[str, list[str]] = {
+    "logistics": ["logistics", "freight", "shipping", "carrier", "supply chain", "warehouse"],
+    "healthcare": ["health", "hospital", "clinic", "medical", "patient", "clinical", "ehr"],
+    "financial_services": ["financial", "finance", "bank", "fintech", "lending", "compliance", "kyc"],
+    "retail": ["retail", "ecommerce", "e-commerce", "shop", "consumer", "product catalog"],
+    "insurance": ["insurance", "claims", "underwriting", "policy"],
+    "professional_services": ["consulting", "professional services", "law firm", "advisory"],
+    "manufacturing": ["manufacturing", "factory", "production", "industrial"],
+    "energy": ["energy", "utility", "grid", "electric"],
+    "real_estate": ["real estate", "proptech", "lease", "property"],
+    "construction": ["construction", "equipment rental", "heavy equipment"],
+    "ecommerce": ["ecommerce", "e-commerce", "online store", "product description", "catalog"],
+}
+
+_ADJACENT_INDUSTRIES: dict[str, set[str]] = {
+    "logistics": {"manufacturing", "construction"},
+    "manufacturing": {"logistics", "construction", "energy"},
+    "healthcare": set(),
+    "financial_services": {"insurance"},
+    "insurance": {"financial_services"},
+    "retail": {"ecommerce"},
+    "ecommerce": {"retail"},
+    "professional_services": {"real_estate"},
+    "real_estate": {"professional_services"},
+    "construction": {"manufacturing", "logistics"},
+    "energy": {"manufacturing"},
+}
+
+
+def _detect_industry(text: str) -> str | None:
+    """Return the best-matching industry key from query text, or None."""
+    text_lower = text.lower()
+    for industry, keywords in _INDUSTRY_KEYWORDS.items():
+        if any(kw in text_lower for kw in keywords):
+            return industry
+    return None
+
+
+def _filter_by_industry(records: list[dict], industry: str, k: int) -> list[dict]:
+    """Return k records filtered to match industry, padded with remainder if needed."""
+    adjacent = _ADJACENT_INDUSTRIES.get(industry, set())
+    priority: list[dict] = []
+    fallback: list[dict] = []
+    for rec in records:
+        rec_industry = rec.get("industry", "").lower()
+        if rec_industry == industry:
+            priority.append(rec)
+        elif rec_industry in adjacent:
+            priority.append(rec)
+        else:
+            fallback.append(rec)
+    combined = priority + fallback
+    return combined[:k]
+
 
 class VectorStore(ABC):
     """Abstract interface for vector store backends."""
