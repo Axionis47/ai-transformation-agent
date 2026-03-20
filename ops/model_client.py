@@ -4,10 +4,15 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from abc import ABC, abstractmethod
 from pathlib import Path
 
 from agents.base import AgentError
+
+_RETRY_MAX = 2          # up to 3 total attempts
+_RETRY_SLEEP_S = 1.0
+_TRANSIENT_MARKERS = ("503", "429", "connection", "timeout", "unavailable", "resource exhausted")
 
 
 class ModelClient(ABC):
@@ -48,26 +53,38 @@ class VertexProvider(ModelClient):
             text = "\n".join(lines)
         return text.strip()
 
-    def complete(self, prompt: str, system: str = "", model: str = "") -> str | AgentError:
-        try:
-            self._init_vertex()
-            from vertexai.generative_models import GenerationConfig, GenerativeModel  # noqa
+    def _is_transient(self, exc: Exception) -> bool:
+        """Return True for errors that are worth retrying (network / quota)."""
+        msg = str(exc).lower()
+        return any(marker in msg for marker in _TRANSIENT_MARKERS)
 
-            model_name = model or self._default_model
-            gen_model = GenerativeModel(model_name, system_instruction=system or None)
-            config = GenerationConfig(
-                response_mime_type="application/json",
-                temperature=0.2,
-            )
-            response = gen_model.generate_content(prompt, generation_config=config)
-            return self._strip_code_fences(response.text)
-        except Exception as exc:
-            return AgentError(
-                code="MODEL_CALL_FAIL",
-                message=f"Vertex AI error: {exc}",
-                recoverable=True,
-                agent_tag="OPS",
-            )
+    def complete(self, prompt: str, system: str = "", model: str = "") -> str | AgentError:
+        last_exc: Exception | None = None
+        for attempt in range(_RETRY_MAX + 1):
+            try:
+                self._init_vertex()
+                from vertexai.generative_models import GenerationConfig, GenerativeModel  # noqa
+
+                model_name = model or self._default_model
+                gen_model = GenerativeModel(model_name, system_instruction=system or None)
+                config = GenerationConfig(
+                    response_mime_type="application/json",
+                    temperature=0.2,
+                )
+                response = gen_model.generate_content(prompt, generation_config=config)
+                return self._strip_code_fences(response.text)
+            except Exception as exc:
+                last_exc = exc
+                if not self._is_transient(exc) or attempt == _RETRY_MAX:
+                    break
+                time.sleep(_RETRY_SLEEP_S)
+
+        return AgentError(
+            code="MODEL_CALL_FAIL",
+            message=f"Vertex AI error: {last_exc}",
+            recoverable=True,
+            agent_tag="OPS",
+        )
 
 
 class MockProvider(ModelClient):
