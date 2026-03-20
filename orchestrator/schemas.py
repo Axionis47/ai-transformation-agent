@@ -17,10 +17,13 @@ class Signal(BaseModel):
     type: Literal[
         "tech_stack", "data_signal", "ml_signal",
         "intent_signal", "ops_signal", "industry_hint", "scale_hint",
-        "process_signal", "hiring_signal", "pain_point"
+        "process_signal", "hiring_signal", "pain_point", "org_signal"
     ]
     value: str
-    source: Literal["about_text", "job_posting", "product_page", "careers_page", "user_hint"]
+    source: Literal[
+        "about_text", "job_posting", "product_page", "careers_page",
+        "blog", "team_page", "user_hint"
+    ]
     confidence: float = 1.0
     raw_quote: str = ""
 
