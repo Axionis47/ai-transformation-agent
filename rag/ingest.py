@@ -43,6 +43,7 @@ def _load_victories() -> tuple[list[str], list[str], list[dict]]:
                 "measurement_period": r["results"]["measurement_period"],
                 "duration_months": r["engagement_details"]["duration_months"],
                 "maturity_at_engagement": r.get("maturity_at_engagement", ""),
+                "full_record": json.dumps(r),
             })
         return ids, documents, metadatas
 
