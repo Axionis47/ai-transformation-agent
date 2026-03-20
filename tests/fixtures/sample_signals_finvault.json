@@ -1,0 +1,74 @@
+{
+  "company_url": "https://finvault.co",
+  "industry": "fintech compliance SaaS",
+  "scale": "startup",
+  "scale_rationale": "45 employees serving 25+ institutions — early-stage startup",
+  "signals": [
+    {
+      "signal_id": "sig-001",
+      "type": "pain_point",
+      "value": "manual KYC document review",
+      "source": "job_posting",
+      "confidence": 0.92,
+      "raw_quote": "Review KYC documents and flag discrepancies for our banking clients"
+    },
+    {
+      "signal_id": "sig-002",
+      "type": "pain_point",
+      "value": "manual compliance report generation",
+      "source": "about_text",
+      "confidence": 0.88,
+      "raw_quote": "generate the reports your regulators require"
+    },
+    {
+      "signal_id": "sig-003",
+      "type": "tech_stack",
+      "value": "AWS Lambda",
+      "source": "job_posting",
+      "confidence": 0.9,
+      "raw_quote": "AWS Lambda and MongoDB experience preferred"
+    },
+    {
+      "signal_id": "sig-004",
+      "type": "tech_stack",
+      "value": "Python",
+      "source": "job_posting",
+      "confidence": 0.95,
+      "raw_quote": "Build internal tooling and automation scripts"
+    },
+    {
+      "signal_id": "sig-005",
+      "type": "tech_stack",
+      "value": "MongoDB",
+      "source": "job_posting",
+      "confidence": 0.9,
+      "raw_quote": "AWS Lambda and MongoDB experience preferred"
+    },
+    {
+      "signal_id": "sig-006",
+      "type": "process_signal",
+      "value": "compliance reporting",
+      "source": "product_page",
+      "confidence": 0.92,
+      "raw_quote": "generate the reports your regulators require"
+    },
+    {
+      "signal_id": "sig-007",
+      "type": "industry_hint",
+      "value": "financial_services",
+      "source": "about_text",
+      "confidence": 0.98,
+      "raw_quote": "regional banks and credit unions"
+    },
+    {
+      "signal_id": "sig-008",
+      "type": "ops_signal",
+      "value": "document OCR pipeline",
+      "source": "about_text",
+      "confidence": 0.82,
+      "raw_quote": "KYC document collection"
+    }
+  ],
+  "signal_count": 8,
+  "extraction_notes": "Fintech compliance startup with clear manual bottlenecks. KYC review and report generation are explicit pain points. No ML or AI tooling signals. MongoDB unstructured store suggests raw data exists but is not ML-ready."
+}
