@@ -148,3 +148,49 @@ Three new scoring channels added to `orchestrator/matching_layer.py`:
 - Dry-run pipeline completes successfully
 - New victories are schema-valid and matchable
 - No regressions detected
+
+## Pitch-Ready Tool Regression Check — 2026-03-20
+
+### Tests
+- Total: 257 passing, 0 failing
+- Command: `python3 -m pytest tests/ -q --tb=short`
+- Dry-run: PASS (exit code 0)
+
+### New test files
+- `tests/test_pipeline_hints.py` — 6 tests, pipeline runs with and without user hints
+- `tests/test_api_hints.py` — 4 tests, API endpoint accepts and propagates user hints
+
+### Feature verified: user hints end-to-end
+
+Pipeline with hints:
+- `has_user_hints=True` set on PipelineState
+- Hints stored in `state.user_hints`
+- Merged signals contain at least one with `source="user_hint"`
+- `evidence_ceiling` in confidence_breakdown set to "url_plus_hints"
+
+Signal merger:
+- pain_points create signals with source="user_hint", confidence=0.85
+- User industry overrides scraped industry
+- Dedup: scraped BigQuery at 0.95 beats hint BigQuery at 0.85 — scraped wins
+- Empty hints return original signals unchanged (no extra signals added)
+
+Confidence breakdown:
+- All 6 dimension fields present: industry_match, pain_point_match, tech_feasibility, scale_match, maturity_fit, evidence_depth
+- All values in [0.0, 1.0]
+- evidence_ceiling="url_plus_hints" when any signal has source="user_hint"
+
+API:
+- POST /v1/analyze with user_hints returns 200 + status=complete
+- Signals include source="user_hint" when hints provided
+- Invalid hints (unknown industry) silently dropped; pipeline still completes
+- No hints -> no "user_hint" sources in returned signals
+
+### Test delta vs Modern AI Victories check (2026-03-19)
+- Previous: 231 tests
+- Now: 257 tests (+26 tests added)
+
+### Verdict: PASS
+- All 257 tests pass
+- Dry-run pipeline completes successfully
+- User hints flow end-to-end through pipeline and API
+- No regressions detected
