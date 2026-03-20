@@ -26,6 +26,12 @@ export default function FullReportView({ data }: FullReportViewProps) {
         <UseCaseTierSection
           id="section-use-cases"
           useCases={data.use_cases}
+          signals={data.signals?.signals}
+          matchResults={[
+            ...(data.match_results?.delivered ?? []),
+            ...(data.match_results?.adaptation ?? []),
+            ...(data.match_results?.ambitious ?? []),
+          ]}
         />
       ) : (
         <ReportCard

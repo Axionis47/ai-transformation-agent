@@ -1,11 +1,13 @@
 "use client";
 
-import type { TieredUseCase } from "@/lib/types";
+import type { TieredUseCase, Signal, MatchResult } from "@/lib/types";
 import UseCaseCard from "@/components/UseCaseCard";
 import { USE_CASE_TIERS } from "@/lib/config";
 
 interface UseCaseTierSectionProps {
   useCases: TieredUseCase[];
+  signals?: Signal[];
+  matchResults?: MatchResult[];
   id?: string;
 }
 
@@ -13,7 +15,7 @@ type TierKey = keyof typeof USE_CASE_TIERS;
 
 const TIER_ORDER: TierKey[] = ["LOW_HANGING_FRUIT", "MEDIUM_SOLUTION", "HARD_EXPERIMENT"];
 
-export default function UseCaseTierSection({ useCases, id }: UseCaseTierSectionProps) {
+export default function UseCaseTierSection({ useCases, signals, matchResults, id }: UseCaseTierSectionProps) {
   const renderedTiers = TIER_ORDER.filter(
     (tier) => useCases.some((uc) => uc.tier === tier)
   );
@@ -50,7 +52,7 @@ export default function UseCaseTierSection({ useCases, id }: UseCaseTierSectionP
             {/* Use case entries */}
             <div className="space-y-0">
               {items.map((uc) => (
-                <UseCaseCard key={uc.title} useCase={uc} />
+                <UseCaseCard key={uc.title} useCase={uc} signals={signals} matchResults={matchResults} />
               ))}
             </div>
           </div>
