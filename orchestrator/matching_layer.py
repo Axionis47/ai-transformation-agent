@@ -1,9 +1,16 @@
 """Three-channel matching layer — bridges company signals to both solution libraries."""
 from __future__ import annotations
 
+import re
 import uuid
 
 from orchestrator.schemas import MatchResult, ProvenMetrics
+
+_STOPWORDS = {
+    "the", "a", "is", "and", "of", "to", "in", "for", "that", "with",
+    "was", "had", "not", "from", "this", "been", "have", "were", "are",
+    "but", "they", "per",
+}
 
 _MATURITY_LEVELS = ["Beginner", "Developing", "Emerging", "Advanced", "Leading"]
 _SIZE_LEVELS = ["startup", "mid-market", "enterprise"]
@@ -52,9 +59,47 @@ def _map_confidence(raw: float, lo: float, hi: float, raw_min: float, raw_max: f
     return round(min(hi, max(lo, lo + t * (hi - lo))), 3)
 
 
+def _tokenize(text: str) -> set[str]:
+    """Lowercase, split on non-word characters, remove stopwords."""
+    tokens = re.split(r"\W+", text.lower())
+    return {t for t in tokens if t and t not in _STOPWORDS}
+
+
+def _pain_point_score(record: dict, company_signals: list[dict],
+                      problem_key: str = "problem_statement") -> float:
+    """Score keyword overlap between company pain points and a victory record.
+
+    Extracts pain_point signal values from company_signals, tokenizes them,
+    then computes overlap against the record's problem text and solution summary.
+    Returns 0.0-0.15, scaled by overlap ratio.
+    """
+    pain_values = [
+        s.get("value", "")
+        for s in company_signals
+        if s.get("type") == "pain_point" and s.get("value")
+    ]
+    if not pain_values:
+        return 0.0
+
+    pain_tokens = _tokenize(" ".join(pain_values))
+    if not pain_tokens:
+        return 0.0
+
+    problem_text = record.get(problem_key, "") or ""
+    solution_text = record.get("solution_summary", "") or ""
+    record_tokens = _tokenize(f"{problem_text} {solution_text}")
+
+    if not record_tokens:
+        return 0.0
+
+    overlap = len(pain_tokens & record_tokens)
+    ratio = overlap / len(pain_tokens)
+    return round(min(0.15, 0.15 * ratio), 4)
+
+
 def _score_library_a(record: dict, signals_industry: str, signals_scale: str,
                      maturity_label: str, company_signals: list[dict]) -> float:
-    """Score a Library A record. Returns total 0.0-1.2."""
+    """Score a Library A record. Returns total 0.0-1.35 (pain_point bonus up to 0.15)."""
     win_industry = record.get("industry", "")
     win_size = record.get("size_label", "")
     if not win_size:
@@ -88,7 +133,9 @@ def _score_library_a(record: dict, signals_industry: str, signals_scale: str,
     applicable = set(record.get("applicable_signals", []))
     signal_bonus = 0.1 if applicable & company_signal_types else 0.0
 
-    return industry_score + maturity_score + size_score + sector_bonus + signal_bonus
+    pain_score = _pain_point_score(record, company_signals)
+
+    return industry_score + maturity_score + size_score + sector_bonus + signal_bonus + pain_score
 
 
 def _score_library_b(record: dict, signals_industry: str, signals_scale: str,
@@ -113,7 +160,12 @@ def _score_library_b(record: dict, signals_industry: str, signals_scale: str,
         company_type = record["company_profile"].get("company_type", "")
     size_match = 0.2 if signals_scale.lower() == company_type.lower() else 0.0
 
-    return round(industry_score + signal_overlap + size_match, 3)
+    # Library B records may carry a problem_statement field
+    pain_score = 0.0
+    if record.get("problem_statement"):
+        pain_score = _pain_point_score(record, company_signals)
+
+    return round(industry_score + signal_overlap + size_match + pain_score, 3)
 
 
 def _build_delivered(record: dict, score: float, composite_score: float) -> MatchResult:
