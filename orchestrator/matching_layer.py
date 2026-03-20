@@ -97,9 +97,51 @@ def _pain_point_score(record: dict, company_signals: list[dict],
     return round(min(0.15, 0.15 * ratio), 4)
 
 
+def _tech_stack_score(record: dict, company_signals: list[dict]) -> float:
+    """Score tech stack overlap between company signals and a victory record.
+
+    Extracts tech_stack signal values from company_signals, flattens the
+    record's tech_stack dict (infrastructure, data_sources,
+    client_systems_integrated lists + ml_approach string), tokenizes both
+    sides, and returns 0.0-0.15 scaled by overlap ratio.
+    """
+    tech_values = [
+        s.get("value", "")
+        for s in company_signals
+        if s.get("type") == "tech_stack" and s.get("value")
+    ]
+    if not tech_values:
+        return 0.0
+
+    company_tokens = _tokenize(" ".join(tech_values))
+    if not company_tokens:
+        return 0.0
+
+    tech = record.get("tech_stack", {})
+    if not isinstance(tech, dict):
+        return 0.0
+
+    record_parts: list[str] = []
+    for key in ("infrastructure", "data_sources", "client_systems_integrated"):
+        val = tech.get(key, [])
+        if isinstance(val, list):
+            record_parts.extend(str(v) for v in val)
+    ml = tech.get("ml_approach", "")
+    if ml:
+        record_parts.append(str(ml))
+
+    record_tokens = _tokenize(" ".join(record_parts))
+    if not record_tokens:
+        return 0.0
+
+    overlap = len(company_tokens & record_tokens)
+    ratio = overlap / len(company_tokens)
+    return round(min(0.15, 0.15 * ratio), 4)
+
+
 def _score_library_a(record: dict, signals_industry: str, signals_scale: str,
                      maturity_label: str, company_signals: list[dict]) -> float:
-    """Score a Library A record. Returns total 0.0-1.35 (pain_point bonus up to 0.15)."""
+    """Score a Library A record. Returns total 0.0-1.50 (tech + pain bonuses up to 0.30)."""
     win_industry = record.get("industry", "")
     win_size = record.get("size_label", "")
     if not win_size:
@@ -134,8 +176,9 @@ def _score_library_a(record: dict, signals_industry: str, signals_scale: str,
     signal_bonus = 0.1 if applicable & company_signal_types else 0.0
 
     pain_score = _pain_point_score(record, company_signals)
+    tech_score = _tech_stack_score(record, company_signals)
 
-    return industry_score + maturity_score + size_score + sector_bonus + signal_bonus + pain_score
+    return industry_score + maturity_score + size_score + sector_bonus + signal_bonus + pain_score + tech_score
 
 
 def _score_library_b(record: dict, signals_industry: str, signals_scale: str,
@@ -165,7 +208,9 @@ def _score_library_b(record: dict, signals_industry: str, signals_scale: str,
     if record.get("problem_statement"):
         pain_score = _pain_point_score(record, company_signals)
 
-    return round(industry_score + signal_overlap + size_match + pain_score, 3)
+    tech_score = _tech_stack_score(record, company_signals)
+
+    return round(industry_score + signal_overlap + size_match + pain_score + tech_score, 3)
 
 
 def _build_delivered(record: dict, score: float, composite_score: float) -> MatchResult:
