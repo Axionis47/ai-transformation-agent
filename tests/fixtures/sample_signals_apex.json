@@ -1,0 +1,74 @@
+{
+  "company_url": "https://apexconsulting.com",
+  "industry": "professional services",
+  "scale": "mid-market",
+  "scale_rationale": "300 consultants across 6 offices — established mid-market firm",
+  "signals": [
+    {
+      "signal_id": "sig-001",
+      "type": "pain_point",
+      "value": "knowledge trapped in email and SharePoint",
+      "source": "about_text",
+      "confidence": 0.85,
+      "raw_quote": "digital transformation, cloud migration, and IT strategy engagements"
+    },
+    {
+      "signal_id": "sig-002",
+      "type": "pain_point",
+      "value": "manual proposal writing process",
+      "source": "job_posting",
+      "confidence": 0.8,
+      "raw_quote": "Gather requirements, run workshops, and document current-state processes"
+    },
+    {
+      "signal_id": "sig-003",
+      "type": "tech_stack",
+      "value": "Microsoft 365",
+      "source": "about_text",
+      "confidence": 0.95,
+      "raw_quote": "We leverage Microsoft 365, SharePoint, and Salesforce"
+    },
+    {
+      "signal_id": "sig-004",
+      "type": "tech_stack",
+      "value": "SharePoint",
+      "source": "about_text",
+      "confidence": 0.95,
+      "raw_quote": "We leverage Microsoft 365, SharePoint, and Salesforce"
+    },
+    {
+      "signal_id": "sig-005",
+      "type": "tech_stack",
+      "value": "Salesforce",
+      "source": "about_text",
+      "confidence": 0.9,
+      "raw_quote": "We leverage Microsoft 365, SharePoint, and Salesforce"
+    },
+    {
+      "signal_id": "sig-006",
+      "type": "hiring_signal",
+      "value": "business analyst",
+      "source": "job_posting",
+      "confidence": 0.9,
+      "raw_quote": "Business Analyst — Support client engagement delivery"
+    },
+    {
+      "signal_id": "sig-007",
+      "type": "process_signal",
+      "value": "resource scheduling",
+      "source": "job_posting",
+      "confidence": 0.85,
+      "raw_quote": "Resource planning, status reporting, and client communication"
+    },
+    {
+      "signal_id": "sig-008",
+      "type": "scale_hint",
+      "value": "mid-market",
+      "source": "about_text",
+      "confidence": 0.88,
+      "raw_quote": "300 consultants across 6 US offices"
+    }
+  ],
+  "signal_count": 8,
+  "extraction_notes": "Professional services firm with Microsoft ecosystem. Knowledge silo and proposal bottleneck are implied pain points. No data pipeline, analytics stack, or ML signals. Power BI mentioned but no data infrastructure context."
+}
