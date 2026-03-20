@@ -511,3 +511,55 @@ def _win_001_record() -> dict:
     }
 
 
+
+def test_win001_scores_higher_with_pain_and_tech_signals():
+    """Logistics company with matching pain_point and tech_stack signals must score win-001
+    as DELIVERED with a score at least 0.1 higher than a company with no such signals."""
+    record = _win_001_record()
+
+    # Baseline: logistics, mid-market, Developing — industry + maturity match only
+    baseline_signals = {
+        "industry": "logistics",
+        "scale": "mid-market",
+        "signals": [],
+    }
+    maturity = {"composite_label": "Developing", "composite_score": 2.0}
+
+    # Rich signals: matching pain_point text and tech_stack (BigQuery)
+    rich_signals = {
+        "industry": "logistics",
+        "scale": "mid-market",
+        "signals": [
+            {
+                "type": "pain_point",
+                "value": "manual route planning is inefficient and slow",
+                "confidence": 0.9,
+            },
+            {
+                "type": "tech_stack",
+                "value": "BigQuery",
+                "confidence": 0.85,
+            },
+        ],
+    }
+
+    result_baseline = match(baseline_signals, maturity, [record], [])
+    result_rich = match(rich_signals, maturity, [record], [])
+
+    # win-001 must appear in DELIVERED for the rich-signals company (score >= 0.60)
+    delivered_rich = result_rich["delivered"]
+    assert len(delivered_rich) > 0, "win-001 should be DELIVERED for logistics company with pain+tech signals"
+    assert delivered_rich[0].source_id == "win-001"
+    assert delivered_rich[0].match_tier == "DELIVERED"
+
+    # Baseline may be DELIVERED or ADAPTATION — either way score is lower
+    baseline_all = result_baseline["delivered"] + result_baseline["adaptation"]
+    assert len(baseline_all) > 0, "win-001 should match (in any tier) for baseline logistics company"
+    baseline_score = baseline_all[0].similarity_score
+    rich_score = delivered_rich[0].similarity_score
+
+    score_delta = rich_score - baseline_score
+    assert score_delta >= 0.1, (
+        f"Rich signals should boost score by at least 0.1 over baseline. "
+        f"Got baseline={baseline_score:.3f}, rich={rich_score:.3f}, delta={score_delta:.3f}"
+    )
