@@ -72,7 +72,12 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": true,
-    "lessons_learned": "PDF quality varies wildly \u2014 invest time in pre-processing (deskew, denoise) before LLM extraction. The PO matching rules needed two rounds of tuning based on AP manager feedback before trust was earned.",
+    "lessons_learned": {
+      "primary_challenge": "Source invoices arrived in 40+ vendor formats \u2014 extraction accuracy dropped to 71% until we built format-specific templates",
+      "risk_factors": ["data_quality", "vendor_format_diversity", "change_management"],
+      "timeline_reality": "Accuracy hit 95% at week 6, not week 2. First month was template iteration and edge case handling.",
+      "what_we_would_do_differently": "Run a format audit in week 1 to scope the template library before building the extraction pipeline"
+    },
     "embed_text": "Financial Services \u2014 Mid-market commercial lender, 320 employees, ~$65M revenue, US Southeast\n\nProblem: AP team processed 3,000 invoices/month manually at 15 min each. Zero automation. Month-end close delayed 3 days from processing backlog.\n\nSolution: LLM extracts invoice line items and vendor details, matches to POs, routes exceptions to human queue. Straight-through invoices post automatically. Built with Claude API structured output, PDF parsing, ERP REST API.\n\nResults: 82% straight-through processing rate (from 0%), $340K/year labor savings, month-end close delay eliminated. 6 months post-deployment.",
     "industry_benchmark": "82% straight-through processing on 3,000 invoices/month",
     "success_threshold": "Applicable when invoice volume exceeds 500/month and an ERP API is accessible.",
@@ -161,7 +166,12 @@
     },
     "maturity_at_engagement": "Beginner",
     "follow_on_engagement": true,
-    "lessons_learned": "Escalation rules are the hardest part \u2014 too aggressive and agents resent the bot, too loose and customers get wrong answers. Budget a full week for escalation tuning with the team.",
+    "lessons_learned": {
+      "primary_challenge": "Bot initially escalated 60% of conversations \u2014 customers found scripted responses frustrating until we added context-aware routing",
+      "risk_factors": ["customer_experience", "escalation_rate", "training_data_quality"],
+      "timeline_reality": "Escalation rate dropped below 30% at month 3 after two rounds of conversation flow tuning.",
+      "what_we_would_do_differently": "Start with a narrower scope \u2014 handle returns only \u2014 then expand, instead of launching all categories at once"
+    },
     "embed_text": "Ecommerce \u2014 Startup DTC brand, 55 employees, ~$12M revenue, US\n\nProblem: 6-person support team, 400 tickets/day, 23-minute resolution. 35% repeat questions. CSAT 3.2/5.\n\nSolution: Multi-step support agent using GPT-4o with function calling. Handles returns, order tracking, FAQ. Escalates complex cases to humans with context summary.\n\nResults: 64% auto-resolution rate, avg resolution 4 min, CSAT from 3.2 to 4.1. 3 months post-deployment.",
     "industry_benchmark": "64% ticket auto-resolution rate on 400 daily support tickets",
     "success_threshold": "Best fit when order management system has an API and ticket volume exceeds 150/day.",
@@ -250,7 +260,12 @@
     },
     "maturity_at_engagement": "Beginner",
     "follow_on_engagement": true,
-    "lessons_learned": "Access control is the hardest constraint \u2014 consultants should only see documents they are authorized to view. Implement metadata-level filtering at the Pinecone query layer before launch, not after.",
+    "lessons_learned": {
+      "primary_challenge": "Partners resisted adopting the tool \u2014 usage stayed below 20% until we embedded it directly into the proposal workflow",
+      "risk_factors": ["user_adoption", "content_freshness", "search_relevance"],
+      "timeline_reality": "Adoption crossed 60% at month 4 after workflow integration. Search quality improvements alone didn't move the needle.",
+      "what_we_would_do_differently": "Co-design the interface with 3-4 power users from day one instead of building and hoping for adoption"
+    },
     "embed_text": "Professional Services \u2014 Mid-market consulting firm, 280 employees, ~$50M revenue, US Northeast\n\nProblem: Consultants spent 8 hours/week searching 15,000 documents across SharePoint and email. 45 minutes average per query.\n\nSolution: RAG system over 15,000 docs using OpenAI embeddings, Pinecone vector store, Claude for generation. Natural language search with cited answers.\n\nResults: Search time 45 min to 3 min, 89% accuracy, $180K/year productivity gain. 30-day post-deployment.",
     "industry_benchmark": "Search time from 45 min to 3 min across 15,000 internal documents",
     "success_threshold": "Applicable when document volume exceeds 1,000 and content is in searchable format.",
@@ -337,7 +352,12 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": false,
-    "lessons_learned": "HIPAA compliance review adds 3 weeks minimum \u2014 start the BAA process with the client in week 1. Clinicians are skeptical of AI-generated notes until they see their own voice reflected back. Use their actual note examples as few-shot context.",
+    "lessons_learned": {
+      "primary_challenge": "Regulatory review added 8 weeks to timeline \u2014 legal required human-in-the-loop approval for every generated note template",
+      "risk_factors": ["regulatory_compliance", "clinician_trust", "data_privacy"],
+      "timeline_reality": "First pilot with 5 clinicians at month 2. Full department rollout at month 5 after compliance sign-off.",
+      "what_we_would_do_differently": "Engage legal and compliance in week 1, not after the prototype is built"
+    },
     "embed_text": "Healthcare \u2014 Mid-market outpatient clinic, 95 employees, ~$16M revenue, US Midwest\n\nProblem: 15 clinicians spent 40 hours/week on documentation. Notes completed 6+ hours post-visit. Compliance risk and 2-day billing delay.\n\nSolution: LLM generates structured SOAP notes from visit summary + Epic EHR context via FHIR API. Clinician reviews and approves in under 2 minutes. Built with Claude API, Epic FHIR, GCP Cloud Run.\n\nResults: 62% reduction in documentation time, notes within 1 hour, $109K/year savings. 4 months post-deployment.",
     "industry_benchmark": "62% reduction in clinical documentation time across 15 clinicians",
     "success_threshold": "Applicable when EHR has FHIR API access and clinicians have 1+ hours/day on notes.",
@@ -426,7 +446,12 @@
     },
     "maturity_at_engagement": "Beginner",
     "follow_on_engagement": false,
-    "lessons_learned": "Fine-tuning data quality matters more than quantity. 100 high-quality, carefully selected exemplars outperformed 800 inconsistently curated ones. Spend time with the content lead selecting training data before running the fine-tune.",
+    "lessons_learned": {
+      "primary_challenge": "Generated descriptions were technically accurate but lacked brand voice \u2014 marketing rejected the first 3 iterations",
+      "risk_factors": ["brand_consistency", "content_quality", "stakeholder_alignment"],
+      "timeline_reality": "Marketing approved the tone at iteration 4 (week 5). Catalog coverage hit 80% by month 3.",
+      "what_we_would_do_differently": "Get marketing to provide 20 gold-standard examples upfront as the style guide instead of iterating blind"
+    },
     "embed_text": "Retail \u2014 Startup online retailer, 80 employees, ~$20M revenue, US West\n\nProblem: Product team wrote 15 descriptions/day manually at 45 min each. 12,000 SKUs, 800-deep backlog, 3-week launch delays.\n\nSolution: GPT-4o fine-tuned on 800 brand voice examples. Accepts product spec + image, generates draft, scores against brand rubric before human approval.\n\nResults: 200 descriptions/day (13x), 91% first-draft acceptance, $95K/year savings. 3 months post-deployment.",
     "industry_benchmark": "200 descriptions/day at 91% acceptance rate vs 15/day manual baseline",
     "success_threshold": "Best fit when SKU count exceeds 500 and brand voice is well-documented.",
@@ -516,7 +541,12 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": true,
-    "lessons_learned": "Template standardization was 40% of the project effort. The client had 12 variations of their standard template across business lines. Consolidating to 3 canonical templates unlocked the comparison engine.",
+    "lessons_learned": {
+      "primary_challenge": "Model flagged too many false positives on standard clauses \u2014 underwriters ignored alerts until precision improved from 68% to 91%",
+      "risk_factors": ["false_positive_rate", "user_trust", "legal_complexity"],
+      "timeline_reality": "Precision hit 91% at week 8 after adding clause-type classification. Underwriter trust followed 2 weeks later.",
+      "what_we_would_do_differently": "Build a clause taxonomy with underwriters before training, not after the first round of complaints"
+    },
     "embed_text": "Insurance \u2014 Mid-market commercial lines insurer, 410 employees, ~$100M revenue, US Midwest\n\nProblem: Underwriters spent 3 hours per policy on manual contract review. 12% deviation miss rate. 3-week backlog in renewal season.\n\nSolution: Claude extracts clauses, compares to standard templates, flags deviations with severity. Underwriters review summary first, drill into flagged items only.\n\nResults: Review time 3 hours to 25 min, deviation detection 88% to 99.2%, $420K/year savings. 5 months post-deployment.",
     "industry_benchmark": "87% review time reduction, deviation detection from 88% to 99.2%",
     "success_threshold": "Applicable when policy volume exceeds 50/month and standard templates are defined.",
@@ -607,7 +637,12 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": true,
-    "lessons_learned": "External signals (weather, events) added 4 percentage points of accuracy improvement. Worth the integration effort. The bigger unlock was getting 18 months of clean historical data before modeling \u2014 data cleaning took 3 weeks but was the difference maker.",
+    "lessons_learned": {
+      "primary_challenge": "Historical data had 18-month gap from a warehouse migration \u2014 model accuracy on affected routes was 23% worse until we imputed the missing period",
+      "risk_factors": ["data_gaps", "seasonal_patterns", "integration_complexity"],
+      "timeline_reality": "Forecast accuracy reached target at month 4 after data imputation. Initial model at month 1 was worse than the spreadsheet it replaced.",
+      "what_we_would_do_differently": "Audit data completeness before model selection \u2014 we chose a method that assumed continuous history"
+    },
     "embed_text": "Logistics \u2014 Mid-market 3PL provider, 490 employees, ~$90M revenue, US Midwest\n\nProblem: Demand planning in spreadsheets. 22% forecast error. $180K/year overstocking, 15% more stockouts than industry median.\n\nSolution: Prophet + XGBoost ensemble with weather and event signals. Airflow for daily data ingestion. FastAPI serving. Planning dashboard.\n\nResults: Forecast error 22% to 9%, $180K/year cost avoidance, 15% stockout reduction. 6 months post-deployment.",
     "industry_benchmark": "22% to 9% MAPE on 90-day demand forecasts",
     "success_threshold": "Applicable when 18+ months of order history is available and ERP data is accessible.",
@@ -695,7 +730,12 @@
     },
     "maturity_at_engagement": "Beginner",
     "follow_on_engagement": false,
-    "lessons_learned": "Document label taxonomy needs to be defined with the routing staff, not by engineers. The initial 12-class taxonomy was too granular \u2014 collapsed to 6 classes and accuracy jumped from 81% to 94%. Simpler taxonomy wins.",
+    "lessons_learned": {
+      "primary_challenge": "Fax-to-digital conversion had 15% character error rate \u2014 routing accuracy suffered until we added OCR post-processing",
+      "risk_factors": ["ocr_quality", "document_variety", "integration_with_ehr"],
+      "timeline_reality": "Routing accuracy hit 94% at week 10 after OCR fixes. Initial deployment at week 4 was 78%.",
+      "what_we_would_do_differently": "Test OCR quality on real faxes in week 1 \u2014 we assumed digital-quality input"
+    },
     "embed_text": "Healthcare \u2014 Startup outpatient clinic, 60 employees, ~$8M revenue, US Southeast\n\nProblem: 500 faxes/day, 2 FTE sorting manually, 4-hour processing delay.\n\nSolution: GPT-4o Vision classifies fax type, Tesseract extracts patient ID, SQS routes to department queues. Unrecognized held for human review.\n\nResults: 94% auto-routing accuracy, 1.5 FTE redeployed, processing 4 hours to 12 minutes. 3 months post-deployment.",
     "industry_benchmark": "94% auto-routing accuracy on 500 daily inbound faxes",
     "success_threshold": "Applicable when fax volume exceeds 100/day and patient lookup API is available.",
@@ -784,7 +824,12 @@
     },
     "maturity_at_engagement": "Emerging",
     "follow_on_engagement": true,
-    "lessons_learned": "Advisors adopted immediately once they saw their own client relationship reflected accurately. The first demo used real client data from a willing advisor \u2014 that one session created 10 more champions. Never demo with synthetic data when real data is available.",
+    "lessons_learned": {
+      "primary_challenge": "CRM data was 40% incomplete \u2014 copilot recommendations were irrelevant until we added data enrichment from email and calendar",
+      "risk_factors": ["crm_data_quality", "user_adoption", "privacy_concerns"],
+      "timeline_reality": "Sales team adoption reached 55% at month 3 after email integration. CRM-only version had 15% adoption.",
+      "what_we_would_do_differently": "Integrate email and calendar from the start \u2014 CRM data alone is never complete enough"
+    },
     "embed_text": "Financial Services \u2014 Startup wealth management firm, 70 employees, ~$14M revenue, US East\n\nProblem: Advisors spent 2 hours/meeting on manual prep across scattered CRM notes and emails. 8-10 meetings/week = 25% of billable time on prep.\n\nSolution: Copilot pulls 12 months of Salesforce interactions, summarizes relationship, surfaces product opportunities, generates talking points. One-page brief 30 min before meeting.\n\nResults: Prep time 2 hours to 15 min, 18% cross-sell increase, advisor NPS +22. 4 months post-deployment.",
     "industry_benchmark": "Meeting prep from 2 hours to 15 minutes for financial advisors",
     "success_threshold": "Applicable when CRM has 12+ months of interaction history and API is accessible.",
@@ -873,7 +918,12 @@
     },
     "maturity_at_engagement": "Developing",
     "follow_on_engagement": true,
-    "lessons_learned": "Labeling 5,000 training images was the critical path \u2014 the client had unlabeled archives. Budget 4 weeks for labeling with quality engineers before modeling starts. Edge deployment on Jetson requires a dry-run of the full inference pipeline before production installation.",
+    "lessons_learned": {
+      "primary_challenge": "Camera positioning on the production line caused 30% of images to be unusable \u2014 required physical reconfiguration before model training",
+      "risk_factors": ["hardware_setup", "image_quality", "production_line_disruption"],
+      "timeline_reality": "Defect detection hit 97% accuracy at week 8. First 3 weeks were entirely hardware and lighting setup.",
+      "what_we_would_do_differently": "Send an engineer to the factory floor before writing any code \u2014 the physical setup was the bottleneck, not the model"
+    },
     "embed_text": "Manufacturing \u2014 Mid-market precision parts maker, 380 employees, ~$75M revenue, US Midwest\n\nProblem: 91% manual defect detection, inspector fatigue, $230K/year in escapes. 3 inspectors per shift required.\n\nSolution: Fine-tuned ResNet-50 on production line cameras. Edge inference on NVIDIA Jetson. Real-time defect detection with 400ms alert latency.\n\nResults: Detection rate 91% to 99.4%, 2 inspectors redeployed, $230K/year quality savings. 6 months post-deployment.",
     "industry_benchmark": "Defect detection from 91% to 99.4% on 8,000 parts/day production line",
     "success_threshold": "Applicable when labeled defect image archive exists and production line cameras are accessible.",
@@ -962,7 +1012,12 @@
     },
     "maturity_at_engagement": "Emerging",
     "follow_on_engagement": false,
-    "lessons_learned": "Compliance officers are the hardest stakeholders to convince \u2014 they own the report signature. Run the system in parallel for 2 full reporting cycles before replacing the manual process. The parallel run builds trust faster than any demo.",
+    "lessons_learned": {
+      "primary_challenge": "Report templates changed quarterly with new regulations \u2014 the system needed a template versioning layer we hadn't planned for",
+      "risk_factors": ["regulatory_change", "template_maintenance", "audit_trail"],
+      "timeline_reality": "First automated report at month 2. Template versioning added at month 4 after the first regulatory update broke output.",
+      "what_we_would_do_differently": "Design for template versioning from day one \u2014 regulations always change"
+    },
     "embed_text": "Financial Services \u2014 Mid-market RIA, 350 employees, ~$65M revenue, US East\n\nProblem: Compliance team spent 5 days/quarter generating regulatory reports manually. 2-3 staff, full-time for 2 days per report cycle.\n\nSolution: SQL extracts transactions, Claude generates narrative sections, Jinja templates populate formatted report. Compliance officer reviews and approves.\n\nResults: 5 days to 4 hours, zero findings in 3 audits, 3x ad hoc capacity. 3 quarters post-deployment.",
     "industry_benchmark": "Quarterly report generation from 5 days to 4 hours for RIA compliance",
     "success_threshold": "Applicable when report structure is defined and transaction data is in a queryable database.",
@@ -1051,7 +1106,12 @@
     },
     "maturity_at_engagement": "Beginner",
     "follow_on_engagement": false,
-    "lessons_learned": "Policy documents need to be split at the section level, not the page level. Page-level chunking created answers that combined unrelated policy clauses. Section-level chunking with metadata tags (policy name, effective date) dramatically improved accuracy.",
+    "lessons_learned": {
+      "primary_challenge": "Policy documents were contradictory across regions \u2014 copilot gave conflicting answers until we built a policy reconciliation layer",
+      "risk_factors": ["content_contradictions", "regional_policy_variance", "employee_trust"],
+      "timeline_reality": "Accuracy hit 92% at month 3 after policy reconciliation. Month 1 pilot had 73% accuracy and confused more than helped.",
+      "what_we_would_do_differently": "Reconcile policy contradictions before indexing \u2014 garbage in, garbage out applies to RAG"
+    },
     "embed_text": "Professional Services \u2014 Mid-market tech consulting firm, 240 employees, ~$45M revenue, US West\n\nProblem: HR team answered 200 questions/week. 35% repeat. 15 hours/week on policy Q&A.\n\nSolution: RAG chatbot over employee handbook and HR policies using OpenAI embeddings, ChromaDB, Claude for answers. Slack integration with one-click HR escalation.\n\nResults: 71% of questions auto-answered, 15 hours/week reclaimed, employee satisfaction +12. 4 months post-deployment.",
     "industry_benchmark": "71% auto-answer rate on 200 weekly HR policy questions",
     "success_threshold": "Applicable when HR policy documents are current and employee count exceeds 100.",
