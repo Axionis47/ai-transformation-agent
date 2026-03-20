@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import re
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -21,6 +22,20 @@ from rag.ingest import ensure_seeds_loaded
 
 _LOG_DIR = Path("logs/runs")
 _RUN_ID_RE = re.compile(r"^[a-zA-Z0-9\-]+$")
+_API_KEY = os.getenv("API_KEY", "")  # empty = open access (dev/demo mode)
+
+
+def _verify_api_key(request: Request) -> None:
+    """Reject requests that don't carry the configured API key.
+
+    When API_KEY env var is not set (or empty), every request is allowed
+    so local dev and dry-run demos work without configuration.
+    """
+    if not _API_KEY:
+        return
+    key = request.headers.get("X-API-Key", "")
+    if key != _API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid API key")
 
 
 @asynccontextmanager
@@ -100,7 +115,7 @@ async def get_trace(run_id: str) -> dict[str, Any]:
     return {"run_id": run_id, "stages": stages}
 
 
-@app.post("/v1/analyze", response_model=AnalyzeSuccess)
+@app.post("/v1/analyze", response_model=AnalyzeSuccess, dependencies=[Depends(_verify_api_key)])
 async def analyze(request: AnalyzeRequest) -> AnalyzeSuccess:
     """Run the full AI transformation analysis pipeline."""
     state = await asyncio.to_thread(
