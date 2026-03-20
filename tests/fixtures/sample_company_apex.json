@@ -3,18 +3,26 @@
   "name": "Apex Consulting",
   "about_text": "Apex Consulting is an IT consulting and managed services firm with 300 consultants across 6 US offices. Founded in 2005, we deliver digital transformation, cloud migration, and IT strategy engagements for mid-market enterprises. Our clients include manufacturers, distributors, and regional healthcare systems. We leverage Microsoft 365, SharePoint, and Salesforce as our internal platforms.",
   "job_postings": [
-    "Business Analyst — Support client engagement delivery. Gather requirements, run workshops, and document current-state processes. Salesforce experience a plus.",
-    "Project Manager — Manage delivery of IT transformation projects. Resource planning, status reporting, and client communication. PMP certification preferred.",
-    "SharePoint Developer — Build internal knowledge portals and client collaboration sites on SharePoint Online."
+    "Business Analyst\n\nSupport delivery of digital transformation engagements for mid-market manufacturing and distribution clients. You will facilitate requirements workshops, document current-state processes, and translate business needs into functional specifications for our development team. Requirements: 3+ years in management consulting or IT delivery. Experience with process mapping tools (Visio, Lucidchart). Salesforce experience a strong plus. Pain point: our clients typically have deeply manual processes documented only in tribal knowledge — your job is to surface, structure, and hand that to our delivery team before a single line of code is written.",
+    "Project Manager\n\nManage delivery of IT transformation projects for our manufacturing and healthcare clients, typically ranging from 6 to 18 months in duration. You will own resource planning, risk management, stakeholder reporting, and budget tracking. Requirements: PMP certification preferred. 5+ years IT project delivery. Experience managing both internal and client-side stakeholders. Strong Excel and PowerPoint skills. Consulting background strongly preferred over internal IT background. Our projects frequently encounter scope creep driven by undocumented requirements — your ability to hold scope while maintaining client trust is the core competency we are hiring for.",
+    "SharePoint Developer\n\nBuild knowledge management portals and client collaboration sites on SharePoint Online for Apex's internal teams and for client-facing project delivery. You will migrate legacy SharePoint 2016 content, design modern intranet page templates, and train end users on adoption. Requirements: 3+ years SharePoint Online development. Power Automate. Microsoft Graph API. Bonus: Power BI integration experience. This role is partly internal IT (maintaining our own intranet) and partly billable delivery on client engagements.",
+    "AI Practice Lead\n\nDefine and build Apex's AI advisory practice. We are seeing increasing demand from our manufacturing and distribution clients for AI readiness assessments, use case identification, and implementation roadmaps. You will develop our AI service offerings, write thought leadership content, and lead the first 3-5 client engagements. Requirements: 8+ years consulting. Deep understanding of applied AI use cases in operations, supply chain, or document processing. Ability to present to C-suite audiences. We have no existing AI practice — this is a build from scratch role and you will hire the first two analysts."
   ],
   "product_text": "Apex helps mid-market companies modernize their IT. We offer strategy consulting, cloud migration, ERP implementations, and ongoing managed services. Our consultants bring deep sector expertise in manufacturing, distribution, and healthcare IT.",
+  "blog_text": "Apex is launching an AI readiness practice after multiple clients asked us to help them evaluate where AI could reduce operating costs in their manufacturing and logistics operations. We have piloted three AI use case assessments and are productizing the approach. We are also investing in automating our own internal knowledge management as a reference case for clients.",
+  "team_text": "Leadership: CEO (consulting lifer, founded Apex 2005), CTO, VP Delivery, VP Sales. Practice Areas: Cloud and Infrastructure (120 consultants), ERP and CRM (80 consultants), Digital and AI (emerging, 15 consultants). Offices: Chicago, Dallas, Atlanta, Denver, Boston, New York.",
   "tech_stack_mentions": [
     "Microsoft 365",
     "SharePoint",
     "Salesforce",
     "Power BI"
   ],
-  "pages_fetched": ["/about", "/careers", "/services"],
+  "pages_fetched": ["/about", "/careers", "/services", "/blog", "/team"],
+  "fetch_summary": {
+    "attempted": 5,
+    "succeeded": 5,
+    "failed": []
+  },
   "signal_count": 4,
   "last_scraped": "2026-03-14T10:30:00Z"
 }

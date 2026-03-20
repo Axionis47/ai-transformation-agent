@@ -3,11 +3,14 @@
   "name": "ShopStream",
   "about_text": "ShopStream is an ecommerce platform startup helping 500+ independent retailers sell online. Founded in 2021, we provide storefront tooling, inventory management, and order fulfilment integrations. Our platform is built on GCP and connects to Shopify, WooCommerce, and major marketplaces. We are a team of 80 working to make ecommerce accessible for small and mid-market retailers.",
   "job_postings": [
-    "Backend Engineer — Build APIs and data pipelines on GCP with Python and BigQuery. Own the inventory data layer that powers our forecasting features.",
-    "Content Operations Specialist — Write and edit product descriptions for our retailer catalog. Must manage 10,000+ SKUs across multiple categories.",
-    "Growth Analyst — Analyze conversion and retention using BigQuery. Build dashboards in Looker to surface merchandising insights."
+    "Backend Engineer, Data Pipelines\n\nBuild APIs and data pipelines on GCP that power our inventory forecasting and merchandising features for 500+ retailer accounts. You will own the inventory data layer: ingesting stock levels from Shopify and WooCommerce, normalizing SKU data across marketplaces, and publishing forecasting signals to our ML models. Requirements: 4+ years Python. GCP (Cloud Run, Pub/Sub, BigQuery). REST API design. Pain point: retailers currently lose sales because their inventory signals are 24 hours stale — we are rebuilding the pipeline for near-real-time sync.",
+    "Content Operations Specialist\n\nManage product catalog quality for ShopStream retailer accounts. Write, edit, and optimize product descriptions for 10,000+ SKUs across apparel, home goods, and electronics. You will develop content templates that help retailers improve search ranking and conversion without hiring a full copywriting team. Requirements: 2+ years ecommerce content. Strong SEO instincts. Familiarity with A/B testing copy. We are exploring AI-assisted content generation and this role will pilot and evaluate those tools.",
+    "Growth Analyst\n\nAnalyze conversion, retention, and merchandising performance across our retailer base using BigQuery and Looker. Build the dashboards that our Customer Success team uses to run quarterly business reviews with retailers. Requirements: SQL expert. Looker or Tableau. Comfort with funnel analysis and cohort retention. Bonus: experience with attribution modeling. Key challenge: most of our retailers are first-generation ecommerce operators who do not have data fluency — your dashboards need to tell a story, not just display numbers.",
+    "ML Engineer, Demand Forecasting\n\nBuild and improve our demand forecasting models that help retailers optimize inventory orders and avoid overstock or stockout situations. We have 2 years of transaction history across 500+ retailers and 10M+ SKUs. Current approach is rule-based and miscalibrated for seasonal products. Requirements: 3+ years applied ML. Time series modeling (Prophet, LSTM, or similar). Python, scikit-learn. Experience deploying models as GCP Cloud Run endpoints. First milestone: reduce median forecast error from 34% to under 20% on a 14-day horizon."
   ],
   "product_text": "ShopStream gives independent retailers everything they need to compete online. Storefront builder, inventory sync, order routing, and performance analytics — all in one platform. We connect to Shopify APIs, Google Shopping, and Amazon Seller Central so retailers can list everywhere without duplicating work.",
+  "blog_text": "ShopStream is rolling out AI-powered product description generation in beta for our apparel retailer segment after a pilot reduced time-to-publish for new SKUs by 60%. We are also investing in predictive inventory features following strong signal from our retailer base that stockouts are their number-one pain point. Hiring across ML and data engineering to support this expansion.",
+  "team_text": "Leadership: CEO (ex-Shopify partnerships), CTO (ex-Google Shopping), VP Sales (ecommerce SaaS background). Product and Engineering: 45 people across Platform, Data, and Growth teams. Customer Success: 10 specialists supporting our 500 retailer accounts.",
   "tech_stack_mentions": [
     "Python",
     "GCP",
@@ -15,7 +18,12 @@
     "Shopify APIs",
     "Looker"
   ],
-  "pages_fetched": ["/about", "/careers", "/product"],
+  "pages_fetched": ["/about", "/careers", "/product", "/blog", "/team"],
+  "fetch_summary": {
+    "attempted": 5,
+    "succeeded": 5,
+    "failed": []
+  },
   "signal_count": 5,
   "last_scraped": "2026-03-14T10:30:00Z"
 }

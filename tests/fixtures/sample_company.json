@@ -3,11 +3,15 @@
   "name": "CargoLogik",
   "about_text": "CargoLogik is a mid-market B2B SaaS platform serving 200+ logistics companies across North America. Founded in 2018, we provide end-to-end supply chain visibility, route optimization, and warehouse management solutions. Our platform processes over 2 million shipments monthly, integrating with major carriers including FedEx, UPS, and regional freight networks. We are investing in data infrastructure to support our next generation of intelligent logistics tools.",
   "job_postings": [
-    "Senior Data Engineer — Build and maintain our data lake on BigQuery. Experience with Spark, Airflow, and dbt required. You will design pipelines processing 50M+ events daily.",
-    "Product Manager, Analytics — Own our reporting and dashboards product. Work with customers to identify data-driven insights for fleet optimization.",
-    "Full Stack Engineer — React/Node.js stack. Build customer-facing tools for shipment tracking and carrier performance monitoring."
+    "Senior Data Engineer\n\nWe are looking for a Senior Data Engineer to build and maintain our next-generation data lake on BigQuery. You will design, implement, and operate ETL pipelines processing 50M+ events daily from carrier APIs, warehouse sensors, and customer integrations. Requirements: 5+ years experience with Spark, Airflow, and dbt. Strong Python skills. Familiarity with streaming architectures (Kafka or Pub/Sub preferred). You will work closely with our ML team to ensure feature pipelines are reliable and auditable. Pain point we are solving: our current pipelines are brittle and require manual intervention every time a carrier changes their API contract.",
+    "Product Manager, Analytics\n\nOwn our reporting and dashboards product. You will work directly with logistics operations managers at our 200+ customer accounts to understand how they use data today and where manual processes are slowing them down. Translate customer pain into product requirements for our engineering team. Define success metrics for each feature and run structured discovery sessions. Requirements: 3+ years in B2B SaaS product. Experience with BI tools (Looker, Tableau, or Power BI). Understanding of fleet optimization or supply chain analytics a strong plus. We are moving from reactive reporting to proactive AI-driven recommendations and need a PM who can guide customers through that shift.",
+    "Full Stack Engineer\n\nJoin our customer-facing product team building shipment tracking and carrier performance monitoring tools. Our stack is React on the frontend and Node.js microservices on the backend, deployed on GCP with Cloud Run. You will own entire feature areas from design to deployment. Key challenge: we display real-time shipment data to customers but our current WebSocket implementation does not scale past 500 concurrent users. Requirements: 4+ years of React and Node.js. GCP experience. Comfort with high-traffic systems. Bonus: experience with real-time data visualization.",
+    "Machine Learning Engineer\n\nHelp us build the AI layer on top of our logistics platform. First project: predict shipment delay probability 48 hours in advance using historical carrier performance data and current weather signals. We have labeled training data from 18 months of shipment history. Requirements: 3+ years in applied ML. Python, scikit-learn or PyTorch. Familiarity with feature stores. Experience deploying models to production APIs. We are a small team moving fast — you will own model development, deployment, and monitoring end-to-end.",
+    "Customer Success Manager\n\nManage a portfolio of 20-30 mid-market logistics accounts. Help customers get maximum value from CargoLogik by running quarterly business reviews, identifying workflow gaps, and coordinating feature requests with our product team. Biggest challenge we face: customers adopt our tracking module quickly but struggle to configure our route optimization features without hand-holding. Requirements: 2+ years in B2B SaaS customer success. Logistics or supply chain domain knowledge preferred. Strong analytical skills — you will pull data from our platform to build the story for each QBR."
   ],
   "product_text": "CargoLogik provides a cloud-native logistics management platform with modules for shipment tracking, carrier integration, and warehouse orchestration. Our solutions are built for mid-market shippers who need real-time visibility without enterprise complexity.",
+  "blog_text": "CargoLogik is doubling its investment in AI-powered route optimization after a successful pilot with three regional freight carriers reduced fuel costs by 11%. We are hiring across our data and ML teams to accelerate this initiative. Our latest product release includes carrier scorecard dashboards that automatically surface underperforming lanes before they become customer escalations.",
+  "team_text": "Leadership: CEO (logistics industry, 20 years), CTO (ex-Google infrastructure), VP Product (ex-Flexport). Engineering: 45 engineers across Platform, Data, and ML teams. Customer Success: 12 CSMs organized by vertical. Sales: 8 AEs focused on mid-market manufacturers and distributors.",
   "tech_stack_mentions": [
     "BigQuery",
     "React",
@@ -17,7 +21,12 @@
     "PostgreSQL",
     "Redis"
   ],
-  "pages_fetched": ["/about", "/careers", "/platform"],
+  "pages_fetched": ["/about", "/careers", "/platform", "/blog", "/team"],
+  "fetch_summary": {
+    "attempted": 5,
+    "succeeded": 5,
+    "failed": []
+  },
   "signal_count": 7,
   "last_scraped": "2026-03-14T10:30:00Z"
 }

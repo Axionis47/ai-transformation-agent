@@ -3,17 +3,24 @@
   "name": "FinVault",
   "about_text": "FinVault is a compliance and document processing platform for financial services firms. Founded in 2022, we serve 25+ regional banks and credit unions with tools for KYC document collection, AML screening, and regulatory reporting. Our team of 45 is focused on making compliance affordable for institutions that cannot staff a large compliance operations team.",
   "job_postings": [
-    "Compliance Operations Analyst — Review KYC documents and flag discrepancies for our banking clients. Familiarity with BSA/AML regulations required.",
-    "Python Developer — Build internal tooling and automation scripts. AWS Lambda and MongoDB experience preferred."
+    "Compliance Operations Analyst\n\nReview KYC documents submitted by banking clients and flag discrepancies or incomplete submissions for remediation. You will manage a daily queue of 50-100 document packages using our internal review platform, coordinate with bank operations teams when additional documentation is needed, and maintain audit trails for each review decision. Requirements: familiarity with BSA/AML regulations, SAR filing requirements, and OFAC sanctions screening. 2+ years in bank compliance or financial crime operations. Pain point we are solving: our bank clients are drowning in manual KYC review and filing backlogs that grow 20% year over year with the same headcount.",
+    "Python Developer, Automation\n\nBuild internal automation scripts and tooling that reduce the manual steps in our compliance workflow platform. Priority projects: auto-classify incoming document types using OCR metadata, route submissions to the correct review queue without human triage, and flag duplicate entity submissions across client accounts. Requirements: 3+ years Python. AWS Lambda. MongoDB. Comfort working with unstructured document data. This is a high-leverage role — every hour of automation we build replaces hours of manual review across our 25 banking clients."
   ],
   "product_text": "FinVault handles the compliance paperwork that banks hate. We collect, store, and route KYC documents, run name-matching against sanctions lists, and generate the reports your regulators require. Built for teams of one — not teams of ten.",
+  "blog_text": "FinVault is piloting AI-assisted document classification with two regional bank partners, aiming to reduce manual triage time by 40%. Regulatory scrutiny on AML compliance is increasing and we are investing in automation to help our customers scale their compliance programs without proportional headcount growth.",
+  "team_text": "Leadership: CEO (ex-bank compliance officer, 15 years), CTO (fintech engineering background). Operations: 12 compliance analysts supporting client onboarding and review queues. Engineering: 8 engineers focused on the core platform and automation tooling.",
   "tech_stack_mentions": [
     "AWS Lambda",
     "Python",
     "MongoDB",
     "document OCR"
   ],
-  "pages_fetched": ["/about", "/careers", "/product"],
+  "pages_fetched": ["/about", "/careers", "/product", "/blog", "/team"],
+  "fetch_summary": {
+    "attempted": 5,
+    "succeeded": 5,
+    "failed": []
+  },
   "signal_count": 4,
   "last_scraped": "2026-03-14T10:30:00Z"
 }

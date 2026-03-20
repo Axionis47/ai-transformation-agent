@@ -3,11 +3,14 @@
   "name": "MedFlow Health",
   "about_text": "MedFlow Health is a healthcare SaaS company serving 40+ ambulatory care clinics and medical groups across the Midwest. Founded in 2019, we provide EHR workflow automation, prior authorization tracking, and clinical documentation tools. Our platform integrates with major EHR systems via HL7/FHIR and processes over 50,000 patient encounters monthly. We are a team of 150 focused on reducing administrative burden for clinicians.",
   "job_postings": [
-    "Data Analyst — Analyze clinical workflow data to identify documentation bottlenecks. Experience with SQL, AWS, and healthcare data required. Help us understand where time is being lost in the documentation process.",
-    "Integration Engineer — Build and maintain HL7/FHIR integrations with Epic, Cerner, and Athena. PostgreSQL and React experience required.",
-    "Clinical Product Manager — Own our prior authorization workflow product. Partner with clinical staff to streamline insurance approval processes."
+    "Data Analyst, Clinical Operations\n\nAnalyze clinical workflow data to identify documentation bottlenecks slowing down our 40+ clinic customers. You will build dashboards in Looker that surface where clinicians spend the most time on administrative tasks and produce weekly reports for our customer success team. Requirements: 3+ years SQL and BI tools. Healthcare data experience preferred. AWS or Redshift exposure. Pain point: our customers know they have an efficiency problem but cannot pinpoint which part of the EHR workflow is costing the most time. Your analysis will directly drive our product roadmap.",
+    "Integration Engineer\n\nBuild and maintain HL7/FHIR integrations connecting MedFlow to Epic, Cerner, and Athena EHR systems for our clinic customers. You will own the integration layer from onboarding new clinics through ongoing monitoring and incident response. Requirements: 4+ years backend engineering. Deep knowledge of HL7 v2, FHIR R4, and SMART on FHIR. PostgreSQL. React experience for internal tooling. This is a critical role: integration failures block clinical workflows and our SLAs require 99.9% uptime.",
+    "Clinical Product Manager\n\nOwn our prior authorization workflow product, which is the highest-impact and most complained-about module in our platform. You will partner with clinical staff at our customer sites to map current manual steps in the auth process and design automation that reduces auth completion time from 3 days to same-day. Requirements: healthcare product experience. Clinical background (RN, PA, or MA) strongly preferred. Familiarity with insurance payer APIs. Expectation: deep empathy for the frustration clinicians feel filling out the same fields across 6 different payer portals.",
+    "Backend Engineer, AI Features\n\nJoin the team building our next wave of AI-assisted documentation features. First project: auto-populating clinical note templates using structured data from the EHR visit record, reducing the time clinicians spend on after-visit documentation. Requirements: 4+ years Python. Experience with LLM APIs (OpenAI or Google). AWS Lambda. Our constraint: healthcare data requires strict PHI handling so all model calls must be auditable and data must never leave our HIPAA-compliant AWS environment."
   ],
   "product_text": "MedFlow Health automates the administrative side of clinical care. Our tools reduce time spent on clinical documentation, prior authorizations, and care coordination. Built on AWS with FHIR-native APIs, our platform slots into existing EHR workflows without ripping and replacing.",
+  "blog_text": "MedFlow recently completed a HITRUST certification, making it easier for health systems to onboard our platform without custom security reviews. We are investing in AI-assisted documentation features following a pilot at three Midwest clinic groups that reduced after-visit note time by 22%. Our team is growing and we are actively hiring across engineering and clinical product.",
+  "team_text": "Leadership: CEO (former healthcare administrator), CTO (ex-AWS HealthLake), Chief Medical Officer (MD, clinical informatics). Engineering: 60 engineers in Platform, Integrations, and AI/ML groups. Clinical Advisory Board: 8 practicing physicians and PAs from partner clinics.",
   "tech_stack_mentions": [
     "AWS",
     "React",
@@ -16,7 +19,12 @@
     "Epic integration",
     "Cerner integration"
   ],
-  "pages_fetched": ["/about", "/careers", "/product"],
+  "pages_fetched": ["/about", "/careers", "/product", "/blog", "/team"],
+  "fetch_summary": {
+    "attempted": 5,
+    "succeeded": 5,
+    "failed": []
+  },
   "signal_count": 6,
   "last_scraped": "2026-03-14T10:30:00Z"
 }
