@@ -1,0 +1,27 @@
+{
+  "dimensions": {
+    "data_infrastructure": {
+      "score": 2.0,
+      "signals_used": ["sig-003", "sig-004", "sig-005", "sig-008"],
+      "rationale": "GCP with BigQuery and Looker dashboards shows early analytics infrastructure. Python pipelines exist but no data warehouse architecture or ML-ready feature store detected."
+    },
+    "ml_ai_capability": {
+      "score": 1.0,
+      "signals_used": [],
+      "rationale": "No ML or AI roles or tools mentioned. Content ops is manual. No model serving infrastructure or ML tooling signals detected."
+    },
+    "strategy_intent": {
+      "score": 1.5,
+      "signals_used": ["sig-001", "sig-006"],
+      "rationale": "Content ops bottleneck is an implicit AI opportunity but there is no explicit AI strategy language. Hiring a Content Operations Specialist instead of pursuing automation suggests low strategic intent."
+    },
+    "operational_readiness": {
+      "score": 1.5,
+      "signals_used": ["sig-004"],
+      "rationale": "GCP deployment indicates cloud capability but no container orchestration or CI/CD signals. Startup scale limits infrastructure maturity."
+    }
+  },
+  "composite_score": 1.5,
+  "composite_label": "Beginner",
+  "composite_rationale": "ShopStream scores 1.5 (Beginner) with early GCP/BigQuery infrastructure but no ML capability or AI strategy. The manual content ops bottleneck is a high-value automation target. The company has data but lacks the pipeline, tooling, and talent to act on it independently."
+}
