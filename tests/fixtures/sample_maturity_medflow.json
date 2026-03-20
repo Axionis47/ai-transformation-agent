@@ -1,0 +1,27 @@
+{
+  "dimensions": {
+    "data_infrastructure": {
+      "score": 2.5,
+      "signals_used": ["sig-003", "sig-004", "sig-008"],
+      "rationale": "AWS cloud with PostgreSQL transactional store and 50K monthly encounters. No data lake, pipeline tooling, or analytics infrastructure detected. Data exists but is not organized for ML consumption."
+    },
+    "ml_ai_capability": {
+      "score": 1.0,
+      "signals_used": [],
+      "rationale": "No ML or AI roles in job postings. No model mentions in product or about text. Company is data-aware through the Data Analyst hire but has no ML capability."
+    },
+    "strategy_intent": {
+      "score": 2.0,
+      "signals_used": ["sig-001", "sig-002"],
+      "rationale": "Explicit pain points around documentation and prior auth suggest awareness of automation opportunity. No AI roadmap language but product focus on workflow reduction is directionally aligned."
+    },
+    "operational_readiness": {
+      "score": 2.5,
+      "signals_used": ["sig-003", "sig-005"],
+      "rationale": "AWS cloud deployment and FHIR-native API design indicate modern infrastructure. No container orchestration or CI/CD signals detected."
+    }
+  },
+  "composite_score": 2.0,
+  "composite_label": "Developing",
+  "composite_rationale": "MedFlow Health scores 2.0 (Developing) with moderate cloud infrastructure (AWS, PostgreSQL) and clear domain pain points but no ML capability and no AI strategy language. The company has data flowing through FHIR integrations and a Data Analyst hire signals early data interest, but the gap from data awareness to deployed ML is significant."
+}
