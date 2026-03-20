@@ -11,6 +11,20 @@ from ops.model_client import get_model_client
 _FIXTURE = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "sample_signals.json"
 _PROMPT = Path(__file__).resolve().parent.parent / "prompts" / "signal_extractor.md"
 
+_SIGNAL_PRIORITY = [
+    "pain_point",
+    "process_signal",
+    "org_signal",
+    "hiring_signal",
+    "intent_signal",
+    "ml_signal",
+    "data_signal",
+    "tech_stack",
+    "ops_signal",
+    "scale_hint",
+    "industry_hint",
+]
+
 
 class SignalExtractorAgent(BaseAgent):
     agent_tag = "SIGNAL_EXTRACTOR"
@@ -30,7 +44,7 @@ class SignalExtractorAgent(BaseAgent):
             return response
 
         try:
-            return json.loads(response)
+            parsed = json.loads(response)
         except json.JSONDecodeError:
             return AgentError(
                 code="PARSE_FAIL",
@@ -38,6 +52,33 @@ class SignalExtractorAgent(BaseAgent):
                 recoverable=True,
                 agent_tag=self.agent_tag,
             )
+
+        if isinstance(parsed.get("signals"), list):
+            parsed["signals"] = self._rank_and_budget(parsed["signals"])
+            parsed["signal_count"] = len(parsed["signals"])
+        return parsed
+
+    def _rank_and_budget(self, signals: list[dict], max_signals: int = 25) -> list[dict]:
+        """Rank by type priority then confidence, dedup same type+value, return top N."""
+        priority_map = {t: i for i, t in enumerate(_SIGNAL_PRIORITY)}
+        _unknown = len(_SIGNAL_PRIORITY)
+
+        # Dedup: within same type+value keep highest confidence
+        seen: dict[tuple, dict] = {}
+        for sig in signals:
+            key = (sig.get("type", ""), sig.get("value", ""))
+            existing = seen.get(key)
+            if existing is None or sig.get("confidence", 0) > existing.get("confidence", 0):
+                seen[key] = sig
+
+        deduped = list(seen.values())
+        deduped.sort(
+            key=lambda s: (
+                priority_map.get(s.get("type", ""), _unknown),
+                -s.get("confidence", 0.0),
+            )
+        )
+        return deduped[:max_signals]
 
     def _load_system_prompt(self) -> str:
         try:
