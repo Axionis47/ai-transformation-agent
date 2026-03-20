@@ -60,3 +60,9 @@ PM owns this file. Update at every prompt version bump.
 | Version | Date | Description | ADR |
 |---------|------|-------------|-----|
 | 1.0 | 2026-03-19 | Initial prompt. Synthesizes use cases from AMBITIOUS MatchResult records (Library B industry cases). Requires named external company or published source citation. Prohibits win-NNN citations. ROI always labeled as estimated with source. Confidence 0.40-0.65 hard cap. Tier always HARD_EXPERIMENT. | -- |
+
+## pitch_brief.md
+
+| Version | Date | Description | ADR |
+|---------|------|-------------|-----|
+| 1.0 | 2026-03-20 | Initial prompt. Five-section pre-meeting brief: opening_line, story, roi_conversation, questions, objection_prep. All numbers must trace to input data. Handles DELIVERED/ADAPTATION/AMBITIOUS match tiers with appropriate confidence labeling. Under-500-word output constraint. | -- |
