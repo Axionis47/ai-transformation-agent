@@ -179,7 +179,7 @@ export default function UseCaseCard({ useCase, signals, matchResults }: UseCaseC
         </div>
       )}
 
-      {/* Evidence collapsible — placeholder, filled in next step */}
+      {/* Evidence collapsible */}
       {hasEvidence && (
         <div className="pt-3 border-t" style={{ borderColor: "var(--rule)" }}>
           <button
