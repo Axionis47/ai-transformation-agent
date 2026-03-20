@@ -1945,5 +1945,59 @@
     "ingestion_date": "2026-03-19",
     "applicable_signals": [],
     "solution_category": "generative_pipeline"
+  },
+  {
+    "id": "win-026",
+    "engagement_title": "Multi-Model AI Router for Mid-Market Investment Advisory Firm",
+    "industry": "financial_services",
+    "sector_tags": ["investment_advisory", "model_orchestration", "cost_optimization"],
+    "company_profile": {
+      "size_employees": 260,
+      "size_label": "mid-market",
+      "annual_revenue_usd": "$55M-$75M",
+      "geography": "US (New York, Boston)",
+      "business_model": "Independent registered investment advisor managing $4.2B AUM for high-net-worth individuals and family offices; 85 advisors supported by a 12-person operations and technology team"
+    },
+    "problem_statement": "The firm had adopted LLM-based tooling across three workflows — client communication drafting, regulatory document summarisation, and portfolio commentary generation — but was routing all tasks to GPT-4o regardless of complexity. Monthly API costs had reached $28K and were growing 15% month-over-month as usage expanded. A review found that 60-70% of tasks by volume were simple formatting or summarisation tasks that did not require a frontier model, and the lack of output quality monitoring meant errors in regulatory document summaries were being caught manually by compliance staff rather than automatically.",
+    "solution_summary": "Tenex built a model routing layer that classified incoming LLM tasks by complexity — simple (summarisation, formatting, extraction), moderate (analysis, drafting with light reasoning), and complex (multi-step reasoning, novel client scenarios) — and routed each to the lowest-cost model that met the quality threshold. Simple tasks went to Claude Haiku, moderate tasks to Claude claude-3-5-sonnet-20241022, and complex tasks to GPT-4o or Claude claude-3-opus-20240229. A quality monitoring layer sampled 10% of outputs and scored them using a lightweight judge model, triggering fallback to a higher-capability model when quality fell below threshold. The system logged cost and quality per task type, giving the operations team a live cost-quality dashboard.",
+    "results": {
+      "primary_metric": {
+        "label": "Monthly LLM API cost",
+        "value": "61% reduction",
+        "baseline": "$28K per month, growing 15% month-over-month",
+        "outcome": "$10.9K per month at same or higher task volume — with quality monitoring active"
+      },
+      "secondary_metrics": [
+        {"label": "Regulatory document summary error rate", "value": "Reduced from 4.2% of summaries requiring manual correction to 0.8% — quality monitoring catching errors before delivery to compliance"},
+        {"label": "Task throughput", "value": "Volume handled grew 28% in first 90 days as cost headroom enabled broader adoption across advisor workflows"},
+        {"label": "Fallback rate", "value": "6.4% of tasks routed upward by quality monitor — within target range of 5-10%"}
+      ],
+      "measurement_period": "3 months post-deployment",
+      "measurement_basis": "API billing data (Anthropic and OpenAI dashboards); quality monitor scores logged per task; compliance error rate from compliance team review log; task volume from routing layer audit log"
+    },
+    "engagement_details": {
+      "duration_months": 2,
+      "tenex_team_size": 2,
+      "tenex_roles": ["AI Engineer", "Engagement Lead"],
+      "client_team_involvement": "Head of technology as primary stakeholder, 1 backend engineer for integration, compliance officer for regulatory summary quality criteria definition",
+      "delivery_model": "project"
+    },
+    "tech_stack": {
+      "data_sources": ["Existing LLM task logs (6 months, for complexity classification training)", "Quality scoring rubrics defined by compliance and advisory staff", "API billing data for cost-per-task attribution"],
+      "ml_approach": "Task complexity classifier using fine-tuned Claude Haiku (trained on 1,200 labeled task examples); routing rules combining classifier output and task metadata; quality monitor using Claude claude-3-5-sonnet-20241022 as judge model on 10% sample; fallback chain: Haiku -> Sonnet -> GPT-4o",
+      "infrastructure": ["AWS Lambda for routing layer", "DynamoDB for task routing log and quality scores", "CloudWatch dashboard for cost and quality metrics", "Existing API integration layer (no changes to downstream consumers)"],
+      "client_systems_integrated": ["Anthropic API (Claude Haiku, Sonnet, Opus)", "OpenAI API (GPT-4o)", "Internal advisor workflow tools (read-only for task metadata)"]
+    },
+    "maturity_at_engagement": "Advanced",
+    "follow_on_engagement": true,
+    "lessons_learned": "Complexity classification accuracy at launch was 78% — good enough for cost savings but not tight enough for regulatory workflows. Spend 2 weeks on per-workflow calibration before turning on quality monitoring as the primary safety net. Start with quality monitoring on 100% of output, not 10%, for the first 30 days.",
+    "embed_text": "Financial Services / Investment Advisory — Mid-market RIA, 260 employees, ~$65M revenue, New York and Boston, $4.2B AUM\n\nProblem: Firm routing all LLM tasks to GPT-4o regardless of complexity. Monthly API costs reached $28K growing 15% month-over-month. 60-70% of tasks were simple formatting or summarisation not requiring a frontier model. Regulatory document summary errors caught manually by compliance staff.\n\nSolution: Tenex built a model routing layer classifying tasks by complexity and routing to lowest-cost model meeting quality threshold. Simple tasks to Claude Haiku, moderate to Sonnet, complex to GPT-4o or Opus. Quality monitor samples 10% of outputs and triggers fallback when score falls below threshold. Live cost-quality dashboard for operations team.\n\nApproach: Task complexity classifier (fine-tuned Haiku), fallback chain routing, LLM-as-judge quality monitor, cost attribution per task type\n\nResults: Monthly LLM cost: 61% reduction ($28K to $10.9K). Regulatory summary error rate: 4.2% to 0.8%. Task volume grew 28% in 90 days as cost headroom expanded adoption.",
+    "industry_benchmark": "61% LLM API cost reduction with quality monitoring active — from $28K to $10.9K monthly at growing task volume",
+    "success_threshold": "Most applicable when monthly LLM spend exceeds $5K, tasks span multiple complexity levels, and at least one workflow has quality or compliance requirements that need monitoring rather than just best-effort outputs.",
+    "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — model orchestration ROI compounds with scale; at $10K+ monthly LLM spend, a routing layer typically pays back in under 60 days.",
+    "status": "active",
+    "ingestion_date": "2026-03-19",
+    "applicable_signals": [],
+    "solution_category": "model_orchestration"
   }
 ]
