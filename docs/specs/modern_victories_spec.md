@@ -296,3 +296,184 @@ Key differences from existing entries:
 ```
 
 ---
+
+## win-024 — AI Workflow Automation (Healthcare)
+
+```json
+{
+  "id": "win-024",
+  "engagement_title": "LLM Clinical Documentation Automation for Ambulatory Surgery Center",
+  "industry": "healthcare",
+  "sector_tags": [
+    "ambulatory_surgery",
+    "clinical_documentation",
+    "administrative_automation"
+  ],
+  "company_profile": {
+    "size_employees": 220,
+    "size_label": "mid-market",
+    "annual_revenue_usd": "$45M-$60M",
+    "geography": "US Mid-Atlantic",
+    "business_model": "Multi-specialty ambulatory surgery center operating 6 operating rooms across 2 locations; 18 surgeons and 40 clinical staff; 8,400 procedures annually"
+  },
+  "problem_statement": "Clinical staff spent 35-45 minutes per procedure on post-procedure documentation — operative notes, discharge summaries, and insurance prior authorisation letters — most of which was templated content with procedure-specific variable fields. Surgeons were completing documentation after hours to avoid impacting procedure throughput, and documentation turnaround for prior authorisation averaged 3.8 days, delaying scheduled cases and causing 6-8% of bookings to fall through before insurance clearance.",
+  "solution_summary": "Tenex built an LLM-powered documentation workflow that pre-populated operative notes, discharge summaries, and prior authorisation letters from structured procedure data pulled from the EHR. Claude claude-3-5-sonnet-20241022 generated draft documents following specialty-specific templates approved by the medical director. Clinical staff reviewed and attested to generated drafts rather than composing from scratch. A compliance guardrail layer blocked generation when required clinical data fields were missing from the EHR record, preventing incomplete submissions.",
+  "results": {
+    "primary_metric": {
+      "label": "Post-procedure documentation time per case",
+      "value": "68% reduction",
+      "baseline": "35-45 minutes per procedure across 8,400 annual procedures",
+      "outcome": "11-15 minutes per procedure — clinical staff reviewing and attesting generated drafts"
+    },
+    "secondary_metrics": [
+      {
+        "label": "Prior authorisation turnaround",
+        "value": "Reduced from 3.8 days to 1.1 days average"
+      },
+      {
+        "label": "Case fall-through rate before insurance clearance",
+        "value": "Reduced from 6.8% to 2.4% of scheduled cases"
+      },
+      {
+        "label": "After-hours documentation by surgeons",
+        "value": "Eliminated for 91% of standard procedure types within 60 days of deployment"
+      }
+    ],
+    "measurement_period": "5 months post-deployment",
+    "measurement_basis": "EHR audit log timestamps for documentation completion; authorisation turnaround from revenue cycle system; fall-through rate from scheduling system; surgeon after-hours activity from EHR login timestamps"
+  },
+  "engagement_details": {
+    "duration_months": 4,
+    "tenex_team_size": 2,
+    "tenex_roles": [
+      "AI Engineer",
+      "Engagement Lead"
+    ],
+    "client_team_involvement": "Medical director for template approval and compliance sign-off, 1 clinical informatics specialist for EHR API access, 2 surgical coordinators as subject matter experts during testing",
+    "delivery_model": "project"
+  },
+  "tech_stack": {
+    "data_sources": [
+      "EHR structured procedure data (real-time API)",
+      "Approved specialty-specific documentation templates (18 templates across 6 specialties)",
+      "Prior authorisation payer requirement database"
+    ],
+    "ml_approach": "Claude claude-3-5-sonnet-20241022 API for document generation using structured prompting with specialty templates; deterministic compliance guardrail layer checking required field presence before generation; no fine-tuning — prompt-only approach",
+    "infrastructure": [
+      "HIPAA-compliant AWS environment (VPC, encryption at rest and in transit)",
+      "AWS Lambda for generation workflow",
+      "Audit logging to CloudTrail for compliance",
+      "Internal web app for draft review and attestation"
+    ],
+    "client_systems_integrated": [
+      "ModMed EHR REST API",
+      "Revenue cycle management system (read-only for auth status)",
+      "Fax API for prior authorisation submission"
+    ]
+  },
+  "maturity_at_engagement": "Developing",
+  "follow_on_engagement": true,
+  "lessons_learned": "Medical director sign-off on every template before deployment was non-negotiable — clinical staff would not use the tool without it. Build the template approval workflow into week 1, not as an afterthought. HIPAA compliance architecture review added 3 weeks but prevented post-launch issues.",
+  "embed_text": "Healthcare — Mid-market ambulatory surgery center, 220 employees, ~$52M revenue, US Mid-Atlantic, 8,400 procedures annually\n\nProblem: Clinical staff spent 35-45 minutes per procedure on post-procedure documentation. Surgeons completed documentation after hours. Prior authorisation turnaround averaged 3.8 days, causing 6.8% of bookings to fall through before insurance clearance.\n\nSolution: Tenex built an LLM documentation workflow using Claude claude-3-5-sonnet-20241022 to pre-populate operative notes, discharge summaries, and prior auth letters from EHR structured data. Clinical staff review and attest to generated drafts. Compliance guardrails block generation when required EHR fields are missing.\n\nApproach: Claude API with structured specialty templates, HIPAA-compliant AWS, ModMed EHR integration, deterministic compliance layer\n\nResults: Documentation time: 68% reduction (35-45 min to 11-15 min per case). Prior auth turnaround: 3.8 days to 1.1 days. Case fall-through rate: 6.8% to 2.4%.",
+  "industry_benchmark": "68% reduction in post-procedure documentation time, recovering 20-30 minutes per case across all procedure volume",
+  "success_threshold": "Most applicable when clinical documentation follows specialty templates with structured variable fields, EHR API is accessible, and documentation volume exceeds 5,000 procedures annually.",
+  "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — clinical documentation automation ROI is direct when prior authorisation delays are causing case fall-through and documentation is templated and structured.",
+  "status": "active",
+  "ingestion_date": "2026-03-19",
+  "applicable_signals": [],
+  "solution_category": "llm_workflow"
+}
+```
+
+---
+
+## win-025 — Generative Content Pipeline (Ecommerce)
+
+```json
+{
+  "id": "win-025",
+  "engagement_title": "Automated Product Content Generation for Specialty Outdoor Retailer",
+  "industry": "ecommerce",
+  "sector_tags": [
+    "specialty_retail",
+    "product_content",
+    "generative_ai"
+  ],
+  "company_profile": {
+    "size_employees": 95,
+    "size_label": "startup",
+    "annual_revenue_usd": "$14M-$20M",
+    "geography": "US (nationally distributed; HQ Denver, CO)",
+    "business_model": "DTC specialty outdoor and hiking gear retailer; 3,800 active SKUs across apparel, equipment, and footwear; primary sales channel is owned ecommerce site"
+  },
+  "problem_statement": "The merchandising team of 4 wrote all product descriptions, category page copy, and email campaign content manually. With 3,800 active SKUs and 400-600 new SKUs introduced annually, the team was 6-8 weeks behind on new product listings, which delayed catalog launches and suppressed search ranking for new arrivals. Email campaign copy required 3-4 days of writing time per campaign and limited the team to 2 campaigns per month during peak season.",
+  "solution_summary": "Tenex built a generative content pipeline using GPT-4o fine-tuned on 800 hand-curated product descriptions that the merchandising team selected as brand voice exemplars. The pipeline ingested structured product attributes from the PIM system and generated product descriptions, meta descriptions, and email snippet variants in the brand voice. A content moderation layer checked outputs against a brand guidelines ruleset before surfacing to the merchandising team for single-click approval or light editing. A/B test integration automatically routed approved variants through the ecommerce platform's built-in experiment framework.",
+  "results": {
+    "primary_metric": {
+      "label": "New SKU listing time",
+      "value": "82% reduction",
+      "baseline": "45-60 minutes per SKU for full content package (description, meta, email snippet)",
+      "outcome": "8-12 minutes per SKU — merchandiser reviewing and approving generated content"
+    },
+    "secondary_metrics": [
+      {
+        "label": "New SKU catalog lag",
+        "value": "Reduced from 6-8 week backlog to same-week listing for new arrivals"
+      },
+      {
+        "label": "Email campaign output",
+        "value": "Increased from 2 campaigns per month to 6 per month without adding headcount"
+      },
+      {
+        "label": "Organic search ranking for new SKUs",
+        "value": "Average position for new arrivals improved from page 4 to page 2 within 60 days (measured by SEMrush)"
+      }
+    ],
+    "measurement_period": "4 months post-deployment",
+    "measurement_basis": "PIM system timestamps for listing completion; campaign send data from Klaviyo; SEMrush position tracking for 120 new SKUs launched post-deployment"
+  },
+  "engagement_details": {
+    "duration_months": 3,
+    "tenex_team_size": 2,
+    "tenex_roles": [
+      "AI Engineer",
+      "Engagement Lead"
+    ],
+    "client_team_involvement": "Head of merchandising as primary stakeholder, 2 senior copywriters for brand voice curation and output evaluation, 1 developer for PIM API integration",
+    "delivery_model": "project"
+  },
+  "tech_stack": {
+    "data_sources": [
+      "PIM system structured product attributes (real-time API)",
+      "800 curated brand voice exemplar descriptions",
+      "Brand guidelines document (PDF, parsed to ruleset)"
+    ],
+    "ml_approach": "GPT-4o fine-tuned on 800 brand voice exemplars for description generation; rule-based content moderation layer checking brand guideline compliance; A/B test variant routing via Shopify experiment API",
+    "infrastructure": [
+      "AWS Lambda for generation pipeline",
+      "S3 for content draft storage",
+      "Internal review dashboard (Next.js)",
+      "Klaviyo API for email variant delivery"
+    ],
+    "client_systems_integrated": [
+      "Akeneo PIM REST API",
+      "Shopify storefront (content publishing API)",
+      "Klaviyo email platform",
+      "SEMrush API for ranking tracking"
+    ]
+  },
+  "maturity_at_engagement": "Beginner",
+  "follow_on_engagement": false,
+  "lessons_learned": "Fine-tuning on brand voice exemplars was worth the 2-week investment — zero-shot GPT-4o outputs required heavy editing and had low team adoption. The quality bar for the 800 exemplars was the determining factor in output quality. Merchandisers curated the training set themselves over 3 days, which also built ownership of the tool.",
+  "embed_text": "Ecommerce / Specialty Retail — Startup specialty outdoor gear retailer, 95 employees, ~$17M revenue, Denver CO, 3,800 active SKUs\n\nProblem: Merchandising team of 4 wrote all product descriptions manually. With 3,800 SKUs and 400-600 new SKUs annually, the team ran 6-8 weeks behind on new listings, delaying catalog launches and suppressing search ranking. Email campaigns limited to 2 per month during peak season.\n\nSolution: Tenex built a generative content pipeline using GPT-4o fine-tuned on 800 brand voice exemplars. Pipeline ingests PIM attributes and generates descriptions, meta descriptions, and email snippets. Content moderation layer checks brand guideline compliance. A/B variants routed through Shopify experiments.\n\nApproach: GPT-4o fine-tuning on brand exemplars, PIM integration, rule-based content moderation, Shopify A/B testing\n\nResults: New SKU listing time: 82% reduction (60 min to 10 min per SKU). Catalog lag eliminated. Email campaigns: 2 to 6 per month. Organic search: page 4 to page 2 for new arrivals.",
+  "industry_benchmark": "82% reduction in new SKU content production time, enabling same-week catalog launch for new arrivals at 3,800+ SKU scale",
+  "success_threshold": "Most applicable when the catalog exceeds 1,000 SKUs with structured attributes in a PIM system and the merchandising team is running more than 8 weeks behind on content production.",
+  "gap_analysis_template": "Maturity gap of {gap} points from engagement baseline — generative content pipeline ROI accelerates with SKU volume; at 1,000+ SKUs the time savings compound across every new product launch.",
+  "status": "active",
+  "ingestion_date": "2026-03-19",
+  "applicable_signals": [],
+  "solution_category": "generative_pipeline"
+}
+```
+
+---
