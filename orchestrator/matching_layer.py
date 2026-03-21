@@ -270,6 +270,118 @@ def _build_confidence_breakdown(
     )
 
 
+def _assess_transferability(record: dict, company_signals: list[dict]) -> dict:
+    """Compare victory requirements against company capabilities.
+
+    Returns:
+      transfers: list[str] — specific things that transfer (with signal refs)
+      gaps: list[str] — specific things missing or needing build
+      problem_match: float 0-1 — how well problems align
+      tech_match: float 0-1 — infrastructure readiness
+      data_match: float 0-1 — data availability
+      scope_delta_pct: int — estimated extra effort %
+      roi_discount: float — discount factor (0.5 = 50% of base ROI)
+    """
+    tech = record.get("tech_stack", {}) if isinstance(record.get("tech_stack"), dict) else {}
+    infra_list = tech.get("infrastructure", []) if isinstance(tech.get("infrastructure"), list) else []
+    data_list = tech.get("data_sources", []) if isinstance(tech.get("data_sources"), list) else []
+
+    company_tech_signals = [
+        s for s in company_signals
+        if s.get("type") in ("tech_stack",) and s.get("value")
+    ]
+    company_data_signals = [
+        s for s in company_signals
+        if s.get("type") in ("data_signal", "tech_stack") and s.get("value")
+    ]
+    company_pain_signals = [
+        s for s in company_signals
+        if s.get("type") in ("pain_point", "process_signal") and s.get("value")
+    ]
+
+    # Problem match: pain + process signals vs victory problem text
+    problem_match = 0.0
+    if company_pain_signals:
+        pain_tokens = _tokenize(" ".join(s.get("value", "") for s in company_pain_signals))
+        prob_tokens = _tokenize(
+            f"{record.get('problem_statement', '')} {record.get('solution_summary', '')}"
+        )
+        if pain_tokens and prob_tokens:
+            overlap = len(pain_tokens & prob_tokens)
+            problem_match = min(1.0, overlap / max(1, len(pain_tokens)))
+
+    # Tech match: compare company tech signals against victory infra requirements
+    transfers: list[str] = []
+    gaps: list[str] = []
+    tech_match = 0.0
+    if infra_list:
+        matched = 0
+        company_tech_tokens = _tokenize(
+            " ".join(s.get("value", "") for s in company_tech_signals)
+        ) if company_tech_signals else set()
+        for item in infra_list:
+            item_tokens = _tokenize(str(item))
+            sig_id = next(
+                (s.get("signal_id") or "sig-unknown" for s in company_tech_signals
+                 if item_tokens & _tokenize(s.get("value", ""))),
+                None,
+            )
+            if item_tokens & company_tech_tokens:
+                matched += 1
+                ref = f"({sig_id})" if sig_id else ""
+                transfers.append(
+                    f"Company has matching infrastructure for '{item}' {ref}".strip()
+                )
+            else:
+                gaps.append(
+                    f"No signal detected for required infrastructure: '{item}'"
+                )
+        tech_match = matched / len(infra_list)
+
+    # Data match: company data signals vs victory data source requirements
+    data_match = 0.0
+    if data_list:
+        matched_d = 0
+        company_data_tokens = _tokenize(
+            " ".join(s.get("value", "") for s in company_data_signals)
+        ) if company_data_signals else set()
+        for item in data_list:
+            item_tokens = _tokenize(str(item))
+            if item_tokens & company_data_tokens:
+                matched_d += 1
+                sig_id = next(
+                    (s.get("signal_id") or "sig-unknown" for s in company_data_signals
+                     if item_tokens & _tokenize(s.get("value", ""))),
+                    None,
+                )
+                ref = f"({sig_id})" if sig_id else ""
+                transfers.append(
+                    f"Company data available for '{item}' {ref}".strip()
+                )
+            else:
+                gaps.append(
+                    f"No signal detected for required data source: '{item}'"
+                )
+        data_match = matched_d / len(data_list)
+
+    # scope_delta_pct: base 0, +15% per gap, cap at 80%
+    scope_delta_pct = min(80, len(gaps) * 15)
+
+    # roi_discount: weighted sum, clamped to [0.3, 0.9]
+    roi_discount = 0.4 + 0.2 * problem_match + 0.2 * tech_match + 0.2 * data_match
+    roi_discount = round(max(0.3, min(0.9, roi_discount)), 3)
+
+    return {
+        "transfers": transfers,
+        "gaps": gaps,
+        "problem_match": round(problem_match, 3),
+        "tech_match": round(tech_match, 3),
+        "data_match": round(data_match, 3),
+        "scope_delta_pct": scope_delta_pct,
+        "roi_discount": roi_discount,
+    }
+
+
 def _build_delivered(record: dict, score: float, composite_score: float,
                      component_scores: dict | None = None,
                      company_signals: list[dict] | None = None) -> MatchResult:
