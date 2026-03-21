@@ -6,7 +6,7 @@ import {
   signOut,
   type AuthError,
 } from "firebase/auth";
-import { auth, googleProvider } from "@/lib/firebase";
+import { getFirebaseAuth, googleProvider } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
 
 export default function AuthButton() {
@@ -30,10 +30,12 @@ export default function AuthButton() {
   }
 
   async function handleSignIn() {
+    const firebaseAuth = getFirebaseAuth();
+    if (!firebaseAuth) return;
     setBusy(true);
     setError(null);
     try {
-      await signInWithPopup(auth, googleProvider);
+      await signInWithPopup(firebaseAuth, googleProvider);
     } catch (err) {
       const authErr = err as AuthError;
       // User closed popup — not an error worth surfacing
@@ -46,9 +48,11 @@ export default function AuthButton() {
   }
 
   async function handleSignOut() {
+    const firebaseAuth = getFirebaseAuth();
+    if (!firebaseAuth) return;
     setBusy(true);
     try {
-      await signOut(auth);
+      await signOut(firebaseAuth);
     } finally {
       setBusy(false);
     }

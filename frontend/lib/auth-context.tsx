@@ -10,7 +10,7 @@ import {
 } from "react";
 import type { User } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { getFirebaseAuth } from "@/lib/firebase";
 
 interface AuthContextValue {
   user: User | null;
@@ -46,7 +46,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const firebaseAuth = getFirebaseAuth();
+
+    // No Firebase config — treat as permanently unauthenticated
+    if (!firebaseAuth) {
+      setLoading(false);
+      return;
+    }
+
+    const unsubscribe = onAuthStateChanged(firebaseAuth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
         try {
