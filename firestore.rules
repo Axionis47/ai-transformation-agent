@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /analysis_runs/{runId} {
+      // Only the authenticated owner can read their own run
+      allow read: if request.auth != null && request.auth.uid == resource.data.user_uid;
+      // Only the backend service account writes — no direct client writes
+      allow write: if false;
+    }
+  }
+}
