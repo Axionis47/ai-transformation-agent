@@ -1,29 +1,62 @@
-"""Verify Google OAuth tokens from Firebase Auth."""
+"""Google OAuth identity — single source of truth for all endpoints.
+
+When GOOGLE_AUTH_ENABLED=true: requires Firebase Bearer token on protected routes.
+When unset (local dev): returns a fixed dev user — never anonymous.
+"""
 
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass
 from functools import lru_cache
 
-_FIREBASE_ENABLED = os.getenv("FIREBASE_AUTH_ENABLED", "").lower() in ("true", "1", "yes")
-_API_KEY = os.getenv("API_KEY", "")
+from fastapi import HTTPException
+
+_GOOGLE_AUTH_ENABLED = os.getenv("GOOGLE_AUTH_ENABLED", "").lower() in ("true", "1", "yes")
 
 
-def verify_google_token(token: str) -> dict | None:
-    """Verify a Firebase ID token. Returns decoded claims or None if invalid.
+@dataclass
+class User:
+    uid: str
+    email: str
+    name: str
 
-    Claims include: uid, email, name, picture, etc.
-    When FIREBASE_AUTH_ENABLED is not set, always returns None (skipped).
+
+_DEV_USER = User(uid="dev", email="dev@localhost", name="Developer")
+
+
+def get_current_user(authorization: str | None) -> User:
+    """Verify Bearer token and return User.
+
+    Raises HTTPException(401) when auth is enabled and the token is missing
+    or invalid. In local dev (GOOGLE_AUTH_ENABLED not set) always returns
+    the dev user — never anonymous, never None.
     """
-    if not _FIREBASE_ENABLED:
-        return None
+    if not _GOOGLE_AUTH_ENABLED:
+        return _DEV_USER
 
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing authentication token")
+
+    token = authorization[7:]
+    claims = _verify_token(token)
+    if not claims:
+        raise HTTPException(status_code=401, detail="Invalid authentication token")
+
+    return User(
+        uid=claims["uid"],
+        email=claims.get("email", ""),
+        name=claims.get("name", ""),
+    )
+
+
+def _verify_token(token: str) -> dict | None:
+    """Verify a Firebase/Google ID token. Returns decoded claims or None."""
     try:
         import firebase_admin  # noqa: PLC0415
         from firebase_admin import auth as firebase_auth  # noqa: PLC0415
 
         _get_firebase_app()
-
         decoded = firebase_auth.verify_id_token(token)
         return {
             "uid": decoded.get("uid"),
@@ -48,28 +81,3 @@ def _get_firebase_app():
             cred,
             {"projectId": os.getenv("GCP_PROJECT_ID", "plotpointe")},
         )
-
-
-def get_user_from_request(authorization: str | None) -> dict | None:
-    """Extract user identity from Authorization or X-API-Key headers.
-
-    Auth precedence (first match wins):
-      1. FIREBASE_AUTH_ENABLED=true  -> require Bearer token
-      2. API_KEY set                 -> require X-API-Key header
-      3. Neither configured          -> open access, return anonymous
-
-    Returns a user dict or None. None signals the caller to raise 401.
-    """
-    # Open access when neither auth mechanism is configured
-    if not _FIREBASE_ENABLED and not _API_KEY:
-        return {"email": "anonymous", "name": "Anonymous", "uid": "anonymous"}
-
-    # Firebase Bearer token path
-    if _FIREBASE_ENABLED:
-        if not authorization or not authorization.startswith("Bearer "):
-            return None
-        token = authorization[7:]
-        return verify_google_token(token)
-
-    # API key path (Firebase disabled, but API_KEY is set)
-    return None  # caller must check X-API-Key separately via _verify_api_key
