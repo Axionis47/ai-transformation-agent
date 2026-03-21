@@ -514,13 +514,16 @@ def _build_adaptation(record: dict, score: float, composite_score: float,
             f"{gap_count} gap(s) to close: {gap_list}"
         )
 
-    # Build specific ROI range from roi_discount and base metric
-    try:
-        numeric_val = float("".join(c for c in base_value if c.isdigit() or c == "."))
-        lo = int(ta["roi_discount"] * numeric_val * 0.8)
+    # Build specific ROI range from roi_discount and base metric.
+    # Use only the first standalone percentage to avoid garbled values like
+    # "200 descriptions/day (13x increase)" parsing to "200.13".
+    pct_match = re.search(r'(\d+(?:\.\d+)?)\s*%', base_value)
+    if pct_match:
+        numeric_val = float(pct_match.group(1))
+        lo = max(1, int(ta["roi_discount"] * numeric_val * 0.8))
         hi = int(ta["roi_discount"] * numeric_val * 1.2)
         adj_roi = f"{lo}-{hi}% {base_label}" if base_label else f"{lo}-{hi}% of base metric"
-    except (ValueError, ZeroDivisionError):
+    else:
         pct = int(ta["roi_discount"] * 100)
         adj_roi = f"~{pct}% of base ROI ({base_roi})" if base_roi else f"~{pct}% of base ROI"
 
