@@ -445,15 +445,60 @@ def _build_delivered(record: dict, score: float, composite_score: float,
     )
 
 
-def _build_adaptation(record: dict, score: float, composite_score: float) -> MatchResult:
+def _build_adaptation(record: dict, score: float, composite_score: float,
+                      company_signals: list[dict] | None = None) -> MatchResult:
     win_maturity = record.get("maturity_at_engagement", "")
     win_float = _MATURITY_LEVELS.index(win_maturity) + 1.0 if win_maturity in _MATURITY_LEVELS else 0.0
     gap_from_base = round(abs(composite_score - win_float), 2)
     results = record.get("results", {})
     pm = results.get("primary_metric", {}) if isinstance(results, dict) else {}
-    base_roi = f"{pm.get('label', '')}: {pm.get('value', '')}".strip(": ")
+    base_label = pm.get("label", "")
+    base_value = pm.get("value", "")
+    base_roi = f"{base_label}: {base_value}".strip(": ")
     tech = record.get("tech_stack", {})
     approach = tech.get("ml_approach", "ML model") if isinstance(tech, dict) else "ML model"
+
+    sigs = company_signals or []
+    ta = _assess_transferability(record, sigs)
+
+    # Build specific adaptation_notes from computed transfers/gaps
+    if ta["transfers"] or ta["gaps"]:
+        transfer_str = "; ".join(ta["transfers"]) if ta["transfers"] else "none detected"
+        gap_str = "; ".join(ta["gaps"]) if ta["gaps"] else "none"
+        direct = "directly" if ta["tech_match"] >= 0.5 and ta["data_match"] >= 0.5 else "partially"
+        notes = (
+            f"Transfers: {transfer_str}. "
+            f"Gaps: {gap_str}. "
+            f"Core approach ({approach}) is {direct} applicable."
+        )
+    else:
+        notes = (
+            f"Base: {record.get('engagement_title', '')}. "
+            f"Core approach ({approach}) may be applicable. "
+            "Insufficient signals to confirm direct fit — further discovery required."
+        )
+
+    # Build specific scope delta from gap count
+    gap_count = len(ta["gaps"])
+    if gap_count == 0:
+        scope_delta = "Minimal additional effort — company infrastructure aligns with base solution"
+    else:
+        gap_list = "; ".join(ta["gaps"][:3])
+        scope_delta = (
+            f"{ta['scope_delta_pct']}% additional effort — "
+            f"{gap_count} gap(s) to close: {gap_list}"
+        )
+
+    # Build specific ROI range from roi_discount and base metric
+    try:
+        numeric_val = float("".join(c for c in base_value if c.isdigit() or c == "."))
+        lo = int(ta["roi_discount"] * numeric_val * 0.8)
+        hi = int(ta["roi_discount"] * numeric_val * 1.2)
+        adj_roi = f"{lo}-{hi}% {base_label}" if base_label else f"{lo}-{hi}% of base metric"
+    except (ValueError, ZeroDivisionError):
+        pct = int(ta["roi_discount"] * 100)
+        adj_roi = f"~{pct}% of base ROI ({base_roi})" if base_roi else f"~{pct}% of base ROI"
+
     return MatchResult(
         result_id=f"mr-{uuid.uuid4().hex[:6]}",
         source_library="tenex_delivered",
@@ -465,14 +510,10 @@ def _build_adaptation(record: dict, score: float, composite_score: float) -> Mat
         source_industry=record.get("industry", ""),
         relevance_note=f"Adjacent match — industry: {record.get('industry','')}, score: {score:.2f}",
         base_solution_id=record.get("id", ""),
-        adaptation_notes=(
-            f"Base: {record.get('engagement_title', '')}. "
-            f"Core approach ({approach}) remains applicable. "
-            "Industry adaptation required for target sector."
-        ),
+        adaptation_notes=notes,
         gap_from_base=gap_from_base,
-        estimated_scope_delta="20-30% more effort due to domain differences",
-        adjusted_roi_range=f"Base: {base_roi} -- adapted estimate: 60-80% of base ROI",
+        estimated_scope_delta=scope_delta,
+        adjusted_roi_range=adj_roi,
     )
 
 
@@ -530,7 +571,8 @@ def match(
                                               component_scores=components,
                                               company_signals=company_signals))
         elif score >= 0.30:
-            adaptation.append(_build_adaptation(record, score, composite_score))
+            adaptation.append(_build_adaptation(record, score, composite_score,
+                                                company_signals=company_signals))
 
     delivered.sort(key=lambda r: -r.similarity_score)
     adaptation.sort(key=lambda r: -r.similarity_score)
