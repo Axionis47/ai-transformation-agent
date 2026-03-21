@@ -112,14 +112,6 @@ def validate_use_cases(
             agent_tag=agent_tag,
         )
 
-    if len(use_cases) < 2:
-        return AgentError(
-            code="VALIDATION_FAIL",
-            message=f"Need at least 2 use cases, got {len(use_cases)}",
-            recoverable=True,
-            agent_tag=agent_tag,
-        )
-
     for uc in use_cases:
         if uc.tier == "HARD_EXPERIMENT" and uc.confidence > 0.65:
             uc.confidence = 0.65
