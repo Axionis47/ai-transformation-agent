@@ -17,6 +17,8 @@ from pydantic import BaseModel
 from infra.auth import User, get_current_user
 from infra.firestore_store import get_firestore_store
 from infra.health_check import health_router
+from infra.rate_limiter import get_rate_limiter
+from ops.logger import get_logger
 from orchestrator.pipeline import run_pipeline
 from orchestrator.state import PipelineStatus
 from rag.ingest import ensure_seeds_loaded
@@ -112,22 +114,45 @@ async def list_runs(user: User = Depends(_auth)) -> dict[str, Any]:
 
 @app.get("/v1/trace/{run_id}")
 async def get_trace(run_id: str, user: User = Depends(_auth)) -> dict[str, Any]:
-    """Return all log entries for a pipeline run."""
+    """Return all log entries for a pipeline run. Checks GCS then local file."""
     if not _RUN_ID_RE.match(run_id):
         raise HTTPException(status_code=400, detail="Invalid run_id format")
-    log_path = _LOG_DIR / f"{run_id}.jsonl"
-    if not log_path.exists():
+
+    raw_text = await asyncio.to_thread(_read_trace, run_id)
+    if raw_text is None:
         raise HTTPException(status_code=404, detail=f"No trace found for run_id: {run_id}")
+
     stages = []
-    with open(log_path) as fh:
-        for line in fh:
-            line = line.strip()
-            if line:
-                try:
-                    stages.append(json.loads(line))
-                except json.JSONDecodeError:
-                    pass
+    for line in raw_text.splitlines():
+        line = line.strip()
+        if line:
+            try:
+                stages.append(json.loads(line))
+            except json.JSONDecodeError:
+                pass
     return {"run_id": run_id, "stages": stages}
+
+
+def _read_trace(run_id: str) -> str | None:
+    """Read trace JSONL from GCS (if configured) or local file. Returns None if missing."""
+    import os
+
+    bucket_name = os.getenv("GCS_TRACE_BUCKET", "")
+    if bucket_name:
+        try:
+            from google.cloud import storage  # noqa: PLC0415
+
+            client = storage.Client()
+            blob = client.bucket(bucket_name).blob(f"traces/{run_id}.jsonl")
+            if blob.exists():
+                return blob.download_as_text()
+        except Exception:
+            pass  # Fall through to local file
+
+    log_path = _LOG_DIR / f"{run_id}.jsonl"
+    if log_path.exists():
+        return log_path.read_text()
+    return None
 
 
 @app.post("/v1/analyze", response_model=AnalyzeSuccess)
@@ -137,6 +162,14 @@ async def analyze(
     user: User = Depends(_auth),
 ) -> AnalyzeSuccess:
     """Run the full AI transformation analysis pipeline."""
+    limiter = get_rate_limiter()
+    allowed, retry_after = limiter.check(user.uid)
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail={"error": "rate_limit_exceeded", "retry_after_seconds": retry_after},
+        )
+
     state = await asyncio.to_thread(
         run_pipeline,
         url=request.url,
@@ -179,12 +212,17 @@ async def analyze(
         suggested_questions=state.suggested_questions,
     )
 
-    # Persist to Firestore (optional, non-blocking — never fails the request)
+    # Persist to Firestore — log failures but never fail the request
     store = get_firestore_store()
     if store:
         try:
             store.save_run(run_id=state.run_id, data=response.model_dump(), user=user)
-        except Exception:
-            pass
+        except Exception as exc:
+            _logger = get_logger(state.run_id)
+            _logger.log("FIRESTORE", "save_failed", error=str(exc))
+
+    # Flush trace log to GCS if configured (no-op when GCS_TRACE_BUCKET unset)
+    _pipeline_logger = get_logger(state.run_id)
+    await asyncio.to_thread(_pipeline_logger.flush_to_gcs, state.run_id)
 
     return response
