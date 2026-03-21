@@ -32,7 +32,7 @@ from orchestrator.state import PipelineState, PipelineStatus
 from orchestrator.validators import validate_maturity, validate_signals, validate_use_cases
 from orchestrator.victory_matcher import get_full_match_results, match_victories
 
-_STAGE_TIMEOUT_S = 60
+_STAGE_TIMEOUT_S = 120
 _COST_SIGNAL = 0.001
 _COST_MATURITY = 0.001
 _COST_USE_CASE = 0.005
