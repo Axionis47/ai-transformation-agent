@@ -72,8 +72,10 @@ class AnalyzeSuccess(BaseModel):
     maturity: dict[str, Any] | None = None
     victory_matches: list[dict[str, Any]] | None = None
     use_cases: list[dict[str, Any]] | None = None
+    match_results: dict[str, Any] | None = None
     pages_fetched: list[str] | None = None
     signal_count: int | None = None
+    has_user_hints: bool = False
     pitch_brief: dict[str, Any] | None = None
     readiness: dict[str, Any] | None = None
     suggested_questions: list[dict[str, Any]] | None = None
@@ -205,8 +207,10 @@ async def analyze(
         maturity=state.maturity,
         victory_matches=state.victory_matches,
         use_cases=state.use_cases,
+        match_results=state.match_results,
         pages_fetched=state.pages_fetched,
         signal_count=state.signal_count,
+        has_user_hints=state.has_user_hints,
         pitch_brief=state.pitch_brief,
         readiness=state.readiness,
         suggested_questions=state.suggested_questions,
