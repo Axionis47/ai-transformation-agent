@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { PageState, AnalyzeSuccess } from "@/lib/types";
 import { parseApiError } from "@/lib/types";
-import { saveAnalysis, getHistory, getAnalysis, clearHistory } from "@/lib/history";
+import { saveAnalysis, getHistory, getAnalysis, clearHistory, fetchRemoteHistory } from "@/lib/history";
 import type { HistoryEntry } from "@/lib/history";
 import MaturityBadge from "@/components/MaturityBadge";
 import PipelineProgress from "@/components/PipelineProgress";
@@ -43,6 +43,7 @@ export default function AnalyzeForm() {
   const { token } = useAuth();
   const [state, setState] = useState<PageState>({ phase: "idle" });
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>("brief");
   const [cancelledMsg, setCancelledMsg] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -50,8 +51,21 @@ export default function AnalyzeForm() {
   const isTimeoutRef = useRef(false);
 
   useEffect(() => {
-    setHistory(getHistory());
-  }, []);
+    if (token) {
+      setHistoryLoading(true);
+      fetchRemoteHistory(token)
+        .then((remote) => {
+          if (remote.length > 0) {
+            setHistory(remote);
+          } else {
+            setHistory(getHistory());
+          }
+        })
+        .finally(() => setHistoryLoading(false));
+    } else {
+      setHistory(getHistory());
+    }
+  }, [token]);
 
   const handleCancel = useCallback(() => {
     abortRef.current?.abort();
@@ -136,6 +150,10 @@ export default function AnalyzeForm() {
 
       {state.phase === "error" && (
         <ErrorMessage message={state.message} onReset={() => setState({ phase: "idle" })} />
+      )}
+
+      {state.phase === "idle" && historyLoading && (
+        <p className="font-mono text-xs text-ink-faint animate-pulse">{STRINGS.recentAnalyses}...</p>
       )}
 
       {showHistory && (

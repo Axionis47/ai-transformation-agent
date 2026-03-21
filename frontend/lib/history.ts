@@ -1,4 +1,5 @@
 import type { AnalyzeSuccess } from "@/lib/types";
+import { API_BASE } from "@/lib/config";
 
 export interface HistoryEntry {
   run_id: string;
@@ -69,4 +70,34 @@ export function getAnalysis(run_id: string): AnalyzeSuccess | null {
 export function clearHistory(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(STORAGE_KEY);
+}
+
+/**
+ * Fetch run history from the backend (requires Firebase ID token).
+ * Returns an empty array on any error — callers should fall back to
+ * getHistory() (localStorage) when this returns nothing.
+ */
+export async function fetchRemoteHistory(token: string): Promise<HistoryEntry[]> {
+  try {
+    const res = await fetch(`${API_BASE}/v1/runs`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return [];
+    const data = await res.json() as { runs?: unknown[] };
+    if (!Array.isArray(data.runs)) return [];
+    return data.runs.map((r) => {
+      const run = r as Record<string, unknown>;
+      const readiness = run["readiness"] as Record<string, unknown> | undefined;
+      const maturity = run["maturity"] as Record<string, unknown> | undefined;
+      return {
+        run_id: String(run["run_id"] ?? ""),
+        url: String(run["url"] ?? ""),
+        score: Number(readiness?.["score"] ?? maturity?.["composite_score"] ?? 0),
+        label: String(readiness?.["label"] ?? maturity?.["composite_label"] ?? ""),
+        date: String(run["created_at"] ?? new Date().toISOString()),
+      };
+    });
+  } catch {
+    return [];
+  }
 }
