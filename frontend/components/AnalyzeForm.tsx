@@ -18,6 +18,7 @@ import PitchBriefView from "@/components/PitchBriefView";
 import FullReportView from "@/components/FullReportView";
 import EvidenceView from "@/components/EvidenceView";
 import { API_BASE, scoreColor, STRINGS } from "@/lib/config";
+import { useAuth } from "@/lib/auth-context";
 
 function buildDimensions(data: AnalyzeSuccess): Record<string, number> | undefined {
   if (data.maturity?.dimensions) {
@@ -39,6 +40,7 @@ function relativeDate(iso: string): string {
 }
 
 export default function AnalyzeForm() {
+  const { token } = useAuth();
   const [state, setState] = useState<PageState>({ phase: "idle" });
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [activeTab, setActiveTab] = useState<TabId>("brief");
@@ -72,9 +74,11 @@ export default function AnalyzeForm() {
       controller.abort();
     }, 300_000);
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
       const res = await fetch(`${API_BASE}/v1/analyze`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ url, dry_run: dryRun, ...(hints ? { user_hints: hints } : {}) }),
         signal: controller.signal,
       });
