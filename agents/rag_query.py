@@ -41,8 +41,8 @@ class RAGQueryAgent(BaseAgent):
         query_text = self._build_query(company_data, signals=signals)
         delivered_store = get_vector_store("tenex_delivered")
         industry_store = get_vector_store("industry_cases")
-        delivered = delivered_store.query_all()
-        industry = industry_store.query_all()
+        delivered = delivered_store.query(query_text, k=5)
+        industry = industry_store.query(query_text, k=3)
         if isinstance(delivered, AgentError):
             return delivered
         if isinstance(industry, AgentError):
