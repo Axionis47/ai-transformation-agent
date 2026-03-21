@@ -55,13 +55,19 @@ def get_rate_limiter() -> RateLimiter:
     """Return the module-level RateLimiter singleton, creating it once.
 
     Rate limiting is disabled (max_requests=0) when GOOGLE_AUTH_ENABLED is
-    not set — covers local dev and CI where all requests share the dev uid.
-    Set RATE_LIMIT_RPM env var to override the default of 5 in production.
+    not set AND RATE_LIMIT_RPM is not explicitly configured. This covers
+    local dev and CI where all requests share the dev uid.
+
+    RATE_LIMIT_RPM always takes precedence when explicitly set.
     """
     global _limiter
     if _limiter is None:
-        auth_on = os.getenv("GOOGLE_AUTH_ENABLED", "").lower() in ("true", "1", "yes")
-        max_rpm = int(os.getenv("RATE_LIMIT_RPM", "5")) if auth_on else 0
+        raw_rpm = os.getenv("RATE_LIMIT_RPM", "")
+        if raw_rpm:
+            max_rpm = int(raw_rpm)
+        else:
+            auth_on = os.getenv("GOOGLE_AUTH_ENABLED", "").lower() in ("true", "1", "yes")
+            max_rpm = 5 if auth_on else 0
         _limiter = RateLimiter(max_requests=max_rpm, window_seconds=60)
     return _limiter
 
