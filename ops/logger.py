@@ -96,6 +96,26 @@ class PipelineLogger:
                 output_summary=output_summary,
             )
 
+    def flush_to_gcs(self, run_id: str) -> None:
+        """Upload the local JSONL trace to GCS if GCS_TRACE_BUCKET is set.
+
+        Safe to call when GCS is not configured — does nothing in that case.
+        Local file is preserved after upload (kept for dry-run and local dev).
+        """
+        import os
+
+        bucket_name = os.getenv("GCS_TRACE_BUCKET", "")
+        if not bucket_name or not self._path.exists():
+            return
+        try:
+            from google.cloud import storage  # noqa: PLC0415
+
+            client = storage.Client()
+            blob = client.bucket(bucket_name).blob(f"traces/{run_id}.jsonl")
+            blob.upload_from_filename(str(self._path))
+        except Exception:
+            pass  # GCS unavailable — local file remains the source of truth
+
     @property
     def log_path(self) -> Path:
         return self._path
