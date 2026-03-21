@@ -7,7 +7,10 @@ Optional: only active when FIRESTORE_ENABLED=true. All other environments
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from infra.auth import User
 
 _PROJECT = os.getenv("GCP_PROJECT_ID", "plotpointe")
 _COLLECTION = "analysis_runs"
@@ -26,32 +29,37 @@ class FirestoreStore:
 
         self._db = firestore.Client(project=_PROJECT)
 
-    def save_run(self, run_id: str, data: dict, user_email: str | None = None) -> None:
-        """Save analysis result. Overwrites if the document already exists."""
+    def save_run(self, run_id: str, data: dict, user: "User") -> None:
+        """Save analysis result. Stores user_uid so ownership can be verified."""
         self._init()
         from google.cloud import firestore  # noqa: F811
 
         doc = {
             **data,
-            "user_email": user_email or "anonymous",
+            "user_uid": user.uid,
+            "user_email": user.email,
+            "user_name": user.name,
             "created_at": firestore.SERVER_TIMESTAMP,
         }
         self._db.collection(_COLLECTION).document(run_id).set(doc)
 
     def get_run(self, run_id: str) -> dict | None:
-        """Retrieve analysis result by run_id. Returns None if not found."""
+        """Retrieve analysis result by run_id. Returns None if not found.
+
+        Caller is responsible for checking user_uid before returning data.
+        """
         self._init()
         doc = self._db.collection(_COLLECTION).document(run_id).get()
         return doc.to_dict() if doc.exists else None
 
-    def list_runs(self, user_email: str, limit: int = 20) -> list[dict]:
-        """List recent runs for a user, newest first."""
+    def list_runs(self, user_uid: str, limit: int = 20) -> list[dict]:
+        """List recent runs owned by user_uid, newest first."""
         self._init()
         from google.cloud import firestore  # noqa: F811
 
         docs = (
             self._db.collection(_COLLECTION)
-            .where("user_email", "==", user_email)
+            .where("user_uid", "==", user_uid)
             .order_by("created_at", direction=firestore.Query.DESCENDING)
             .limit(limit)
             .stream()
