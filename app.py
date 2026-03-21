@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import os
 import re
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -15,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from infra.auth import _FIREBASE_ENABLED, get_user_from_request
+from infra.auth import User, get_current_user
 from infra.firestore_store import get_firestore_store
 from infra.health_check import health_router
 from orchestrator.pipeline import run_pipeline
@@ -24,41 +23,11 @@ from rag.ingest import ensure_seeds_loaded
 
 _LOG_DIR = Path("logs/runs")
 _RUN_ID_RE = re.compile(r"^[a-zA-Z0-9\-]+$")
-_API_KEY = os.getenv("API_KEY", "")  # empty = open access (dev/demo mode)
 
 
-def _verify_api_key(request: Request) -> None:
-    """Reject requests that don't carry the configured API key.
-
-    When API_KEY env var is not set (or empty), every request is allowed
-    so local dev and dry-run demos work without configuration.
-    """
-    if not _API_KEY:
-        return
-    key = request.headers.get("X-API-Key", "")
-    if key != _API_KEY:
-        raise HTTPException(status_code=401, detail="Invalid API key")
-
-
-def _get_current_user(request: Request) -> dict:
-    """Resolve caller identity from Firebase Bearer token or API key.
-
-    Auth precedence (first match wins):
-      1. FIREBASE_AUTH_ENABLED=true  -> Bearer token required
-      2. API_KEY set (Firebase off)  -> X-API-Key required
-      3. Neither configured          -> open access, anonymous user
-    """
-    user = get_user_from_request(request.headers.get("Authorization"))
-    if user is None:
-        if _FIREBASE_ENABLED:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid or missing authentication token",
-            )
-        # Fallback: enforce API key if configured
-        _verify_api_key(request)
-        return {"email": "anonymous", "name": "Anonymous", "uid": "anonymous"}
-    return user
+def _auth(request: Request) -> User:
+    """Resolve caller identity from Google OAuth Bearer token."""
+    return get_current_user(request.headers.get("Authorization"))
 
 
 @asynccontextmanager
@@ -119,29 +88,30 @@ class AnalyzeError(BaseModel):
 
 
 @app.get("/v1/results/{run_id}")
-async def get_result(run_id: str) -> dict[str, Any]:
-    """Retrieve a saved analysis result from Firestore by run_id."""
+async def get_result(run_id: str, user: User = Depends(_auth)) -> dict[str, Any]:
+    """Retrieve a saved analysis result. Caller must own the run."""
     store = get_firestore_store()
     if not store:
         raise HTTPException(status_code=404, detail="Persistence not enabled")
     result = store.get_run(run_id)
     if not result:
         raise HTTPException(status_code=404, detail="Run not found")
+    if result.get("user_uid") != user.uid:
+        raise HTTPException(status_code=403, detail="Access denied")
     return result
 
 
 @app.get("/v1/runs")
-async def list_runs(request: Request) -> dict[str, Any]:
-    """List recent analysis runs for a user (identified by X-User-Email header)."""
+async def list_runs(user: User = Depends(_auth)) -> dict[str, Any]:
+    """List recent analysis runs for the authenticated user."""
     store = get_firestore_store()
     if not store:
         return {"runs": []}
-    email = request.headers.get("X-User-Email", "anonymous")
-    return {"runs": store.list_runs(email)}
+    return {"runs": store.list_runs(user.uid)}
 
 
 @app.get("/v1/trace/{run_id}")
-async def get_trace(run_id: str) -> dict[str, Any]:
+async def get_trace(run_id: str, user: User = Depends(_auth)) -> dict[str, Any]:
     """Return all log entries for a pipeline run."""
     if not _RUN_ID_RE.match(run_id):
         raise HTTPException(status_code=400, detail="Invalid run_id format")
@@ -164,7 +134,7 @@ async def get_trace(run_id: str) -> dict[str, Any]:
 async def analyze(
     request: AnalyzeRequest,
     http_request: Request,
-    user: dict = Depends(_get_current_user),
+    user: User = Depends(_auth),
 ) -> AnalyzeSuccess:
     """Run the full AI transformation analysis pipeline."""
     state = await asyncio.to_thread(
@@ -213,11 +183,7 @@ async def analyze(
     store = get_firestore_store()
     if store:
         try:
-            store.save_run(
-                run_id=state.run_id,
-                data=response.model_dump(),
-                user_email=user.get("email"),
-            )
+            store.save_run(run_id=state.run_id, data=response.model_dump(), user=user)
         except Exception:
             pass
 
