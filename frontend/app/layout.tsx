@@ -8,6 +8,8 @@ import {
 import Link from "next/link";
 import "./globals.css";
 import { STRINGS, LAYOUT } from "@/lib/config";
+import { AuthProvider } from "@/lib/auth-context";
+import AuthButton from "@/components/AuthButton";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -57,6 +59,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={fontVariables}>
       <body className="bg-cream text-ink font-body antialiased min-h-screen flex flex-col">
+        <AuthProvider>
 
         {/* 3px red masthead rule — very top of page */}
         <div className="rule-masthead" />
@@ -67,10 +70,16 @@ export default function RootLayout({
             className="mx-auto flex items-center justify-between py-3"
             style={{ maxWidth: `${LAYOUT.maxContentWidth}px`, padding: "0.75rem clamp(1.5rem, 5vw, 4rem)" }}
           >
-            <span className="font-label font-semibold uppercase tracking-widest text-sm text-ink">
+            <Link href="/" className="font-label font-semibold uppercase tracking-widest text-sm text-ink hover:text-red transition-colors">
               {STRINGS.siteName}
-            </span>
+            </Link>
             <nav className="flex items-center gap-5">
+              <Link
+                href="/"
+                className="font-label font-semibold uppercase tracking-wider text-xs text-ink-medium hover:text-red transition-colors"
+              >
+                Diagnose
+              </Link>
               <Link
                 href="/solutions"
                 className="font-label font-semibold uppercase tracking-wider text-xs text-ink-medium hover:text-red transition-colors"
@@ -83,6 +92,7 @@ export default function RootLayout({
               <span className="font-mono text-xs text-ink-light">
                 19 Mar 2026
               </span>
+              <AuthButton />
             </nav>
           </div>
 
@@ -116,6 +126,7 @@ export default function RootLayout({
           </div>
         </footer>
 
+        </AuthProvider>
       </body>
     </html>
   );
