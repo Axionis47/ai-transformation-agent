@@ -413,6 +413,39 @@ def _build_delivered(record: dict, score: float, composite_score: float,
             timeline_reality=raw_ll.get("timeline_reality", ""),
             what_we_would_do_differently=raw_ll.get("what_we_would_do_differently", ""),
         )
+
+    # Run transferability to verify prerequisites and enrich relevance note
+    sigs = company_signals or []
+    ta = _assess_transferability(record, sigs)
+    prereq_parts = []
+    if ta["gaps"]:
+        prereq_parts.append(f"Prerequisites needed: {'; '.join(ta['gaps'][:2])}")
+    if ta["transfers"]:
+        prereq_parts.append(f"Confirmed ready: {'; '.join(ta['transfers'][:2])}")
+    prereq_note = (" | " + " | ".join(prereq_parts)) if prereq_parts else ""
+    relevance_note = (
+        f"Industry: {record.get('industry','')}, Maturity: {win_maturity}, "
+        f"Score: {score:.2f}{prereq_note}"
+    )
+
+    breakdown: ConfidenceBreakdown | None = None
+    if component_scores is not None:
+        cb = _build_confidence_breakdown(
+            industry_score=component_scores.get("industry", 0.0),
+            maturity_score=component_scores.get("maturity", 0.0),
+            size_score=component_scores.get("size", 0.0),
+            pain_score=component_scores.get("pain", 0.0),
+            tech_score=component_scores.get("tech", 0.0),
+            total=score,
+            company_signals=sigs,
+        )
+        ta_note = (
+            f"problem_match={ta['problem_match']:.2f}; "
+            f"tech_match={ta['tech_match']:.2f}; "
+            f"data_match={ta['data_match']:.2f}"
+        )
+        breakdown = cb.model_copy(update={"explanation": f"{cb.explanation}; {ta_note}"})
+
     return MatchResult(
         result_id=f"mr-{uuid.uuid4().hex[:6]}",
         source_library="tenex_delivered",
@@ -422,7 +455,7 @@ def _build_delivered(record: dict, score: float, composite_score: float,
         source_id=record.get("id", ""),
         source_title=record.get("engagement_title", ""),
         source_industry=record.get("industry", ""),
-        relevance_note=f"Industry: {record.get('industry','')}, Maturity: {win_maturity}, Score: {score:.2f}",
+        relevance_note=relevance_note,
         proven_metrics=pm,
         client_profile_summary=(
             f"{profile.get('size_label','')} {record.get('industry','')} company, "
@@ -433,15 +466,7 @@ def _build_delivered(record: dict, score: float, composite_score: float,
         tech_approach=tech.get("ml_approach", "") if isinstance(tech, dict) else "",
         gap_analysis=gap_text,
         lessons_learned=ll,
-        confidence_breakdown=_build_confidence_breakdown(
-            industry_score=component_scores.get("industry", 0.0) if component_scores else 0.0,
-            maturity_score=component_scores.get("maturity", 0.0) if component_scores else 0.0,
-            size_score=component_scores.get("size", 0.0) if component_scores else 0.0,
-            pain_score=component_scores.get("pain", 0.0) if component_scores else 0.0,
-            tech_score=component_scores.get("tech", 0.0) if component_scores else 0.0,
-            total=score,
-            company_signals=company_signals or [],
-        ) if component_scores is not None else None,
+        confidence_breakdown=breakdown,
     )
 
 
