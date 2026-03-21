@@ -7,6 +7,7 @@ Optional: only active when FIRESTORE_ENABLED=true. All other environments
 from __future__ import annotations
 
 import os
+import time
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -30,9 +31,24 @@ class FirestoreStore:
         self._db = firestore.Client(project=_PROJECT)
 
     def save_run(self, run_id: str, data: dict, user: "User") -> None:
-        """Save analysis result. Stores user_uid so ownership can be verified."""
+        """Save analysis result with retry on transient errors.
+
+        Retries up to 3 times (backoff: 0.5s, 1s, 2s) for transient errors:
+        ServiceUnavailable, Aborted, DeadlineExceeded.
+
+        Raises the final exception after all retries are exhausted — the
+        caller (app.py) logs the failure but does not fail the HTTP response.
+        """
         self._init()
         from google.cloud import firestore  # noqa: F811
+        from google.api_core.exceptions import (  # noqa: PLC0415
+            Aborted,
+            DeadlineExceeded,
+            ServiceUnavailable,
+        )
+
+        _TRANSIENT = (ServiceUnavailable, Aborted, DeadlineExceeded)
+        _BACKOFFS = (0.5, 1.0, 2.0)
 
         doc = {
             **data,
@@ -41,7 +57,20 @@ class FirestoreStore:
             "user_name": user.name,
             "created_at": firestore.SERVER_TIMESTAMP,
         }
-        self._db.collection(_COLLECTION).document(run_id).set(doc)
+
+        last_exc: Exception | None = None
+        for attempt, backoff in enumerate(_BACKOFFS, start=1):
+            try:
+                self._db.collection(_COLLECTION).document(run_id).set(doc)
+                return
+            except _TRANSIENT as exc:
+                last_exc = exc
+                if attempt < len(_BACKOFFS):
+                    time.sleep(backoff)
+            except Exception:
+                raise  # Non-transient: PermissionDenied, NotFound, etc.
+
+        raise last_exc  # type: ignore[misc]
 
     def get_run(self, run_id: str) -> dict | None:
         """Retrieve analysis result by run_id. Returns None if not found.

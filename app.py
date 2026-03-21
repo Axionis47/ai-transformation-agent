@@ -221,8 +221,4 @@ async def analyze(
             _logger = get_logger(state.run_id)
             _logger.log("FIRESTORE", "save_failed", error=str(exc))
 
-    # Flush trace log to GCS if configured (no-op when GCS_TRACE_BUCKET unset)
-    _pipeline_logger = get_logger(state.run_id)
-    await asyncio.to_thread(_pipeline_logger.flush_to_gcs, state.run_id)
-
     return response
