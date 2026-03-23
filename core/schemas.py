@@ -110,3 +110,71 @@ class Opportunity(BaseModel):
     rationale: str
     adaptation_needed: Optional[str] = None
     risks: list[str] = []
+
+
+# --- Stage output ---
+class StageOutput(BaseModel):
+    run_id: str
+    stage_name: str
+    version: int = 1
+    created_at: datetime
+    payload: dict
+
+
+# --- Trace event ---
+class TraceEvent(BaseModel):
+    event_id: str
+    run_id: str
+    timestamp: datetime
+    event_type: str
+    payload: dict = {}
+
+
+# --- Confidence ---
+class FieldConfidence(BaseModel):
+    field: str
+    evidence_coverage: float
+    evidence_strength: float
+    source_diversity: float
+    confidence: float
+
+
+class SectionConfidence(BaseModel):
+    section: str
+    field_confidences: list[FieldConfidence]
+    missing_fields: list[str]
+    confidence: float
+
+
+# --- UI contract ---
+class UIAction(BaseModel):
+    id: str
+    label: str
+    endpoint: str
+    method: str
+    enabled: bool = True
+    confirm: bool = False
+
+
+class EditableField(BaseModel):
+    path: str
+    label: str
+    field_type: str
+    default: Optional[str] = None
+    constraints: dict = {}
+
+
+class BudgetView(BaseModel):
+    rag_queries_remaining: int
+    external_search_queries_remaining: int
+    total_cost_estimate: str
+
+
+class UIHints(BaseModel):
+    stage_title: str
+    stage_description: str
+    progress: list[dict]
+    actions: list[UIAction]
+    editable_fields: list[EditableField]
+    budget_view: BudgetView
+    agent_message: Optional[str] = None
