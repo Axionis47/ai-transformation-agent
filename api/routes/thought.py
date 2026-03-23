@@ -19,6 +19,7 @@ from core.schemas import (
 from engines.thought import ThoughtEngine
 from services.grounder.fake_client import FakeGeminiClient
 from services.grounder.grounder import Grounder
+from services.rag.ingest import ensure_loaded
 from services.rag.retrieval import RAGRetriever
 from services.rag.store import RAGStore
 from services.trace import emit
@@ -30,6 +31,7 @@ def _make_engine(config: dict) -> ThoughtEngine:
     client = FakeGeminiClient()
     grounder = Grounder(client=client, config=config)
     store = RAGStore()
+    ensure_loaded(store)
     retriever = RAGRetriever(store=store, config=config)
     return ThoughtEngine(grounder=grounder, rag_retriever=retriever, config=config)
 
