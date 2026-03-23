@@ -174,17 +174,17 @@ Key rules:
 - Report composer: operator brief + evidence annex
 
 **Success criteria:**
-- [ ] Given thought engine output, produces 3-5 opportunities across all three tiers
-- [ ] Each opportunity shows: evidence items that support it, template that matched, score breakdown
-- [ ] Easy tier opportunities cite specific past engagements with measured ROI
-- [ ] Medium tier opportunities explicitly state what adaptation is needed and why
-- [ ] Hard tier opportunities show high potential but flag low confidence with reasons
-- [ ] ROI model recomputes when user changes an assumption (e.g., employee count)
-- [ ] Operator brief is one readable page with coverage gaps listed
+- [x] Given thought engine output, produces 3-5 opportunities across all three tiers
+- [x] Each opportunity shows: evidence items that support it, template that matched, score breakdown
+- [x] Easy tier opportunities cite specific past engagements with measured ROI
+- [x] Medium tier opportunities explicitly state what adaptation is needed and why
+- [x] Hard tier opportunities show high potential but flag low confidence with reasons
+- [x] ROI model recomputes when user changes an assumption (e.g., employee count)
+- [x] Operator brief is one readable page with coverage gaps listed
 
 **Dependencies:** Sprint 4 (thought engine produces evidence + company understanding)
 
-**Status:** NOT STARTED
+**Status:** COMPLETE (2026-03-23) — 212 tests total, 14 commits, 8 templates, 3-tier classification, ROI translation, operator brief
 
 ---
 
@@ -257,7 +257,7 @@ Key rules:
 | 2 | RAG Service | COMPLETE | 2026-03-23 | 108 tests, 18 seeds, budget enforcement |
 | 3 | Gemini Grounding | COMPLETE | 2026-03-23 | 142 tests, 10 commits, two-layer budget, fake client |
 | 4 | Thought Engine | COMPLETE | 2026-03-23 | 177 tests, 18 commits, MID + evidence accumulation + user questions |
-| 5 | Pitch Synthesis | NOT STARTED | — | — |
+| 5 | Pitch Synthesis | COMPLETE | 2026-03-23 | 212 tests, 14 commits, 8 templates, ROI model, operator brief |
 | 6 | Frontend | NOT STARTED | — | — |
 | 7 | Eval + Demo | NOT STARTED | — | — |
 
