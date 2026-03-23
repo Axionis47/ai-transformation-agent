@@ -11,6 +11,7 @@ from core.schemas import (
     BudgetState,
     CompanyIntake,
     EvidenceItem,
+    Opportunity,
     ReasoningState,
     Run,
     RunStatus,
@@ -96,6 +97,20 @@ def update_assumptions(run_id: str, assumptions: AssumptionsDraft) -> Run:
     """Store assumptions draft on run."""
     run = _require_run(run_id)
     run.assumptions = assumptions
+    return run
+
+
+def store_opportunities(run_id: str, opportunities: list[Opportunity]) -> Run:
+    """Store synthesized opportunities on the run."""
+    run = _require_run(run_id)
+    run.opportunities = opportunities
+    return run
+
+
+def store_report(run_id: str, report: dict) -> Run:
+    """Store composed report on the run."""
+    run = _require_run(run_id)
+    run.report = report
     return run
 
 
