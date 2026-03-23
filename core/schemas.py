@@ -29,6 +29,19 @@ class AssumptionsDraft(BaseModel):
     open_questions: list[str]
 
 
+class UserQuestion(BaseModel):
+    question_id: str
+    run_id: str
+    field: str
+    question_text: str
+    context: Optional[str] = None
+
+
+class UserAnswer(BaseModel):
+    question_id: str
+    answer_text: str
+
+
 # --- Run ---
 class BudgetConfig(BaseModel):
     external_search_query_budget: int
@@ -65,6 +78,32 @@ class Run(BaseModel):
     budget_state: BudgetState
     company_intake: Optional[CompanyIntake] = None
     assumptions: Optional[AssumptionsDraft] = None
+    evidence: list["EvidenceItem"] = []
+    reasoning_state: Optional[ReasoningState] = None
+
+
+# --- Reasoning ---
+class ReasoningState(BaseModel):
+    current_loop: int = 0
+    evidence_ids: list[str] = []
+    field_coverage: dict[str, float] = {}
+    overall_confidence: float = 0.0
+    pending_question: Optional["UserQuestion"] = None
+    completed: bool = False
+    stop_reason: Optional[str] = None
+    coverage_gaps: list[str] = []
+    loops_completed: int = 0
+
+
+class ReasoningLoopResult(BaseModel):
+    completed: bool
+    loops_run: int
+    evidence_items: list["EvidenceItem"]
+    field_coverage: dict[str, float]
+    overall_confidence: float
+    pending_question: Optional["UserQuestion"] = None
+    stop_reason: Optional[str] = None
+    coverage_gaps: list[str] = []
 
 
 # --- Evidence ---
