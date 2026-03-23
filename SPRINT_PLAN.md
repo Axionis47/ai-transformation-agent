@@ -143,17 +143,17 @@ Key rules:
 - Company intake + assumptions draft: first loop produces assumptions, user confirms/edits
 
 **Success criteria:**
-- [ ] Given "Acme Logistics, logistics industry" — agent completes 3 reasoning loops
-- [ ] Each loop queries RAG and/or grounder with different, progressively refined questions
-- [ ] MID correctly identifies that "exception volume" is unknown and asks the user
-- [ ] User provides answer via API, agent incorporates it and continues
-- [ ] Evidence accumulates across loops — loop 3 has more evidence than loop 1
-- [ ] Agent stops when depth budget hit, even if confidence is low (records coverage gaps)
-- [ ] Full trace of every reasoning step, tool call, and decision
+- [x] Given "Acme Logistics, logistics industry" — agent completes 3 reasoning loops
+- [x] Each loop queries RAG and/or grounder with different, progressively refined questions
+- [x] MID correctly identifies that "exception volume" is unknown and asks the user
+- [x] User provides answer via API, agent incorporates it and continues
+- [x] Evidence accumulates across loops — loop 3 has more evidence than loop 1
+- [x] Agent stops when depth budget hit, even if confidence is low (records coverage gaps)
+- [x] Full trace of every reasoning step, tool call, and decision
 
 **Dependencies:** Sprint 2 (RAG), Sprint 3 (grounder). Both must be callable as tools.
 
-**Status:** NOT STARTED
+**Status:** COMPLETE (2026-03-23) — 177 tests total, 18 commits, bounded reasoning loop with MID + evidence accumulation
 
 ---
 
@@ -256,7 +256,7 @@ Key rules:
 | 1 | Foundation + Contracts | COMPLETE | 2026-03-23 | 52 tests, 18 commits, all endpoints live |
 | 2 | RAG Service | COMPLETE | 2026-03-23 | 108 tests, 18 seeds, budget enforcement |
 | 3 | Gemini Grounding | COMPLETE | 2026-03-23 | 142 tests, 10 commits, two-layer budget, fake client |
-| 4 | Thought Engine | NOT STARTED | — | — |
+| 4 | Thought Engine | COMPLETE | 2026-03-23 | 177 tests, 18 commits, MID + evidence accumulation + user questions |
 | 5 | Pitch Synthesis | NOT STARTED | — | — |
 | 6 | Frontend | NOT STARTED | — | — |
 | 7 | Eval + Demo | NOT STARTED | — | — |
