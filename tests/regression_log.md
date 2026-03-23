@@ -30,3 +30,38 @@ pytest tests/ -q --tb=short
 ```
 
 Expected: 52 passed, 0 failed
+
+---
+
+## Sprint 4 -- Thought Engine (Reasoning Loop + MID)
+
+**Date:** 2026-03-23
+**Run command:** `pytest tests/ -q --tb=short`
+**Result:** 177 passed, 0 failed
+
+### Test files added
+| File | Tests | Result |
+|------|-------|--------|
+| tests/test_thought_mid.py | 8 | PASSED |
+| tests/test_thought_evidence.py | 6 | PASSED |
+| tests/test_thought_assumptions.py | 5 | PASSED |
+| tests/test_thought_loop.py | 8 | PASSED |
+| tests/test_thought_api.py | 8 | PASSED |
+
+### Coverage
+- engines/thought/mid.py: assess_coverage, detect_gap, field keyword scoring, budget fallback
+- engines/thought/evidence_acc.py: add, dedup by source_ref, higher score replaces, get_all sorted, source_types
+- engines/thought/assumptions.py: extract_assumptions, open_questions for missing fields, source=grounding
+- engines/thought/reasoning_loop.py: run_loop depth budget, confidence threshold stop, grounder called, RAG called, pause for user question, resume after answer, coverage_gaps
+- api/routes/thought.py: POST /start (intake->assumptions, confirmed->reasoning), POST /assumptions/confirm, POST /answer, 404 and 409 error cases, budget state updated
+
+### Regressions
+None -- 142 Sprint 1-3 tests continue to pass.
+
+### How to test
+```
+cd /Users/sid47/Desktop/ai-transformation-agent
+python3 -m pytest tests/ -q --tb=short
+```
+
+Expected: 177 passed, 0 failed
