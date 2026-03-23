@@ -65,3 +65,48 @@ class Run(BaseModel):
     budget_state: BudgetState
     company_intake: Optional[CompanyIntake] = None
     assumptions: Optional[AssumptionsDraft] = None
+
+
+# --- Evidence ---
+class EvidenceSource(str, Enum):
+    WINS_KB = "wins_kb"
+    GOOGLE_SEARCH = "google_search"
+    USER_PROVIDED = "user_provided"
+
+
+class EvidenceItem(BaseModel):
+    evidence_id: str
+    run_id: str
+    source_type: EvidenceSource
+    source_ref: str
+    title: str
+    uri: Optional[str] = None
+    snippet: str
+    relevance_score: float
+    confidence_score: Optional[float] = None
+    retrieval_meta: dict = {}
+
+
+# --- Opportunity ---
+class OpportunityTier(str, Enum):
+    EASY = "easy"
+    MEDIUM = "medium"
+    HARD = "hard"
+
+
+class Opportunity(BaseModel):
+    opportunity_id: str
+    run_id: str
+    template_id: str
+    name: str
+    description: str
+    tier: OpportunityTier
+    feasibility: float
+    roi: float
+    time_to_value: float
+    confidence: float
+    evidence_ids: list[str]
+    assumptions: dict
+    rationale: str
+    adaptation_needed: Optional[str] = None
+    risks: list[str] = []
