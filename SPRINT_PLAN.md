@@ -116,16 +116,16 @@ Key rules:
 - `searchEntryPoint` handling: flag and store display requirements
 
 **Success criteria:**
-- [ ] Call grounder with "What does Company X do?" and get a synthesized answer with citations
-- [ ] Budget tracks queries not calls — if one call triggers 3 Google searches, budget decrements by 3
-- [ ] After budget exhausted, grounder returns error with coverage_gap flag instead of calling
-- [ ] Grounding evidence and RAG evidence both produce identical EVIDENCE_ITEM shape
-- [ ] Confidence scores from grounding metadata are preserved per evidence item
-- [ ] All grounding activity traced with run_id correlation
+- [x] Call grounder with "What does Company X do?" and get a synthesized answer with citations
+- [x] Budget tracks queries not calls — if one call triggers 3 Google searches, budget decrements by 3
+- [x] After budget exhausted, grounder returns error with coverage_gap flag instead of calling
+- [x] Grounding evidence and RAG evidence both produce identical EVIDENCE_ITEM shape
+- [x] Confidence scores from grounding metadata are preserved per evidence item
+- [x] All grounding activity traced with run_id correlation
 
 **Dependencies:** Sprint 1 (schemas, config, trace). Sprint 2 not required — grounder is independent of RAG.
 
-**Status:** NOT STARTED
+**Status:** COMPLETE (2026-03-23) — 142 tests total, two-layer budget enforcement, fake client for testing
 
 ---
 
@@ -255,7 +255,7 @@ Key rules:
 |--------|------|--------|-----------|-------|
 | 1 | Foundation + Contracts | COMPLETE | 2026-03-23 | 52 tests, 18 commits, all endpoints live |
 | 2 | RAG Service | COMPLETE | 2026-03-23 | 108 tests, 18 seeds, budget enforcement |
-| 3 | Gemini Grounding | NOT STARTED | — | — |
+| 3 | Gemini Grounding | COMPLETE | 2026-03-23 | 142 tests, 10 commits, two-layer budget, fake client |
 | 4 | Thought Engine | NOT STARTED | — | — |
 | 5 | Pitch Synthesis | NOT STARTED | — | — |
 | 6 | Frontend | NOT STARTED | — | — |
