@@ -21,9 +21,9 @@ export default function ReportView({ report, opportunities, evidence }: ReportVi
     <div className="space-y-6">
       <div className="space-y-1">
         <p className="text-text-muted uppercase tracking-widest mb-2" style={{ fontSize: '12px' }}>Operator Brief</p>
-        {brief.company_name && <DataRow label="Company" value={brief.company_name as string} />}
-        {brief.industry && <DataRow label="Industry" value={brief.industry as string} />}
-        {brief.analysis_confidence != null && <DataRow label="Confidence" value={brief.analysis_confidence as number} />}
+        {typeof brief.company_name === 'string' && <DataRow label="Company" value={brief.company_name} />}
+        {typeof brief.industry === 'string' && <DataRow label="Industry" value={brief.industry} />}
+        {typeof brief.analysis_confidence === 'number' && <DataRow label="Confidence" value={brief.analysis_confidence} />}
       </div>
 
       <div>
