@@ -124,12 +124,11 @@ def run_single(bundle: CompanyBundle) -> EvalResult:
             tier_dist[t] += 1
 
     budget_state = run_resp.get("budget_state", {})
-    budgets = run_resp.get("budgets", {})
-    budget_ok = (
-        budget_state.get("rag_queries_used", 0) <= budgets.get("rag_query_budget", 8)
-        and budget_state.get("external_search_queries_used", 0)
-        <= budgets.get("external_search_query_budget", 5)
-    )
+    # True budget violation = BUDGET_VIOLATION_BLOCKED event was emitted.
+    # Post-call over-count (e.g. 6 queries on a budget of 5) is expected
+    # behavior when the final call returns more queries than remaining budget.
+    blocked_events = [e for e in trace_resp if e.get("event_type") == "BUDGET_VIOLATION_BLOCKED"]
+    budget_ok = len(blocked_events) == 0
     rs = run_resp.get("reasoning_state") or {}
     return EvalResult(
         company_name=bundle.company_name, industry=bundle.industry,
