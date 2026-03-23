@@ -1,0 +1,26 @@
+{
+  "victory_id": "win-001",
+  "victory_title": "Invoice Processing Automation",
+  "tier": "EASY_WIN",
+  "confidence": 0.88,
+  "what_we_did": "Built an LLM-based extraction pipeline for a 320-employee bank. Reads PDF invoices, extracts line items, matches against open POs, and routes exceptions to human review. 82% straight-through processing rate.",
+  "problem_fit": "Prospect has manual invoice processing across 12 departments, directly matching the pain point we solved for the original client.",
+  "confirmed": [
+    "Financial services industry (same as original engagement)",
+    "Mid-market size (similar scale)"
+  ],
+  "missing": [
+    "ERP system not confirmed",
+    "Monthly invoice volume unknown"
+  ],
+  "calibration": {
+    "victory_metric": "82% straight-through processing",
+    "victory_savings": "$340K/year at 320 employees",
+    "scale_factor": 2.8,
+    "estimated_value": "$850K-$1.1M/year",
+    "basis": "Linear scaling from 320 to 900 employees",
+    "confidence_note": "Assumes similar invoice volume per employee. ERP confirmation would increase confidence."
+  },
+  "adaptation_notes": "",
+  "key_question": "What ERP system do they use? That determines if we can integrate directly or need a custom connector."
+}

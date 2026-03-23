@@ -1,0 +1,18 @@
+{
+  "company_name": "Cross River Bank",
+  "industry": "financial_services",
+  "size_label": "mid-market",
+  "employee_count": 900,
+  "pain_points": [
+    "Manual invoice processing across 12 departments",
+    "Compliance reporting takes a full week every quarter"
+  ],
+  "known_tech": [],
+  "manual_processes": [
+    "Invoice data entry and PO matching",
+    "Quarterly compliance report compilation"
+  ],
+  "context_notes": [],
+  "explicit_queries": [],
+  "generate_pitch": false
+}
