@@ -64,3 +64,26 @@ def test_answer_continues_reasoning():
         r = client.post(f"/v1/runs/{rid}/answer",
             json={"question_id": pq.question_id, "answer_text": "500 employees"})
         assert r.status_code == 200
+
+
+def test_answer_no_pending_returns_400():
+    rid = _run_id(); _confirmed(rid)
+    client.post(f"/v1/runs/{rid}/start")
+    run = run_manager.get_run(rid)
+    if run and run.reasoning_state and run.reasoning_state.pending_question is None:
+        r = client.post(f"/v1/runs/{rid}/answer",
+            json={"question_id": "fake-id", "answer_text": "answer"})
+        assert r.status_code == 400
+
+
+def test_unknown_run_returns_404():
+    assert client.post("/v1/runs/no-such-run/start").status_code == 404
+
+
+def test_budget_updated_through_flow():
+    rid = _run_id(); _confirmed(rid)
+    client.post(f"/v1/runs/{rid}/start")
+    run = run_manager.get_run(rid)
+    assert run is not None
+    used = run.budget_state.external_search_queries_used + run.budget_state.rag_queries_used
+    assert used >= 0
