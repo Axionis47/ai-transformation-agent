@@ -40,10 +40,16 @@ def _dry_run_parse(message: str) -> dict:
     if emp_match:
         result["employee_count"] = int(emp_match.group(1).replace(",", ""))
 
-    if "?" in message:
-        for sentence in message.split("."):
-            if "?" in sentence:
-                result["explicit_queries"].append(sentence.strip().rstrip("?") + "?")
+    if "?" in message or "what about" in msg_lower:
+        for sentence in re.split(r"[.!]", message):
+            sentence = sentence.strip()
+            if "?" in sentence or "what about" in sentence.lower():
+                result["explicit_queries"].append(sentence.rstrip("?") + "?")
+
+    # Extract pain-point-like phrases from "what about X" patterns
+    about_match = re.search(r"what about (.+?)[\?.]", message, re.IGNORECASE)
+    if about_match:
+        result["pain_points"].append(about_match.group(1).strip())
 
     ctx_keywords = ["BaaS", "regulated", "OCC", "FDIC", "fintech", "SaaS"]
     for kw in ctx_keywords:

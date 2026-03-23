@@ -131,8 +131,11 @@ def classify_recommendations(assessments: list[VictoryAssessment]) -> Recommenda
     ambitious.sort(key=lambda a: -a.confidence)
 
     questions = []
+    seen_questions: set[str] = set()
     for a in assessments:
-        if a.key_question and a.missing:
+        # Only ask questions for victories that still have unknowns
+        if a.key_question and a.missing and a.key_question not in seen_questions:
+            seen_questions.add(a.key_question)
             questions.append(TargetedQuestion(
                 question=a.key_question,
                 why=f"Needed for {a.victory_title}",
@@ -230,6 +233,8 @@ def process_turn(state: SessionState, analyst_message: str) -> str:
     ))
 
     # 4. Query RAG for new matches based on changes
+    _MAX_DELIVERED = 3
+    _MAX_AMBITIOUS = 1
     new_assessments: list[VictoryAssessment] = []
     svc = VictoryService(dry_run=state.dry_run)
 
@@ -240,40 +245,65 @@ def process_turn(state: SessionState, analyst_message: str) -> str:
     if parsed.get("explicit_queries"):
         query_texts.extend(parsed["explicit_queries"])
     if not query_texts and not state.matched_victories:
-        # First turn: broad query using company + industry
         query_texts.append(f"{state.company_name} {state.industry}")
 
+    delivered_count = 0
     for query_text in query_texts:
+        if delivered_count >= _MAX_DELIVERED:
+            break
         full_query = f"{state.industry} {query_text}"
-        victories = svc.query_victories(full_query, k=3)
+        k = 8 if state.matched_victories else 5
+        victories = svc.query_victories(full_query, k=k)
         for v in victories:
+            if delivered_count >= _MAX_DELIVERED:
+                break
             vid = v.get("id", "")
             if vid and not _already_matched(state, vid):
                 assessment = _assess_victory(v, state)
                 if assessment:
                     new_assessments.append(assessment)
                     state.matched_victories.append(assessment)
+                    delivered_count += 1
 
     # Also query industry cases for ambitious tier
+    _RELATED = {
+        "financial_services": {"financial_services", "insurance", "fintech"},
+        "insurance": {"insurance", "financial_services"},
+        "healthcare": {"healthcare"},
+        "logistics": {"logistics", "manufacturing"},
+        "retail": {"retail", "ecommerce"},
+        "ecommerce": {"ecommerce", "retail"},
+        "manufacturing": {"manufacturing", "logistics"},
+    }
+    ambitious_count = 0
     if query_texts:
         combined = " ".join(query_texts)
-        cases = svc.query_industry_cases(f"{state.industry} {combined}", k=2)
+        cases = svc.query_industry_cases(f"{state.industry} {combined}", k=5)
+        allowed = _RELATED.get(state.industry, {state.industry})
         for c in cases:
+            if ambitious_count >= _MAX_AMBITIOUS:
+                break
             cid = c.get("id", "")
+            case_industry = c.get("industry", "")
+            if case_industry and case_industry.lower() not in allowed:
+                continue
             if cid and not _already_matched(state, cid):
-                # Industry cases get AMBITIOUS tier by default
+                ai_app = c.get("ai_application", {})
+                desc = ai_app.get("solution_description", "") if isinstance(ai_app, dict) else ""
+                outcomes = c.get("reported_outcomes", {})
+                headline = outcomes.get("headline_metric", "") if isinstance(outcomes, dict) else ""
                 ambitious = VictoryAssessment(
                     victory_id=cid,
                     victory_title=c.get("case_title", ""),
                     tier="AMBITIOUS",
                     confidence=0.45,
-                    what_we_did=c.get("ai_application", {}).get("solution_description", "")
-                    if isinstance(c.get("ai_application"), dict) else "",
-                    problem_fit=f"Industry precedent in {c.get('industry', 'similar sector')}",
+                    what_we_did=desc,
+                    problem_fit=f"Industry precedent: {headline}" if headline else f"Industry precedent in {case_industry}",
                     key_question="What is their appetite for transformative AI investment?",
                 )
                 new_assessments.append(ambitious)
                 state.matched_victories.append(ambitious)
+                ambitious_count += 1
 
     # 5. If new tech was added, re-check prerequisites on existing matches
     if changes.get("new_tech"):
@@ -296,14 +326,37 @@ def process_turn(state: SessionState, analyst_message: str) -> str:
     return response
 
 
+_TECH_ALIASES: dict[str, set[str]] = {
+    "sap": {"erp", "enterprise resource", "sap"},
+    "oracle": {"erp", "database", "oracle", "db"},
+    "salesforce": {"crm", "salesforce", "sales"},
+    "workday": {"hr", "hris", "workday"},
+    "netsuite": {"erp", "netsuite", "accounting"},
+    "snowflake": {"data warehouse", "snowflake", "analytics"},
+    "bigquery": {"data warehouse", "bigquery", "analytics"},
+    "postgresql": {"database", "postgres", "db"},
+    "mysql": {"database", "mysql", "db"},
+    "mongodb": {"database", "mongodb", "nosql"},
+    "aws": {"cloud", "aws", "infrastructure"},
+    "azure": {"cloud", "azure", "infrastructure"},
+    "gcp": {"cloud", "gcp", "infrastructure"},
+}
+
+
 def _update_prerequisites(assessment: VictoryAssessment, state: SessionState) -> None:
     """Move items from missing to confirmed if new tech matches."""
     tech_lower = {t.lower() for t in state.known_tech}
+    expanded = set(tech_lower)
+    for t in tech_lower:
+        expanded.update(_TECH_ALIASES.get(t, set()))
+
     still_missing = []
     for item in assessment.missing:
-        matched = any(t in item.lower() for t in tech_lower)
+        item_lower = item.lower()
+        matched = any(alias in item_lower for alias in expanded)
         if matched:
-            assessment.confirmed.append(f"{item} (analyst confirmed)")
+            tech_names = ", ".join(state.known_tech)
+            assessment.confirmed.append(f"{tech_names} confirmed (covers: {item})")
             if assessment.confidence < 0.95:
                 assessment.confidence = min(0.95, assessment.confidence + 0.05)
         else:
