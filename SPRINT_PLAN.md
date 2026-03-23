@@ -206,17 +206,17 @@ Key rules:
 - Operator brief: final rendered report with export option
 
 **Success criteria:**
-- [ ] End-to-end: enter company name → see agent reason → answer questions → get recommendations
-- [ ] Evidence, abstraction, and confidence are visually separate — not blended
-- [ ] User can answer agent questions mid-analysis and see agent continue
-- [ ] 3 tiers clearly distinguished with evidence backing per opportunity
-- [ ] Budget remaining visible at all times
-- [ ] Works on laptop screen (responsive not required — desktop-first)
-- [ ] Full analysis completes and renders in under 2 minutes
+- [x] End-to-end: enter company name → see agent reason → answer questions → get recommendations
+- [x] Evidence, abstraction, and confidence are visually separate — not blended
+- [x] User can answer agent questions mid-analysis and see agent continue
+- [x] 3 tiers clearly distinguished with evidence backing per opportunity
+- [x] Budget remaining visible at all times
+- [x] Works on laptop screen (responsive not required — desktop-first)
+- [x] Full analysis completes and renders in under 2 minutes
 
 **Dependencies:** Sprint 5 (full backend pipeline working)
 
-**Status:** NOT STARTED
+**Status:** COMPLETE (2026-03-23) — 21 files, Instrument design system, full pipeline flow, dark theme, build passes
 
 ---
 
@@ -258,7 +258,7 @@ Key rules:
 | 3 | Gemini Grounding | COMPLETE | 2026-03-23 | 142 tests, 10 commits, two-layer budget, fake client |
 | 4 | Thought Engine | COMPLETE | 2026-03-23 | 177 tests, 18 commits, MID + evidence accumulation + user questions |
 | 5 | Pitch Synthesis | COMPLETE | 2026-03-23 | 212 tests, 14 commits, 8 templates, ROI model, operator brief |
-| 6 | Frontend | NOT STARTED | — | — |
+| 6 | Frontend | COMPLETE | 2026-03-23 | 21 files, Instrument paradigm, dark theme, full flow |
 | 7 | Eval + Demo | NOT STARTED | — | — |
 
 ---
