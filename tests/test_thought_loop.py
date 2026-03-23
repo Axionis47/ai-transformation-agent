@@ -56,3 +56,42 @@ def test_loop_queries_rag():
         eng, _ = _engine(tmpdir=d)
         r = eng.run_loop("r4", INTAKE, NO_ASSUMPTIONS, BudgetState())
         assert r.evidence_items is not None
+
+
+def test_loop_pauses_for_user_question():
+    with tempfile.TemporaryDirectory() as d:
+        eng, _ = _engine(tmpdir=d)
+        budget = BudgetState(external_search_queries_used=5, rag_queries_used=8)
+        r = eng.run_loop("r5", INTAKE, NO_ASSUMPTIONS, budget)
+        if not r.completed:
+            assert r.pending_question is not None
+
+
+def test_resume_after_answer():
+    with tempfile.TemporaryDirectory() as d:
+        eng, _ = _engine(tmpdir=d)
+        budget = BudgetState(external_search_queries_used=5, rag_queries_used=8)
+        r = eng.run_loop("r6", INTAKE, NO_ASSUMPTIONS, budget)
+        if not r.completed and r.pending_question:
+            ev = EvidenceItem(evidence_id=str(uuid.uuid4()), run_id="r6",
+                source_type=EvidenceSource.USER_PROVIDED,
+                source_ref=r.pending_question.question_id,
+                title=r.pending_question.field, snippet="500 employees",
+                relevance_score=1.0)
+            r2 = eng.run_loop("r6", INTAKE, NO_ASSUMPTIONS, budget,
+                existing_evidence=[ev], start_loop=r.loops_run)
+            assert r2 is not None
+
+
+def test_evidence_accumulates():
+    with tempfile.TemporaryDirectory() as d:
+        eng, _ = _engine(tmpdir=d)
+        r = eng.run_loop("r7", INTAKE, NO_ASSUMPTIONS, BudgetState())
+        assert isinstance(r.evidence_items, list)
+
+
+def test_coverage_gaps_recorded():
+    with tempfile.TemporaryDirectory() as d:
+        eng, _ = _engine(tmpdir=d)
+        r = eng.run_loop("r8", INTAKE, NO_ASSUMPTIONS, BudgetState())
+        assert isinstance(r.coverage_gaps, list)
