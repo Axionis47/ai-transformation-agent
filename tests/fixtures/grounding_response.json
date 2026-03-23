@@ -1,0 +1,26 @@
+{
+  "text": "Acme Corp is a mid-market logistics company founded in 2015. They operate a fleet of 500 vehicles across 12 states and process roughly 2 million shipments per year. Recent Series B funding of $40M will accelerate their warehouse automation initiatives.",
+  "grounding_metadata": {
+    "web_search_queries": ["Acme Corp company", "Acme Corp logistics industry"],
+    "grounding_chunks": [
+      {"web": {"uri": "https://www.acmecorp.com/about", "title": "About Acme Corp"}},
+      {"web": {"uri": "https://www.linkedin.com/company/acmecorp", "title": "Acme Corp | LinkedIn"}},
+      {"web": {"uri": "https://techcrunch.com/acme-corp-series-b", "title": "Acme Corp raises Series B"}}
+    ],
+    "grounding_supports": [
+      {
+        "segment": {"text": "Acme Corp is a mid-market logistics company"},
+        "grounding_chunk_indices": [0, 1],
+        "confidence_scores": [0.92, 0.85]
+      },
+      {
+        "segment": {"text": "founded in 2015"},
+        "grounding_chunk_indices": [2],
+        "confidence_scores": [0.78]
+      }
+    ],
+    "search_entry_point": {
+      "rendered_content": "<style>.search-entry{}</style><div>Search results</div>"
+    }
+  }
+}
