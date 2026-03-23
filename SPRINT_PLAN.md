@@ -73,7 +73,7 @@ Key rules:
 
 **Dependencies:** None. This is the base.
 
-**Status:** NOT STARTED
+**Status:** COMPLETE (2026-03-23) — 52 tests passing, all endpoints live, 18 commits pushed
 
 ---
 
@@ -253,7 +253,7 @@ Key rules:
 
 | Sprint | Goal | Status | Completed | Notes |
 |--------|------|--------|-----------|-------|
-| 1 | Foundation + Contracts | NOT STARTED | — | — |
+| 1 | Foundation + Contracts | COMPLETE | 2026-03-23 | 52 tests, 18 commits, all endpoints live |
 | 2 | RAG Service | NOT STARTED | — | — |
 | 3 | Gemini Grounding | NOT STARTED | — | — |
 | 4 | Thought Engine | NOT STARTED | — | — |
