@@ -76,3 +76,81 @@ def _force_reasoning_complete(run_id: str) -> None:
     if run and run.reasoning_state and not run.reasoning_state.completed:
         run.reasoning_state.completed = True
         run.reasoning_state.stop_reason = "eval_force_complete"
+
+
+def run_single(bundle: CompanyBundle) -> EvalResult:
+    """Run the full pipeline for one company bundle and return metrics."""
+    start = time.time()
+
+    resp = _client.post("/v1/runs", json={"company_name": bundle.company_name, "industry": bundle.industry})
+    if resp.status_code != 201:
+        return _fail(bundle, f"create_run failed: {resp.status_code}", time.time() - start)
+    run_id: str = resp.json()["run_id"]
+
+    resp = _client.put(f"/v1/runs/{run_id}/company-intake", json={
+        "company_name": bundle.company_name, "industry": bundle.industry,
+        "employee_count_band": bundle.employee_count_band, "notes": bundle.notes,
+    })
+    if resp.status_code != 200:
+        return _fail(bundle, f"intake failed: {resp.status_code}", time.time() - start)
+
+    resp = _client.post(f"/v1/runs/{run_id}/start")
+    if resp.status_code != 200:
+        return _fail(bundle, f"start (assumptions) failed: {resp.status_code}", time.time() - start)
+
+    resp = _client.post(f"/v1/runs/{run_id}/assumptions/confirm")
+    if resp.status_code != 200:
+        return _fail(bundle, f"confirm failed: {resp.status_code}", time.time() - start)
+
+    resp = _client.post(f"/v1/runs/{run_id}/start")
+    if resp.status_code != 200:
+        return _fail(bundle, f"start (reasoning) failed: {resp.status_code}", time.time() - start)
+    result = _auto_answer(run_id, bundle, resp.json())
+    _force_reasoning_complete(run_id)
+
+    resp = _client.post(f"/v1/runs/{run_id}/synthesize")
+    if resp.status_code != 200:
+        return _fail(bundle, f"synthesize failed: {resp.status_code}", time.time() - start)
+
+    run_resp = _client.get(f"/v1/runs/{run_id}").json()
+    trace_resp = _client.get(f"/v1/runs/{run_id}/trace").json()
+    latency = time.time() - start
+
+    opportunities = run_resp.get("opportunities", [])
+    tier_dist: dict[str, int] = {"easy": 0, "medium": 0, "hard": 0}
+    for opp in opportunities:
+        t = opp.get("tier", "").lower()
+        if t in tier_dist:
+            tier_dist[t] += 1
+
+    budget_state = run_resp.get("budget_state", {})
+    budgets = run_resp.get("budgets", {})
+    budget_ok = (
+        budget_state.get("rag_queries_used", 0) <= budgets.get("rag_query_budget", 8)
+        and budget_state.get("external_search_queries_used", 0)
+        <= budgets.get("external_search_query_budget", 5)
+    )
+    rs = run_resp.get("reasoning_state") or {}
+    return EvalResult(
+        company_name=bundle.company_name, industry=bundle.industry,
+        success=True, error=None,
+        evidence_count=len(run_resp.get("evidence", [])),
+        opportunity_count=len(opportunities), tier_distribution=tier_dist,
+        field_coverage=rs.get("field_coverage", {}),
+        overall_confidence=rs.get("overall_confidence", 0.0),
+        budget_adherence=budget_ok,
+        rag_queries_used=budget_state.get("rag_queries_used", 0),
+        search_queries_used=budget_state.get("external_search_queries_used", 0),
+        trace_event_count=len(trace_resp), latency_seconds=round(latency, 2),
+    )
+
+
+def run_all() -> list[EvalResult]:
+    """Run eval for all 25 company bundles."""
+    results: list[EvalResult] = []
+    for bundle in get_bundles():
+        try:
+            results.append(run_single(bundle))
+        except Exception as exc:  # noqa: BLE001
+            results.append(_fail(bundle, str(exc), 0.0))
+    return results
