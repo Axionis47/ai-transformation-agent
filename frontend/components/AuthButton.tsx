@@ -40,7 +40,8 @@ export default function AuthButton() {
       const authErr = err as AuthError;
       // User closed popup — not an error worth surfacing
       if (authErr.code !== "auth/popup-closed-by-user") {
-        setError("Sign-in failed. Try again.");
+        setError(`Sign-in failed: ${authErr.code || authErr.message}`);
+        console.error("Firebase auth error:", authErr.code, authErr.message);
       }
     } finally {
       setBusy(false);
