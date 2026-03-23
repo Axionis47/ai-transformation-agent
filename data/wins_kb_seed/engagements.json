@@ -1,0 +1,505 @@
+[
+  {
+    "engagement_id": "eng-001",
+    "title": "Customer Support Triage Automation",
+    "industry": "financial_services",
+    "company_size_band": "200-500",
+    "problem": "Support team manually classified 1,800 inbound tickets per week across 14 categories. Average triage time was 8 minutes per ticket; wrong routing caused 22% rework.",
+    "workflow_area": "support",
+    "solution_shape": "automation",
+    "tech_stack": ["zendesk", "salesforce", "gcp_vertex"],
+    "timeline_weeks": 8,
+    "measured_impact": {
+      "triage_time_reduction_pct": 87,
+      "rerouting_errors_reduction_pct": 76,
+      "agent_hours_saved_per_week": 210,
+      "csat_improvement_pct": 12
+    },
+    "roi_drivers": ["ticket_volume", "resolution_time", "agent_headcount"],
+    "conditions_for_success": [
+      "Minimum 6 months of labelled historical tickets",
+      "Clear category taxonomy agreed before build",
+      "Dedicated Zendesk admin for integration"
+    ],
+    "anti_patterns": [
+      "Do not use when ticket volume is under 200 per week",
+      "Avoid if taxonomy changes more than quarterly"
+    ],
+    "tags": ["customer-support", "triage", "classification", "financial-services", "zendesk"]
+  },
+  {
+    "engagement_id": "eng-002",
+    "title": "Real-Time Fraud Detection Copilot",
+    "industry": "financial_services",
+    "company_size_band": "500-2000",
+    "problem": "Fraud analysts reviewed 600 flagged transactions per day manually. False positive rate was 68%, burning analyst time and delaying legitimate transactions by 4 hours.",
+    "workflow_area": "finance_ops",
+    "solution_shape": "copilot",
+    "tech_stack": ["snowflake", "gcp_vertex", "internal_api"],
+    "timeline_weeks": 12,
+    "measured_impact": {
+      "false_positive_reduction_pct": 54,
+      "analyst_review_time_reduction_pct": 60,
+      "transaction_delay_reduction_hours": 2.8,
+      "fraud_catch_rate_improvement_pct": 9
+    },
+    "roi_drivers": ["analyst_headcount", "fraud_loss_rate", "transaction_volume"],
+    "conditions_for_success": [
+      "Historical transaction data with fraud labels available (2+ years)",
+      "Real-time data pipeline already in place",
+      "Compliance sign-off on AI-assisted decisioning"
+    ],
+    "anti_patterns": [
+      "Do not fully automate decisions without human in loop for high-value transactions",
+      "Avoid if regulatory environment prohibits unexplainable model outputs"
+    ],
+    "tags": ["fraud-detection", "financial-services", "copilot", "snowflake", "risk"]
+  },
+  {
+    "engagement_id": "eng-003",
+    "title": "Compliance Document Review Acceleration",
+    "industry": "financial_services",
+    "company_size_band": "200-500",
+    "problem": "Compliance team spent 3 weeks per quarter manually reviewing 400+ policy documents for regulatory changes. Two FTEs dedicated entirely to this task.",
+    "workflow_area": "finance_ops",
+    "solution_shape": "decision_support",
+    "tech_stack": ["sharepoint", "gcp_vertex", "confluence"],
+    "timeline_weeks": 10,
+    "measured_impact": {
+      "review_cycle_reduction_weeks": 2.1,
+      "fte_reallocated": 1.5,
+      "missed_change_incidents_per_year_before": 4,
+      "missed_change_incidents_per_year_after": 0
+    },
+    "roi_drivers": ["compliance_risk", "fte_cost", "review_frequency"],
+    "conditions_for_success": [
+      "Documents stored in searchable digital format",
+      "Compliance team available to validate model outputs weekly"
+    ],
+    "anti_patterns": [
+      "Do not use as sole review mechanism without human sign-off",
+      "Avoid if document formats are highly inconsistent (scans, handwriting)"
+    ],
+    "tags": ["compliance", "document-review", "financial-services", "rag", "decision-support"]
+  },
+  {
+    "engagement_id": "eng-004",
+    "title": "Patient Scheduling Optimization",
+    "industry": "healthcare",
+    "company_size_band": "100-200",
+    "problem": "Outpatient clinic had 31% no-show rate and average scheduling coordinator handling 90 calls per day. 18% of slots were double-booked or left unfilled.",
+    "workflow_area": "operations",
+    "solution_shape": "automation",
+    "tech_stack": ["epic", "twilio", "gcp_vertex"],
+    "timeline_weeks": 10,
+    "measured_impact": {
+      "no_show_rate_reduction_pct": 42,
+      "coordinator_calls_per_day_reduction_pct": 35,
+      "slot_utilization_improvement_pct": 19,
+      "patient_satisfaction_improvement_pct": 11
+    },
+    "roi_drivers": ["slot_utilization", "coordinator_headcount", "no_show_cost"],
+    "conditions_for_success": [
+      "EHR system has API access (Epic FHIR preferred)",
+      "Patient contact data is clean and opt-in for SMS",
+      "Scheduling rules documented and stable"
+    ],
+    "anti_patterns": [
+      "Do not automate complex multi-specialist referral scheduling without care coordinator review",
+      "Avoid if patient population has low smartphone/SMS access"
+    ],
+    "tags": ["healthcare", "scheduling", "automation", "epic", "no-show-reduction"]
+  },
+  {
+    "engagement_id": "eng-005",
+    "title": "Insurance Claims Processing Automation",
+    "industry": "healthcare",
+    "company_size_band": "500-2000",
+    "problem": "Claims adjudicators manually processed 2,400 claims per week with 14% error rate and 11-day average cycle time. Rework cost was $380K per year.",
+    "workflow_area": "finance_ops",
+    "solution_shape": "automation",
+    "tech_stack": ["salesforce_health_cloud", "gcp_vertex", "internal_claims_api"],
+    "timeline_weeks": 14,
+    "measured_impact": {
+      "cycle_time_reduction_days": 7.2,
+      "error_rate_reduction_pct": 68,
+      "rework_cost_savings_usd_per_year": 258000,
+      "straight_through_processing_rate_pct": 71
+    },
+    "roi_drivers": ["claims_volume", "error_cost", "adjudicator_headcount", "cycle_time"],
+    "conditions_for_success": [
+      "Claims data in standardized format (HL7 or CMS-1500)",
+      "Clear escalation path for edge cases to human adjudicators",
+      "IT security approval for PHI handling in ML pipeline"
+    ],
+    "anti_patterns": [
+      "Do not automate high-complexity claims without clinical review",
+      "Avoid if denial rates are already under audit"
+    ],
+    "tags": ["healthcare", "claims-processing", "automation", "revenue-cycle", "straight-through"]
+  },
+  {
+    "engagement_id": "eng-006",
+    "title": "Clinical Documentation Assistant",
+    "industry": "healthcare",
+    "company_size_band": "200-500",
+    "problem": "Physicians spent 2.4 hours per day on documentation after patient visits. Burnout scores were high; 3 physicians left in 18 months citing administrative burden.",
+    "workflow_area": "operations",
+    "solution_shape": "copilot",
+    "tech_stack": ["epic", "nuance_dax", "gcp_vertex"],
+    "timeline_weeks": 12,
+    "measured_impact": {
+      "documentation_time_reduction_hours_per_day": 1.6,
+      "physician_satisfaction_score_improvement_pct": 28,
+      "notes_completed_same_day_improvement_pct": 41,
+      "estimated_retention_value_usd": 480000
+    },
+    "roi_drivers": ["physician_time", "retention_cost", "documentation_volume"],
+    "conditions_for_success": [
+      "Physicians have smartphones or tablets for voice input",
+      "EHR system supports ambient documentation integration",
+      "HIPAA BAA in place with all AI vendors"
+    ],
+    "anti_patterns": [
+      "Avoid ambient capture in sensitive mental health or substance abuse sessions without explicit consent protocols",
+      "Do not deploy without a physician champion leading adoption"
+    ],
+    "tags": ["healthcare", "clinical-documentation", "copilot", "physician-burnout", "ambient"]
+  },
+  {
+    "engagement_id": "eng-007",
+    "title": "Dispatch Optimization for Regional Logistics",
+    "industry": "logistics",
+    "company_size_band": "200-500",
+    "problem": "Dispatch team manually assigned 380 daily routes across 90 drivers using spreadsheets. Average overtime per driver was 6 hours per week; fuel costs ran 12% over budget.",
+    "workflow_area": "operations",
+    "solution_shape": "decision_support",
+    "tech_stack": ["samsara", "google_maps_api", "gcp_vertex"],
+    "timeline_weeks": 9,
+    "measured_impact": {
+      "overtime_reduction_pct": 48,
+      "fuel_cost_reduction_pct": 9,
+      "dispatch_time_reduction_minutes_per_day": 95,
+      "on_time_delivery_improvement_pct": 14
+    },
+    "roi_drivers": ["fuel_cost", "overtime_cost", "delivery_volume", "fleet_size"],
+    "conditions_for_success": [
+      "Fleet telematics data available in real-time (GPS + ETA)",
+      "Dispatcher buy-in — tool must be advisory, not forced",
+      "Delivery windows and constraints documented in structured format"
+    ],
+    "anti_patterns": [
+      "Do not fully automate routing for hazmat or high-value cargo without dispatcher approval",
+      "Avoid if delivery window data is unreliable or frequently changes same-day"
+    ],
+    "tags": ["logistics", "dispatch", "routing", "decision-support", "fleet", "fuel-savings"]
+  },
+  {
+    "engagement_id": "eng-008",
+    "title": "Invoice Exception Handling Automation",
+    "industry": "logistics",
+    "company_size_band": "500-2000",
+    "problem": "AP team processed 9,000 invoices per month with 18% exception rate requiring manual research. Each exception averaged 22 minutes to resolve; 2 FTEs dedicated to exceptions only.",
+    "workflow_area": "finance_ops",
+    "solution_shape": "automation",
+    "tech_stack": ["sap", "microsoft_azure_ocr", "gcp_vertex"],
+    "timeline_weeks": 11,
+    "measured_impact": {
+      "exception_rate_reduction_pct": 61,
+      "resolution_time_reduction_minutes": 14,
+      "fte_reallocated": 1.2,
+      "early_payment_discount_capture_increase_usd_per_year": 94000
+    },
+    "roi_drivers": ["invoice_volume", "exception_rate", "ap_headcount", "early_pay_discounts"],
+    "conditions_for_success": [
+      "ERP system (SAP or Oracle) has integration capability",
+      "Supplier master data is clean and regularly maintained",
+      "Finance leadership committed to process standardization"
+    ],
+    "anti_patterns": [
+      "Do not automate exception resolution for contracts with complex penalty clauses",
+      "Avoid if supplier data quality is poor — fix data first"
+    ],
+    "tags": ["logistics", "accounts-payable", "invoice", "automation", "sap", "finance-ops"]
+  },
+  {
+    "engagement_id": "eng-009",
+    "title": "Predictive Fleet Maintenance Scheduling",
+    "industry": "logistics",
+    "company_size_band": "200-500",
+    "problem": "Fleet of 120 trucks experienced 34 unplanned breakdowns per quarter costing $18K each in downtime and expedited repair. Maintenance was purely calendar-based.",
+    "workflow_area": "operations",
+    "solution_shape": "decision_support",
+    "tech_stack": ["samsara", "dbt", "gcp_vertex"],
+    "timeline_weeks": 13,
+    "measured_impact": {
+      "unplanned_breakdown_reduction_pct": 58,
+      "maintenance_cost_reduction_pct": 22,
+      "fleet_availability_improvement_pct": 7,
+      "annual_downtime_cost_savings_usd": 356000
+    },
+    "roi_drivers": ["breakdown_frequency", "downtime_cost", "fleet_size", "repair_cost"],
+    "conditions_for_success": [
+      "Telematics sensors installed on all vehicles",
+      "12+ months of maintenance history in structured format",
+      "Maintenance manager willing to shift from calendar to condition-based scheduling"
+    ],
+    "anti_patterns": [
+      "Do not deploy if sensor data coverage is under 70% of fleet",
+      "Avoid if maintenance history is in paper logs without digitization plan"
+    ],
+    "tags": ["logistics", "fleet", "predictive-maintenance", "iot", "decision-support"]
+  },
+  {
+    "engagement_id": "eng-010",
+    "title": "Inventory Demand Forecasting for Retail Chain",
+    "industry": "retail",
+    "company_size_band": "500-2000",
+    "problem": "Merchandising team used 12-week trailing average for reorder decisions. Stockout rate was 8.4% on top-50 SKUs; overstock tied up $2.1M in working capital annually.",
+    "workflow_area": "operations",
+    "solution_shape": "decision_support",
+    "tech_stack": ["netsuite", "snowflake", "gcp_vertex"],
+    "timeline_weeks": 10,
+    "measured_impact": {
+      "stockout_rate_reduction_pct": 52,
+      "overstock_working_capital_release_usd": 890000,
+      "forecast_accuracy_improvement_pct": 31,
+      "gross_margin_improvement_pct": 2.1
+    },
+    "roi_drivers": ["stockout_rate", "overstock_cost", "sku_count", "sales_volume"],
+    "conditions_for_success": [
+      "2+ years of POS transaction history by SKU and location",
+      "Promotional calendar integrated into demand model",
+      "Merchandising team trained to interpret forecast confidence intervals"
+    ],
+    "anti_patterns": [
+      "Do not use single-model forecast for highly seasonal specialty SKUs without manual override",
+      "Avoid deploying if supplier lead times are unreliable — fix supply chain first"
+    ],
+    "tags": ["retail", "inventory", "demand-forecasting", "working-capital", "snowflake"]
+  },
+  {
+    "engagement_id": "eng-011",
+    "title": "Customer Service Chatbot for Retail Returns",
+    "industry": "retail",
+    "company_size_band": "200-500",
+    "problem": "Customer service team handled 1,400 contacts per week; 62% were routine returns and order status inquiries. Agents spent 3 minutes per routine contact, leaving complex issues under-served.",
+    "workflow_area": "support",
+    "solution_shape": "automation",
+    "tech_stack": ["shopify", "intercom", "gcp_vertex"],
+    "timeline_weeks": 7,
+    "measured_impact": {
+      "routine_contact_deflection_rate_pct": 68,
+      "agent_time_freed_hours_per_week": 88,
+      "first_contact_resolution_improvement_pct": 19,
+      "customer_satisfaction_score_improvement": 0.4
+    },
+    "roi_drivers": ["contact_volume", "agent_headcount", "deflection_rate", "csat"],
+    "conditions_for_success": [
+      "Returns policy documented and consistent across channels",
+      "Order management system has API for real-time status",
+      "Clear escalation path for unhappy customers to human agent"
+    ],
+    "anti_patterns": [
+      "Avoid if returns policy has many exceptions requiring judgment",
+      "Do not deploy without fallback to human agent — dead-ends destroy satisfaction"
+    ],
+    "tags": ["retail", "customer-service", "chatbot", "returns", "deflection", "shopify"]
+  },
+  {
+    "engagement_id": "eng-012",
+    "title": "Quality Inspection Defect Detection",
+    "industry": "manufacturing",
+    "company_size_band": "200-500",
+    "problem": "Visual inspection line had 2.3% defect escape rate on PCB assemblies; each escaped defect cost $2,400 in field rework or warranty claim. 6 inspectors did 100% manual checks.",
+    "workflow_area": "operations",
+    "solution_shape": "automation",
+    "tech_stack": ["custom_vision_model", "gcp_vertex", "mes_integration"],
+    "timeline_weeks": 16,
+    "measured_impact": {
+      "defect_escape_rate_reduction_pct": 74,
+      "inspection_throughput_improvement_pct": 40,
+      "warranty_claim_reduction_usd_per_year": 312000,
+      "inspector_reallocated_to_complex_qa": 3
+    },
+    "roi_drivers": ["defect_escape_rate", "warranty_cost", "production_volume", "inspector_headcount"],
+    "conditions_for_success": [
+      "Minimum 2,000 labelled defect images per defect class",
+      "Consistent lighting and camera setup on production line",
+      "MES integration for traceability from inspection to shipment"
+    ],
+    "anti_patterns": [
+      "Do not use for low-volume, highly variable custom assemblies without retraining plan",
+      "Avoid if lighting or product orientation varies significantly without standardization"
+    ],
+    "tags": ["manufacturing", "quality-inspection", "computer-vision", "defect-detection", "pcb"]
+  },
+  {
+    "engagement_id": "eng-013",
+    "title": "Predictive Maintenance for CNC Equipment",
+    "industry": "manufacturing",
+    "company_size_band": "200-500",
+    "problem": "Plant had 18 CNC machines averaging 2.8 unplanned stops per machine per month; each stop cost $8,500 in lost production. Maintenance was time-based with no condition monitoring.",
+    "workflow_area": "operations",
+    "solution_shape": "decision_support",
+    "tech_stack": ["siemens_mindsphere", "influxdb", "gcp_vertex"],
+    "timeline_weeks": 14,
+    "measured_impact": {
+      "unplanned_stop_reduction_pct": 63,
+      "maintenance_cost_reduction_pct": 28,
+      "oee_improvement_pct": 6.4,
+      "annual_production_loss_savings_usd": 1070000
+    },
+    "roi_drivers": ["machine_downtime_cost", "maintenance_labor_cost", "production_throughput"],
+    "conditions_for_success": [
+      "Vibration and temperature sensors installed on all critical machines",
+      "Historian data available for 18+ months",
+      "Maintenance planner involved from day one"
+    ],
+    "anti_patterns": [
+      "Do not deploy on machines with under 6 months sensor history",
+      "Avoid if plant IT cannot support edge computing nodes for real-time inference"
+    ],
+    "tags": ["manufacturing", "predictive-maintenance", "cnc", "iot", "oee", "siemens"]
+  },
+  {
+    "engagement_id": "eng-014",
+    "title": "Supplier Risk Monitoring and Alerting",
+    "industry": "manufacturing",
+    "company_size_band": "500-2000",
+    "problem": "Procurement team tracked 240 Tier 1 and Tier 2 suppliers manually using quarterly scorecards. Two supply disruptions per year cost $1.8M each in expedite fees and line stops.",
+    "workflow_area": "operations",
+    "solution_shape": "decision_support",
+    "tech_stack": ["sap_ariba", "gcp_vertex", "news_api"],
+    "timeline_weeks": 11,
+    "measured_impact": {
+      "supply_disruption_early_warning_days": 18,
+      "disruption_events_with_mitigation_plan_pct": 83,
+      "expedite_cost_reduction_pct": 41,
+      "annual_supply_risk_savings_usd": 740000
+    },
+    "roi_drivers": ["disruption_frequency", "expedite_cost", "supplier_count", "line_stop_cost"],
+    "conditions_for_success": [
+      "Supplier master data in ERP is complete and current",
+      "Procurement team will act on alerts within 48 hours",
+      "External data feeds (news, financial, logistics) accessible"
+    ],
+    "anti_patterns": [
+      "Do not treat alerts as automated decisions — always requires procurement judgment",
+      "Avoid if supplier relationships are informal and not tracked in ERP"
+    ],
+    "tags": ["manufacturing", "supplier-risk", "procurement", "decision-support", "sap"]
+  },
+  {
+    "engagement_id": "eng-015",
+    "title": "Proposal Generation Copilot for Consulting Firm",
+    "industry": "professional_services",
+    "company_size_band": "100-200",
+    "problem": "Senior consultants spent 12 hours per proposal on boilerplate sections. Win rate was 34%; post-mortem showed proposals lacked specificity to client context. 3 proposals per week average.",
+    "workflow_area": "rev_ops",
+    "solution_shape": "copilot",
+    "tech_stack": ["salesforce", "sharepoint", "gcp_vertex"],
+    "timeline_weeks": 8,
+    "measured_impact": {
+      "proposal_drafting_time_reduction_hours": 8.5,
+      "win_rate_improvement_pct": 11,
+      "proposals_per_week_increase": 1.8,
+      "annual_revenue_uplift_usd": 520000
+    },
+    "roi_drivers": ["proposal_volume", "win_rate", "deal_size", "senior_consultant_time"],
+    "conditions_for_success": [
+      "Past proposal library accessible in structured format",
+      "CRM data with won/lost outcome labels available",
+      "Senior consultants willing to review and edit AI drafts"
+    ],
+    "anti_patterns": [
+      "Do not auto-send proposals without human review",
+      "Avoid if past proposal library is under 100 documents"
+    ],
+    "tags": ["professional-services", "proposal-generation", "copilot", "rev-ops", "salesforce"]
+  },
+  {
+    "engagement_id": "eng-016",
+    "title": "Automated Time Tracking and Project Allocation",
+    "industry": "professional_services",
+    "company_size_band": "200-500",
+    "problem": "Consultants manually entered time across 8 project codes after the fact; 22% of time was logged late or to the wrong code. Finance close took 4 extra days each month for corrections.",
+    "workflow_area": "finance_ops",
+    "solution_shape": "automation",
+    "tech_stack": ["microsoft_teams", "dynamics_365", "gcp_vertex"],
+    "timeline_weeks": 7,
+    "measured_impact": {
+      "late_time_entry_reduction_pct": 74,
+      "misallocation_rate_reduction_pct": 68,
+      "finance_close_days_saved_per_month": 3.2,
+      "write_off_reduction_usd_per_year": 180000
+    },
+    "roi_drivers": ["consultant_headcount", "write_off_rate", "finance_close_cost", "billing_accuracy"],
+    "conditions_for_success": [
+      "Calendar and email metadata accessible for inference (with consent)",
+      "Project code taxonomy is stable and well-defined",
+      "Finance team agrees to review-and-confirm workflow rather than fully automated posting"
+    ],
+    "anti_patterns": [
+      "Avoid full automation of time posting — consultant confirmation required for accuracy",
+      "Do not deploy if project codes change frequently without governance process"
+    ],
+    "tags": ["professional-services", "time-tracking", "finance-ops", "automation", "dynamics-365"]
+  },
+  {
+    "engagement_id": "eng-017",
+    "title": "Resource Allocation Optimization for Project Staffing",
+    "industry": "professional_services",
+    "company_size_band": "200-500",
+    "problem": "Staffing manager allocated 160 consultants to projects using a spreadsheet. Utilization averaged 67%; 28 skill mismatches per quarter led to project delays and client escalations.",
+    "workflow_area": "operations",
+    "solution_shape": "decision_support",
+    "tech_stack": ["salesforce_psa", "gcp_vertex", "internal_skills_db"],
+    "timeline_weeks": 10,
+    "measured_impact": {
+      "billable_utilization_improvement_pct": 9,
+      "skill_mismatch_incidents_reduction_pct": 64,
+      "time_to_staff_project_reduction_days": 3.1,
+      "annual_revenue_from_utilization_uplift_usd": 730000
+    },
+    "roi_drivers": ["consultant_utilization", "skill_mismatch_cost", "project_count", "headcount"],
+    "conditions_for_success": [
+      "Skills database current and consultant-verified",
+      "Project staffing needs defined at least 2 weeks ahead",
+      "Staffing manager uses tool as advisory, retains final decision"
+    ],
+    "anti_patterns": [
+      "Do not automate staffing decisions without manager override capability",
+      "Avoid if project requirements are too vague for structured skill matching"
+    ],
+    "tags": ["professional-services", "resource-allocation", "staffing", "utilization", "decision-support"]
+  },
+  {
+    "engagement_id": "eng-018",
+    "title": "Retail Shrinkage Detection and Alert System",
+    "industry": "retail",
+    "company_size_band": "200-500",
+    "problem": "Loss prevention team reviewed 2TB of CCTV footage weekly to identify shrinkage events. Monthly shrinkage ran 1.8% of revenue; detection lagged 2-3 weeks behind incidents.",
+    "workflow_area": "operations",
+    "solution_shape": "automation",
+    "tech_stack": ["milestone_vms", "gcp_vertex_vision", "custom_alert_pipeline"],
+    "timeline_weeks": 14,
+    "measured_impact": {
+      "shrinkage_rate_reduction_pct": 31,
+      "detection_lag_reduction_days": 16,
+      "lp_analyst_manual_review_reduction_pct": 70,
+      "annual_shrinkage_savings_usd": 620000
+    },
+    "roi_drivers": ["shrinkage_rate", "revenue", "lp_headcount", "detection_lag"],
+    "conditions_for_success": [
+      "IP camera network with consistent resolution (1080p minimum)",
+      "Loss prevention team willing to act on real-time alerts",
+      "Privacy legal review completed before deployment"
+    ],
+    "anti_patterns": [
+      "Do not deploy without legal sign-off on biometric/identity implications",
+      "Avoid if camera coverage has significant blind spots in high-shrinkage zones"
+    ],
+    "tags": ["retail", "loss-prevention", "computer-vision", "shrinkage", "automation"]
+  }
+]
