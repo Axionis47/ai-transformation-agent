@@ -1,0 +1,59 @@
+#!/bin/sh
+# Enforces conventional commits format
+# Rejects agent tags and ticket numbers — git history must look like a solo dev
+
+commit_msg=$(cat "$1")
+
+# Skip merge commits
+if echo "$commit_msg" | grep -qE "^Merge "; then
+  exit 0
+fi
+
+# Check conventional commits format
+pattern="^(feat|fix|refactor|test|chore|docs|perf|ci)(\(.+\))?: .{10,}"
+if ! echo "$commit_msg" | grep -qE "$pattern"; then
+  echo ""
+  echo "❌ COMMIT REJECTED — does not follow conventional commits format"
+  echo ""
+  echo "Required: <type>(<scope>): <description min 10 chars>"
+  echo ""
+  echo "Valid types: feat | fix | refactor | test | chore | docs | perf | ci"
+  echo ""
+  echo "Good examples:"
+  echo "  feat(scraper): extract job postings from careers page"
+  echo "  fix(consultant): handle empty scraped data with recoverable error"
+  echo "  test(pipeline): add dry-run end-to-end coverage"
+  echo "  chore(deps): pin httpx==0.27.0 in requirements"
+  echo ""
+  echo "Your message: $commit_msg"
+  echo ""
+  exit 1
+fi
+
+# Reject agent tags — these must never appear in git
+if echo "$commit_msg" | grep -qE "\[(BE|FE|CONS|PE|OPS|EVAL|QA|RAG|DOC|PM)\]"; then
+  echo ""
+  echo "❌ COMMIT REJECTED — agent tags are not allowed in git commits"
+  echo ""
+  echo "Agent tags like [BE], [FE], [CONS] go in Linear ticket comments only."
+  echo "Git history must look like a solo developer wrote it."
+  echo ""
+  echo "Your message: $commit_msg"
+  echo ""
+  exit 1
+fi
+
+# Reject ticket numbers — DISC-n format
+if echo "$commit_msg" | grep -qE "DISC-[0-9]+"; then
+  echo ""
+  echo "❌ COMMIT REJECTED — ticket numbers are not allowed in git commits"
+  echo ""
+  echo "DISC-n ticket references go in Linear ticket comments only."
+  echo "Git history must look like a solo developer wrote it."
+  echo ""
+  echo "Your message: $commit_msg"
+  echo ""
+  exit 1
+fi
+
+exit 0
