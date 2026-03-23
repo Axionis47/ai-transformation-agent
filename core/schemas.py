@@ -80,6 +80,8 @@ class Run(BaseModel):
     assumptions: Optional[AssumptionsDraft] = None
     evidence: list["EvidenceItem"] = []
     reasoning_state: Optional[ReasoningState] = None
+    opportunities: list["Opportunity"] = []
+    report: dict = {}
 
 
 # --- Reasoning ---
