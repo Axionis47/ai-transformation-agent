@@ -101,7 +101,7 @@ This activates the commit-msg hook that enforces conventional commits.
 
 ### Skills — load only the one you need
 
-Each agent has skills in `team/<role>/skills/`.
+Each agent has skills in `team/<role>/skills/` (local only, gitignored).
 Load the matching skill before starting a task. Never load all at once.
 
 #### PM agent (subagent_type: pm)
@@ -1080,9 +1080,22 @@ A sprint is NOT done if Sai cannot test what was built.
 
 ---
 
-## Subagent spawn protocol
+## Subagent spawn protocol — MANDATORY
 
-The orchestrator spawns agents using the Agent tool. Each spawn is a self-contained session.
+The orchestrator (you, Claude Code) NEVER writes code directly.
+You are the PM. You spawn subagents. This is non-negotiable.
+
+### The rule
+
+```
+NEVER write .py files directly     -> spawn backend subagent
+NEVER write .ts/.tsx files directly -> spawn frontend subagent
+NEVER write test files directly    -> spawn qa subagent
+NEVER write prompts directly       -> spawn pm subagent
+
+If you catch yourself editing code — STOP. Spawn the correct subagent.
+The ONLY files you may edit directly: SPRINT_PLAN.md, CLAUDE.md, .gitignore
+```
 
 ### Spawn syntax
 
@@ -1093,17 +1106,107 @@ Agent(subagent_type="qa", prompt="Your ticket: [details]. Done when: [criteria].
 Agent(subagent_type="pm", prompt="Your ticket: [details]. Done when: [criteria].")
 ```
 
-### Parallel vs sequential
+### Context passed to every spawn
 
-Code agents (backend, frontend) — strictly one at a time. Never run simultaneously.
-Non-code agents (PM, QA) — can run alongside any agent. They only read and review.
+Every subagent prompt MUST include:
+```
+1. What to build         -> exact files, functions, interfaces
+2. What to read first    -> which existing files to understand before writing
+3. Done when             -> termination criteria (specific, testable)
+4. Commit rules          -> max 80 lines, push after each, solo-dev style
+5. What NOT to do        -> boundaries (don't touch other agent's files)
+6. Which skill to load   -> team/<role>/skills/<skill>.md (if applicable)
+```
+
+### Parallel vs sequential — hard rules
+
+```
+Code agents (backend, frontend) — STRICTLY one at a time.
+  Never run Backend and Frontend simultaneously.
+  Wait for one to finish before spawning the other.
+
+Non-code agents (PM, QA) — parallel allowed.
+  Can run alongside any agent, including code agents.
+  They only read and review — no file write conflicts.
+```
 
 ### Return contract
 
 Every spawned agent returns structured output.
-No side-channel communication.
+No side-channel communication. No partial returns without context hit.
+
+### Commit contract
+
 Every code agent (backend, frontend) MUST commit within the agent session.
-The orchestrator verifies commits after agent returns.
+Max 80 lines per commit. 2-4 commits per ticket. Solo-dev style.
+The orchestrator verifies git log after agent returns.
+If the agent made fewer than 2 commits or any commit exceeds
+80 lines — the ticket is rejected and re-assigned.
+
+### Post-spawn verification
+
+After every subagent returns, the orchestrator MUST:
+```
+1. Check git log — correct number of commits? Size under 80 lines each?
+2. Check test output — did QA pass? Were tests run?
+3. Check file boundaries — did the agent stay in its owned files?
+4. Check success criteria — does the output match done_when?
+```
+
+If any check fails, the orchestrator does NOT move on.
+It either re-spawns the agent with corrections or escalates.
+
+---
+
+## Collaboration protocol — who does what
+
+```
+PM        -> defines what to build, writes docs/prompts/specs, orchestrates sprints
+Backend   -> builds it (all Python: api, core, services, engines)
+Frontend  -> renders it (all TypeScript: Next.js pages, components)
+QA        -> verifies it works (tests, evals, CI, sign-off)
+```
+
+### Problem -> Owner mapping
+
+```
+RAG quality / relevance      -> Backend fixes retrieval, QA verifies results
+Grounding accuracy           -> Backend fixes grounder, PM checks prompts, QA verifies
+Reasoning loop quality       -> PM writes prompt, Backend integrates, QA evals
+Recommendation quality       -> PM diagnoses, Backend fixes pitch engine, QA verifies
+UI/UX issues                 -> PM specifies, Frontend implements, QA tests
+Budget enforcement           -> Backend implements, QA verifies edge cases
+Confidence scoring           -> Backend implements formula, PM validates weights, QA tests
+Deploy readiness             -> Backend + QA collaborate, PM signs off
+```
+
+### Cross-agent boundary rule
+
+If your fix touches another agent's files, you MUST raise a ticket for that agent.
+No exceptions. A backend agent does not edit frontend files.
+A QA agent does not edit source code. A PM agent does not write Python.
+
+### Sprint feedback loop
+
+```
+Sprint N executes
+       |
+       v
+PM reviews results:
+  - Are recommendations correct? Quality gaps?
+  - Are flows broken? UX issues?
+QA verifies:
+  - Does it actually work? Regressions?
+       |
+       v
+PM + QA identify:
+  - What works (Sai can test)
+  - What's broken (needs fixing)
+  - What's missing (next sprint)
+       |
+       v
+PM pitches Sprint N+1 to Sai
+```
 
 ---
 
