@@ -1,4 +1,4 @@
-"""FastAPI entry point — POST /v1/analyze + health check + GET /v1/trace."""
+"""FastAPI entry point — v1 pipeline + v2 session-based analyst copilot."""
 
 from __future__ import annotations
 
@@ -20,6 +20,8 @@ from infra.health_check import health_router
 from infra.rate_limiter import get_rate_limiter
 from ops.logger import get_logger
 from orchestrator.pipeline import run_pipeline
+from orchestrator.reasoning_engine import process_turn
+from orchestrator.session_schemas import SessionState
 from orchestrator.state import PipelineStatus
 from rag.ingest import ensure_seeds_loaded
 
@@ -230,3 +232,81 @@ async def analyze(
     await asyncio.to_thread(trace_logger.flush_to_gcs, state.run_id)
 
     return response
+
+
+# ---------------------------------------------------------------------------
+# v2 — Session-based Analyst Copilot
+# ---------------------------------------------------------------------------
+
+_sessions: dict[str, SessionState] = {}
+
+
+class CreateSessionRequest(BaseModel):
+    company_name: str = ""
+    dry_run: bool = False
+
+
+class TurnRequest(BaseModel):
+    message: str
+
+
+@app.post("/v2/session")
+async def create_session(
+    request: CreateSessionRequest,
+    user: User = Depends(_auth),
+) -> dict[str, Any]:
+    """Create a new analyst copilot session."""
+    state = SessionState(
+        company_name=request.company_name,
+        dry_run=request.dry_run,
+    )
+    _sessions[state.session_id] = state
+
+    welcome = f"Session started for {request.company_name or 'a new prospect'}."
+    welcome += " Tell me what you know about this company."
+    return {"session_id": state.session_id, "system_message": welcome}
+
+
+@app.post("/v2/session/{session_id}/turn")
+async def session_turn(
+    session_id: str,
+    request: TurnRequest,
+    user: User = Depends(_auth),
+) -> dict[str, Any]:
+    """Send an analyst message and get the system response."""
+    state = _sessions.get(session_id)
+    if not state:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    response = await asyncio.to_thread(process_turn, state, request.message)
+
+    recs = state.recommendations.model_dump() if state.recommendations else None
+    questions = [q.model_dump() for q in state.questions_pending]
+
+    return {
+        "system_message": response,
+        "recommendations": recs,
+        "questions": questions,
+        "turn_count": len(state.turn_history),
+    }
+
+
+@app.post("/v2/session/{session_id}/pitch")
+async def generate_pitch(
+    session_id: str,
+    user: User = Depends(_auth),
+) -> dict[str, Any]:
+    """Generate the final calibrated pitch document."""
+    state = _sessions.get(session_id)
+    if not state:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    pitch = await asyncio.to_thread(process_turn, state, "generate pitch")
+
+    recs = state.recommendations
+    return {
+        "pitch": pitch,
+        "easy_wins": [w.model_dump() for w in recs.easy_wins] if recs else [],
+        "moderate_wins": [w.model_dump() for w in recs.moderate_wins] if recs else [],
+        "ambitious": [w.model_dump() for w in recs.ambitious] if recs else [],
+    }
