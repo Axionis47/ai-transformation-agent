@@ -5,7 +5,16 @@ from datetime import datetime, timezone
 
 from core.config import freeze_config
 from core.events import EventType
-from core.schemas import BudgetConfig, BudgetState, CompanyIntake, Run, RunStatus
+from core.schemas import (
+    AssumptionsDraft,
+    BudgetConfig,
+    BudgetState,
+    CompanyIntake,
+    EvidenceItem,
+    ReasoningState,
+    Run,
+    RunStatus,
+)
 from services import trace
 
 _runs: dict[str, Run] = {}
@@ -66,6 +75,27 @@ def transition(run_id: str, new_status: RunStatus) -> Run:
             f"Allowed: {[s.value for s in allowed]}"
         )
     run.status = new_status
+    return run
+
+
+def add_evidence(run_id: str, items: list[EvidenceItem]) -> Run:
+    """Append evidence items to run. Deduplication is caller's responsibility."""
+    run = _require_run(run_id)
+    run.evidence.extend(items)
+    return run
+
+
+def update_reasoning_state(run_id: str, state: ReasoningState) -> Run:
+    """Store current reasoning loop state on run."""
+    run = _require_run(run_id)
+    run.reasoning_state = state
+    return run
+
+
+def update_assumptions(run_id: str, assumptions: AssumptionsDraft) -> Run:
+    """Store assumptions draft on run."""
+    run = _require_run(run_id)
+    run.assumptions = assumptions
     return run
 
 
