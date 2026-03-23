@@ -99,7 +99,7 @@ Key rules:
 
 **Dependencies:** Sprint 1 (schemas, config, trace emitter)
 
-**Status:** NOT STARTED
+**Status:** COMPLETE (2026-03-23) — 108 tests total, 18 seed engagements, budget enforcement working
 
 ---
 
@@ -254,7 +254,7 @@ Key rules:
 | Sprint | Goal | Status | Completed | Notes |
 |--------|------|--------|-----------|-------|
 | 1 | Foundation + Contracts | COMPLETE | 2026-03-23 | 52 tests, 18 commits, all endpoints live |
-| 2 | RAG Service | NOT STARTED | — | — |
+| 2 | RAG Service | COMPLETE | 2026-03-23 | 108 tests, 18 seeds, budget enforcement |
 | 3 | Gemini Grounding | NOT STARTED | — | — |
 | 4 | Thought Engine | NOT STARTED | — | — |
 | 5 | Pitch Synthesis | NOT STARTED | — | — |
