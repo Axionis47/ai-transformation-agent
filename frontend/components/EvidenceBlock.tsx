@@ -6,7 +6,7 @@ interface EvidenceBlockProps {
 
 export default function EvidenceBlock({ evidence }: EvidenceBlockProps) {
   return (
-    <div className="border border-border rounded-sm p-3 bg-surface">
+    <div id={evidence.evidence_id} className="border border-border rounded-sm p-3 bg-surface">
       <div className="flex justify-between items-center mb-1">
         <span
           className="font-mono uppercase text-text-muted"

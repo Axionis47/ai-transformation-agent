@@ -1,7 +1,8 @@
-import type { Opportunity } from '@/lib/types'
+import type { Opportunity, EvidenceItem } from '@/lib/types'
 
 interface OpportunityRowProps {
   opportunity: Opportunity
+  evidence?: EvidenceItem[]
 }
 
 const TIER_COLORS: Record<string, string> = {
@@ -16,7 +17,7 @@ const TIER_TEXT: Record<string, string> = {
   hard: 'text-tier-hard',
 }
 
-export default function OpportunityRow({ opportunity }: OpportunityRowProps) {
+export default function OpportunityRow({ opportunity, evidence }: OpportunityRowProps) {
   const tier = opportunity.tier.toLowerCase()
   const borderColor = TIER_COLORS[tier] ?? 'border-border'
   const textColor = TIER_TEXT[tier] ?? 'text-text-muted'
@@ -41,7 +42,9 @@ export default function OpportunityRow({ opportunity }: OpportunityRowProps) {
       </div>
       <div className="flex gap-3">
         <span className="text-text-muted font-mono" style={{ fontSize: '12px' }}>
-          Evidence: {opportunity.evidence_ids.map((id) => `[${id.slice(0, 8)}]`).join(' ')}
+          Evidence: {opportunity.evidence_ids.map((id) => (
+            <a key={id} href={`#${id}`} className="text-accent cursor-pointer hover:underline mr-1">[{id.slice(0, 8)}]</a>
+          ))}
         </span>
       </div>
       {opportunity.adaptation_needed && (
