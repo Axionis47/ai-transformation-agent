@@ -31,7 +31,7 @@ export default function AssumptionsReview({ assumptions, onConfirm, loading }: A
               {assumption.field.replace(/_/g, ' ')}
             </span>
             <span className="font-mono text-border ml-2" style={{ fontSize: '10px' }}>
-              [{assumption.source}]
+              [{assumption.source}] {assumption.confidence.toFixed(2)}
             </span>
           </div>
           <input type="text" className={cls} value={items[idx].value} onChange={(e) => updateValue(idx, e.target.value)} />

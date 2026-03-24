@@ -78,7 +78,7 @@ export default function RunPage() {
           {status === 'intake' && <button onClick={handleStart} disabled={!!loadingMsg} className="mt-3 bg-accent text-white px-4 py-2 text-sm font-medium rounded-sm disabled:opacity-50">{loadingMsg ?? 'Start Analysis'}</button>}
         </StageSection>
 
-        <StageSection title="ASSUMPTIONS" stageNumber={2} status={s2} summary={assumptions ? `${assumptions.assumptions.length} assumptions confirmed` : undefined}>
+        <StageSection title="ASSUMPTIONS" stageNumber={2} status={s2} summary={(() => { if (!assumptions) return undefined; const avgConf = assumptions.assumptions.length > 0 ? (assumptions.assumptions.reduce((s, a) => s + a.confidence, 0) / assumptions.assumptions.length).toFixed(2) : null; return `${assumptions.assumptions.length} assumptions${avgConf ? `, avg confidence ${avgConf}` : ''}` })()}>
           {assumptions && s2 === 'active' && <AssumptionsReview assumptions={assumptions} onConfirm={handleConfirm} loading={!!loadingMsg} />}
           {s2 === 'completed' && assumptions && <div className="space-y-0">{assumptions.assumptions.map((a) => <DataRow key={a.field} label={a.field} value={`${a.value} [${a.source}]`} />)}</div>}
           {loadingMsg && s2 === 'active' && <p className="text-text-muted font-mono mt-2" style={{ fontSize: '12px' }}>{loadingMsg}</p>}
