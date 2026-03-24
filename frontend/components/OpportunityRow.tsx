@@ -21,6 +21,9 @@ export default function OpportunityRow({ opportunity, evidence }: OpportunityRow
   const tier = opportunity.tier.toLowerCase()
   const borderColor = TIER_COLORS[tier] ?? 'border-border'
   const textColor = TIER_TEXT[tier] ?? 'text-text-muted'
+  const matched = (evidence ?? []).filter(e => opportunity.evidence_ids.includes(e.evidence_id))
+  const avgRelevance = matched.length > 0 ? matched.reduce((s, e) => s + e.relevance_score, 0) / matched.length : 0
+  const sourceTypes = new Set(matched.map(e => e.source_type))
 
   return (
     <div className={`border-l-[3px] ${borderColor} pl-3 py-3 bg-surface border border-l-[3px] border-border mb-2`}>
@@ -46,9 +49,20 @@ export default function OpportunityRow({ opportunity, evidence }: OpportunityRow
             <a key={id} href={`#${id}`} className="text-accent cursor-pointer hover:underline mr-1">[{id.slice(0, 8)}]</a>
           ))}
         </span>
+        <span className="text-text-muted font-mono ml-3" style={{ fontSize: '12px' }}>
+          {matched.length} items, {sourceTypes.size} source{sourceTypes.size !== 1 ? 's' : ''}, avg rel {avgRelevance.toFixed(2)}
+        </span>
       </div>
       {opportunity.adaptation_needed && (
         <p className="text-text-muted font-mono mt-1" style={{ fontSize: '12px' }}>Adaptation: {opportunity.adaptation_needed}</p>
+      )}
+      {opportunity.risks && opportunity.risks.length > 0 && (
+        <div className="mt-1">
+          <span className="text-text-muted font-mono" style={{ fontSize: '11px' }}>RISKS </span>
+          {opportunity.risks.map((r, i) => (
+            <span key={i} className="text-text-muted font-mono" style={{ fontSize: '12px' }}>{r}{i < opportunity.risks.length - 1 ? ' · ' : ''}</span>
+          ))}
+        </div>
       )}
     </div>
   )
