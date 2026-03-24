@@ -94,7 +94,7 @@ export default function RunPage() {
         </StageSection>
 
         <StageSection title="REPORT" stageNumber={5} status={s5} summary={status === 'published' ? 'Published' : undefined}>
-          {(s5 === 'active' || s5 === 'completed') && <ReportView report={run.report} opportunities={run.opportunities} evidence={run.evidence} />}
+          {(s5 === 'active' || s5 === 'completed') && <ReportView report={run.report} opportunities={run.opportunities} evidence={run.evidence} fieldCoverage={reasoning?.field_coverage} budgetRemaining={{ rag: budget.rag_queries_remaining, search: budget.external_search_queries_remaining }} />}
           {status === 'report' && <button onClick={handlePublish} disabled={!!loadingMsg} className="mt-3 bg-accent text-white px-4 py-2 text-sm font-medium rounded-sm disabled:opacity-50">{loadingMsg ?? 'Publish Report'}</button>}
           {status === 'published' && <p className="font-mono text-tier-easy mt-2" style={{ fontSize: '13px' }}>Report published.</p>}
         </StageSection>

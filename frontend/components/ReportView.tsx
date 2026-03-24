@@ -39,6 +39,14 @@ export default function ReportView({ report, opportunities, evidence, fieldCover
         </div>
       )}
 
+      {budgetRemaining && (budgetRemaining.rag === 0 || budgetRemaining.search === 0) && (
+        <div className="border border-tier-medium bg-surface p-2 rounded-sm">
+          <p className="font-mono text-tier-medium" style={{ fontSize: '12px' }}>
+            Budget exhausted ({budgetRemaining.rag === 0 ? 'RAG' : ''}{budgetRemaining.rag === 0 && budgetRemaining.search === 0 ? ' + ' : ''}{budgetRemaining.search === 0 ? 'Search' : ''}). Coverage gaps may result from insufficient query budget.
+          </p>
+        </div>
+      )}
+
       <div>
         <p className="text-text-muted uppercase tracking-widest mb-2" style={{ fontSize: '12px' }}>Opportunities</p>
         {sorted.length === 0
