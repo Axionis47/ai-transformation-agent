@@ -68,6 +68,10 @@ export interface ReasoningState {
   stop_reason?: string
   coverage_gaps: string[]
   loops_completed: number
+  escalation_reason?: string
+  escalation_fields: string[]
+  contradictions: { field?: string; values?: string[] }[]
+  confidence_history: number[]
 }
 
 export interface Opportunity {
@@ -86,6 +90,7 @@ export interface Opportunity {
   rationale: string
   adaptation_needed?: string
   risks: string[]
+  data_sufficiency: 'scored' | 'insufficient_data'
 }
 
 export interface Run {
