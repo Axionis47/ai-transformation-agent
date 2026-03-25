@@ -25,6 +25,18 @@ class Grounder:
         self._query_budget: int = int(budgets.get("external_search_query_budget", 5))
         self._max_calls: int = int(budgets.get("external_search_max_calls", 3))
 
+    def reason(self, prompt: str, run_id: str) -> str:
+        """Pure reasoning call — no Google Search, no budget cost.
+
+        Used for ReAct thinking steps, assumption extraction, and opportunity evaluation.
+        Falls back gracefully if the model call fails (e.g., no credentials).
+        """
+        try:
+            raw = self._client.generate(prompt)  # type: ignore[attr-defined]
+            return raw.get("text", "")
+        except Exception:
+            return ""
+
     def ground(self, prompt: str, run_id: str, budget_state: BudgetState) -> GroundingResult:
         # Layer 1: query budget check
         if budget_state.external_search_queries_used >= self._query_budget:
@@ -91,6 +103,11 @@ class Grounder:
             search_queries_used=parsed.search_query_count,
         )
 
+    @staticmethod
+    def _sanitize(text: str) -> str:
+        """Remove control characters that break JSON serialization."""
+        return "".join(c if c >= " " or c in "\n\t" else " " for c in text)
+
     def _normalize_evidence(
         self, parsed: ParsedGroundingMetadata, run_id: str, prompt: str
     ) -> list[EvidenceItem]:
@@ -102,9 +119,9 @@ class Grounder:
                 all_scores = [c for s in matching for c in s.confidence_scores]
                 relevance = round(sum(all_scores) / len(all_scores), 4) if all_scores else 0.5
                 confidence = round(max(all_scores), 4) if all_scores else 0.5
-                snippet = " ".join(snippet_parts)[:500]
+                snippet = self._sanitize(" ".join(snippet_parts)[:500])
             else:
-                snippet = parsed.text[:500]
+                snippet = self._sanitize(parsed.text[:500])
                 relevance = 0.5
                 confidence = 0.5
 
@@ -113,7 +130,7 @@ class Grounder:
                 run_id=run_id,
                 source_type=EvidenceSource.GOOGLE_SEARCH,
                 source_ref=chunk.uri,
-                title=chunk.title,
+                title=self._sanitize(chunk.title),
                 uri=chunk.uri,
                 snippet=snippet,
                 relevance_score=relevance,

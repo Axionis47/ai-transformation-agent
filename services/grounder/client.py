@@ -12,7 +12,12 @@ class GrounderClientProtocol(Protocol):
 
 
 class GeminiClient:
-    """Vertex AI Gemini client with Google Search grounding. Only file that imports google.genai."""
+    """Vertex AI Gemini client with Google Search grounding. Only file that imports google.genai.
+
+    Two call modes:
+    - generate_with_grounding(): attaches GoogleSearch tool, costs budget
+    - generate(): pure reasoning, no tools, no budget cost
+    """
 
     def __init__(self, config: dict) -> None:
         # google.genai imported here only — keeps SDK boundary isolated
@@ -28,7 +33,18 @@ class GeminiClient:
         self._model = models.get("grounding_model", "gemini-2.5-flash")
         project = gcp.get("project_id", "plotpointe")
         location = gcp.get("location", "us-central1")
+
+        # ADC: on Cloud Run, credentials come from attached service account
+        # via metadata server. No key files or env vars needed.
         self._client = genai.Client(vertexai=True, project=project, location=location)
+
+    def generate(self, prompt: str) -> dict:
+        """Pure model call without grounding tools. For reasoning/evaluation steps."""
+        response = self._client.models.generate_content(
+            model=self._model,
+            contents=prompt,
+        )
+        return {"text": response.text or ""}
 
     def generate_with_grounding(self, prompt: str) -> dict:
         cfg = self._GenerateContentConfig(
