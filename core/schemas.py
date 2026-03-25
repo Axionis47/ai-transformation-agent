@@ -115,6 +115,13 @@ class EvidenceSource(str, Enum):
     USER_PROVIDED = "user_provided"
 
 
+class Provenance(BaseModel):
+    source_evidence_ids: list[str] = []
+    extraction_timestamp: Optional[datetime] = None
+    source_type: str = "raw"  # "raw" | "summarized" | "inferred"
+    confidence: float = 0.0
+
+
 class EvidenceItem(BaseModel):
     evidence_id: str
     run_id: str
@@ -126,6 +133,7 @@ class EvidenceItem(BaseModel):
     relevance_score: float
     confidence_score: Optional[float] = None
     retrieval_meta: dict = {}
+    provenance: Optional[Provenance] = None
 
 
 # --- Opportunity ---
