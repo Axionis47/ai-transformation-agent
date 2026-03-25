@@ -33,6 +33,8 @@ Think step by step about what you know and what's missing, then decide your next
 3. Choose the best tool for that gap. Prefer GROUND for company-specific facts, RAG for similar past engagements, ASK_USER only when tools cannot answer.
 4. Write a SPECIFIC query — not generic. Reference the company name, industry details, or specific processes.
 5. Choose STOP only when you have enough evidence across company profile, industry context, business processes, pain points, similar wins, and scale indicators.
+6. For each required field, estimate how well the current evidence covers it (0.0 = nothing known, 1.0 = fully understood with supporting evidence). Be honest — partial knowledge is not full coverage.
+7. If any evidence items contradict each other (e.g., conflicting employee counts, revenue figures, or industry classifications), list the contradictions so the user can clarify.
 
 Respond ONLY with this JSON (no other text):
 ```json
@@ -41,6 +43,15 @@ Respond ONLY with this JSON (no other text):
   "action": "GROUND",
   "query": "Your specific, contextual query tailored to this company",
   "target_field": "the field this addresses: company_profile | industry_context | business_processes | pain_points | similar_wins | scale_indicators",
-  "reasoning": "Why this specific action and query over alternatives"
+  "reasoning": "Why this specific action and query over alternatives",
+  "field_coverage": {{
+    "company_profile": 0.0,
+    "industry_context": 0.0,
+    "business_processes": 0.0,
+    "pain_points": 0.0,
+    "similar_wins": 0.0,
+    "scale_indicators": 0.0
+  }},
+  "contradictions": []
 }}
 ```
