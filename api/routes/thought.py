@@ -10,6 +10,7 @@ from core.schemas import (
     AssumptionsDraft,
     EvidenceItem,
     EvidenceSource,
+    Provenance,
     ReasoningLoopResult,
     ReasoningState,
     Run,
@@ -126,6 +127,11 @@ def answer_question(run_id: str, body: UserAnswer) -> ReasoningLoopResult:
         relevance_score=1.0,
         confidence_score=1.0,
         retrieval_meta={"question_id": body.question_id, "field": state.pending_question.field},
+        provenance=Provenance(
+            source_type="raw",
+            source_evidence_ids=[body.question_id],
+            confidence=1.0,
+        ),
     )
     run_manager.add_evidence(run_id, [answer_evidence], source_label="user_answer")
     if run.company_intake is None:

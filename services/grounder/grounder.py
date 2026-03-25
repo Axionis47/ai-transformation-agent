@@ -5,7 +5,7 @@ import uuid
 from pydantic import BaseModel
 
 from core.events import EventType
-from core.schemas import BudgetState, EvidenceItem, EvidenceSource
+from core.schemas import BudgetState, EvidenceItem, EvidenceSource, Provenance
 from services.grounder.parser import ParsedGroundingMetadata, parse_grounding_response
 from services.trace import emit
 
@@ -123,5 +123,10 @@ class Grounder:
                     "domain": chunk.domain,
                     "search_queries": parsed.search_queries,
                 },
+                provenance=Provenance(
+                    source_type="raw",
+                    source_evidence_ids=[],
+                    confidence=confidence,
+                ),
             ))
         return items

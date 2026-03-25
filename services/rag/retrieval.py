@@ -5,7 +5,7 @@ import uuid
 from pydantic import BaseModel
 
 from core.events import EventType
-from core.schemas import BudgetState, EvidenceItem, EvidenceSource
+from core.schemas import BudgetState, EvidenceItem, EvidenceSource, Provenance
 from services.rag.store import RAGStore
 from services.trace import emit
 
@@ -78,6 +78,11 @@ class RAGRetriever:
                     snippet=r["text"][:500],
                     relevance_score=round(r["score"], 4),
                     retrieval_meta={"query": query_text, "rank": i},
+                    provenance=Provenance(
+                        source_type="raw",
+                        source_evidence_ids=[],
+                        confidence=round(r["score"], 4),
+                    ),
                 )
             )
 
