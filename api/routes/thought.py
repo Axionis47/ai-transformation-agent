@@ -73,7 +73,7 @@ def start_run(run_id: str) -> AssumptionsDraft | ReasoningLoopResult:
             coverage_gaps=result.coverage_gaps,
             loops_completed=result.loops_run,
         )
-        run_manager.add_evidence(run_id, result.evidence_items)
+        run_manager.add_evidence(run_id, result.evidence_items, source_label="reasoning_loop")
         run_manager.update_reasoning_state(run_id, state)
         return result
 
@@ -127,7 +127,7 @@ def answer_question(run_id: str, body: UserAnswer) -> ReasoningLoopResult:
         confidence_score=1.0,
         retrieval_meta={"question_id": body.question_id, "field": state.pending_question.field},
     )
-    run_manager.add_evidence(run_id, [answer_evidence])
+    run_manager.add_evidence(run_id, [answer_evidence], source_label="user_answer")
     if run.company_intake is None:
         raise HTTPException(status_code=400, detail="Company intake missing")
     assumptions = run.assumptions or AssumptionsDraft(assumptions=[], open_questions=[])
@@ -157,6 +157,6 @@ def answer_question(run_id: str, body: UserAnswer) -> ReasoningLoopResult:
         coverage_gaps=result.coverage_gaps,
         loops_completed=result.loops_run,
     )
-    run_manager.add_evidence(run_id, result.evidence_items)
+    run_manager.add_evidence(run_id, result.evidence_items, source_label="reasoning_loop_resumed")
     run_manager.update_reasoning_state(run_id, new_state)
     return result

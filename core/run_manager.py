@@ -79,12 +79,17 @@ def transition(run_id: str, new_status: RunStatus) -> Run:
     return run
 
 
-def add_evidence(run_id: str, items: list[EvidenceItem]) -> Run:
-    """Append evidence items to run. Deduplication is caller's responsibility."""
+def add_evidence(run_id: str, items: list[EvidenceItem], source_label: str = "unknown") -> Run:
+    """Validate and promote evidence through the promotion gate.
+
+    Dual-writes promoted items to run.evidence (API compat) and EvidenceStore (engine source).
+    """
     from services.memory.store import get_evidence_store
+    from services.memory.promotion import PromotionGate
     run = _require_run(run_id)
+    gate = PromotionGate(store=get_evidence_store())
+    gate.promote_batch(run_id, items, source_label=source_label)
     run.evidence.extend(items)
-    get_evidence_store().add_many(run_id, items)
     return run
 
 
