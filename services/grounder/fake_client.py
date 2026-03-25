@@ -42,6 +42,8 @@ _REACT_RESPONSES: dict[int, dict] = {
         "query": "What are the main operational challenges and inefficiencies?",
         "target_field": "pain_points",
         "reasoning": "Pain points are critical for matching AI opportunities to real problems.",
+        "field_coverage": {"company_profile": 0.3, "industry_context": 0.2, "business_processes": 0.1, "pain_points": 0.0, "similar_wins": 0.0, "scale_indicators": 0.1},
+        "contradictions": [],
     },
     1: {
         "thinking": "We have company profile and pain points. Now need similar past engagements to ground recommendations in proven results.",
@@ -49,6 +51,8 @@ _REACT_RESPONSES: dict[int, dict] = {
         "query": "automation implementation mid-market",
         "target_field": "similar_wins",
         "reasoning": "Past engagement data strengthens our recommendations with proven ROI.",
+        "field_coverage": {"company_profile": 0.7, "industry_context": 0.5, "business_processes": 0.4, "pain_points": 0.6, "similar_wins": 0.1, "scale_indicators": 0.3},
+        "contradictions": [],
     },
     2: {
         "thinking": "We have good coverage across most fields. Evidence is sufficient to proceed to synthesis.",
@@ -56,6 +60,8 @@ _REACT_RESPONSES: dict[int, dict] = {
         "query": "",
         "target_field": "",
         "reasoning": "Enough evidence across company profile, pain points, and similar wins to generate recommendations.",
+        "field_coverage": {"company_profile": 0.9, "industry_context": 0.8, "business_processes": 0.7, "pain_points": 0.8, "similar_wins": 0.6, "scale_indicators": 0.6},
+        "contradictions": [],
     },
 }
 

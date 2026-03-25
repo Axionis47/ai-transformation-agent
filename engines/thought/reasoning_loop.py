@@ -243,8 +243,9 @@ class ThoughtEngine:
                 })
 
             # Stagnation detection
-            stag_n = int(reasoning.get("stagnation_threshold", 2))
-            stag_delta = float(reasoning.get("stagnation_delta", 0.02))
+            _reasoning_cfg = self._config.get("reasoning", {})
+            stag_n = int(_reasoning_cfg.get("stagnation_threshold", 2))
+            stag_delta = float(_reasoning_cfg.get("stagnation_delta", 0.02))
             if len(confidence_history) >= stag_n:
                 recent = confidence_history[-stag_n:]
                 if max(recent) - min(recent) < stag_delta:
@@ -254,7 +255,7 @@ class ThoughtEngine:
 
             if confidence >= self._threshold:
                 # Override: don't stop if critical fields are undercovered
-                min_fc = float(reasoning.get("min_field_coverage", 0.3))
+                min_fc = float(self._config.get("reasoning", {}).get("min_field_coverage", 0.3))
                 critical_gaps = [f for f, s in coverage.items() if s < min_fc]
                 if critical_gaps:
                     emit(run_id, EventType.MID_GAP_DETECTED, {
@@ -376,11 +377,13 @@ class ThoughtEngine:
         coverage, confidence = mid.assess_coverage(acc.get_all(), self._config)
         gaps = [f for f, s in coverage.items() if s < 0.5]
 
-        # Check for escalation conditions
-        esc_reason, esc_fields, esc_question = _check_escalation(
-            coverage, confidence, self._threshold, self._config,
-            confidence_history, all_contradictions, budget_state, run_id,
-        )
+        # Only check escalation when loop ran out without meeting confidence
+        esc_reason, esc_fields, esc_question = None, [], None
+        if stop_reason == "depth_budget_exhausted":
+            esc_reason, esc_fields, esc_question = _check_escalation(
+                coverage, confidence, self._threshold, self._config,
+                confidence_history, all_contradictions, budget_state, run_id,
+            )
         if esc_question:
             return ReasoningLoopResult(
                 completed=False,
