@@ -161,12 +161,22 @@ class ThoughtEngine:
             )
 
             if confidence >= self._threshold:
-                stop_reason = "confidence_met"
-                emit(run_id, EventType.REASONING_LOOP_COMPLETED, {
-                    "loop": loop_idx, "action_taken": "stop_confidence",
-                    "new_evidence_count": 0,
-                })
-                break
+                # Override: don't stop if critical fields are undercovered
+                min_fc = float(reasoning.get("min_field_coverage", 0.3))
+                critical_gaps = [f for f, s in coverage.items() if s < min_fc]
+                if critical_gaps:
+                    emit(run_id, EventType.MID_GAP_DETECTED, {
+                        "override": "min_field_coverage",
+                        "fields": critical_gaps,
+                        "confidence": confidence,
+                    })
+                else:
+                    stop_reason = "confidence_met"
+                    emit(run_id, EventType.REASONING_LOOP_COMPLETED, {
+                        "loop": loop_idx, "action_taken": "stop_confidence",
+                        "new_evidence_count": 0,
+                    })
+                    break
 
             if gap is None:
                 stop_reason = "all_fields_covered"
