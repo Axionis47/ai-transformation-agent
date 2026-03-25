@@ -34,7 +34,7 @@ export default function Header({
       <div className="flex items-center gap-3 shrink-0">
         {confidence != null && (
           <div className="flex items-center gap-1.5">
-            <span className="text-2xs text-ink-tertiary uppercase tracking-wider">Conf</span>
+            <span className="text-2xs text-ink-tertiary uppercase tracking-wider">Understanding</span>
             <span className="font-mono text-sm text-mint tabular">{(confidence * 100).toFixed(0)}%</span>
           </div>
         )}

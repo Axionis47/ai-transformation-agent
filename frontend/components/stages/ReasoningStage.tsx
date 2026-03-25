@@ -21,7 +21,7 @@ export default function ReasoningStage({ state, depthBudget, onAnswer, loading }
       : null
   }
 
-  const { current_loop, field_coverage, overall_confidence, pending_question, completed, stop_reason, coverage_gaps } = state
+  const { current_loop, field_coverage, overall_confidence, pending_question, completed, stop_reason, coverage_gaps, escalation_reason, escalation_fields, contradictions } = state
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -29,6 +29,8 @@ export default function ReasoningStage({ state, depthBudget, onAnswer, loading }
     onAnswer(pending_question.question_id, answer)
     setAnswer('')
   }
+
+  const isEscalation = !!escalation_reason
 
   return (
     <div className="space-y-5">
@@ -47,12 +49,13 @@ export default function ReasoningStage({ state, depthBudget, onAnswer, loading }
         </span>
       </div>
 
-      {/* Confidence */}
+      {/* Understanding (renamed from Confidence) */}
       <div className="bg-canvas-raised border border-edge-subtle rounded-md p-4">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-2xs text-ink-tertiary uppercase tracking-wider font-medium">Overall Confidence</span>
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-2xs text-ink-tertiary uppercase tracking-wider font-medium">Understanding</span>
           <span className="font-mono text-lg text-ink tabular">{(overall_confidence * 100).toFixed(0)}%</span>
         </div>
+        <p className="text-2xs text-ink-tertiary mb-3">How well the system understands this company across all required fields</p>
         <ScoreBar value={overall_confidence} color={overall_confidence > 0.6 ? 'mint' : overall_confidence > 0.3 ? 'amber' : 'rose'} showValue={false} />
       </div>
 
@@ -69,8 +72,42 @@ export default function ReasoningStage({ state, depthBudget, onAnswer, loading }
         </div>
       )}
 
-      {/* Pending question */}
-      {pending_question && !completed && (
+      {/* Escalation panel (amber) — distinct from regular agent question (mint) */}
+      {pending_question && !completed && isEscalation && (
+        <div className="bg-canvas-overlay border border-amber/30 rounded-md p-5">
+          <p className="text-2xs text-amber uppercase tracking-wider mb-2 font-medium">
+            {escalation_reason?.replace(/_/g, ' ') || 'Input Required'}
+          </p>
+          {escalation_fields && escalation_fields.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {escalation_fields.map(f => (
+                <span key={f} className="text-2xs font-mono bg-amber/10 text-amber px-2 py-0.5 rounded">{f.replace(/_/g, ' ')}</span>
+              ))}
+            </div>
+          )}
+          {contradictions && contradictions.length > 0 && (
+            <div className="mb-3 text-sm text-ink-secondary border-l-2 border-amber/40 pl-3">
+              <p className="text-2xs text-amber uppercase tracking-wider mb-1 font-medium">Conflicting Data</p>
+              {contradictions.map((c, i) => (
+                <p key={i}>{c.field}: {(c.values || []).join(' vs ')}</p>
+              ))}
+            </div>
+          )}
+          <p className="text-base text-ink leading-relaxed mb-3">{pending_question.question_text}</p>
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            <input type="text" value={answer} onChange={(e) => setAnswer(e.target.value)}
+              placeholder="Your answer..."
+              className="flex-1 bg-canvas-inset border border-edge text-ink text-sm font-sans p-2.5 rounded-md focus:border-amber focus:outline-none" />
+            <button type="submit" disabled={loading || !answer.trim()}
+              className="bg-amber text-ink-inverse px-4 py-2 text-sm font-semibold rounded-md disabled:opacity-40 hover:brightness-110 transition-colors">
+              Submit
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* Regular agent question (mint) */}
+      {pending_question && !completed && !isEscalation && (
         <div className="bg-canvas-overlay border border-mint/30 rounded-md p-5">
           <p className="text-2xs text-mint uppercase tracking-wider mb-2 font-medium">Agent Question</p>
           <p className="text-base text-ink leading-relaxed mb-3">{pending_question.question_text}</p>
