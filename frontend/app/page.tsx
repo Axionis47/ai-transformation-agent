@@ -4,18 +4,18 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import IntakeForm from '@/components/IntakeForm'
 import { createRun, submitIntake } from '@/lib/api'
-import type { CompanyIntake } from '@/lib/types'
+import type { CompanyIntake, ReasoningConfig } from '@/lib/types'
 
 export default function HomePage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleSubmit(data: CompanyIntake) {
+  async function handleSubmit(data: CompanyIntake, reasoningConfig: ReasoningConfig) {
     setLoading(true)
     setError(null)
     try {
-      const run = await createRun(data.company_name, data.industry)
+      const run = await createRun(data.company_name, data.industry, reasoningConfig)
       await submitIntake(run.run_id, data)
       router.push(`/run/${run.run_id}`)
     } catch (err) {

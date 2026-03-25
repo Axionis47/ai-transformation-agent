@@ -3,6 +3,7 @@ import type {
   CompanyIntake,
   EvidenceItem,
   Opportunity,
+  ReasoningConfig,
   Run,
   UIHints,
 } from './types'
@@ -24,10 +25,16 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 export async function createRun(
   company_name: string,
   industry: string,
+  reasoningConfig?: ReasoningConfig,
 ): Promise<Run> {
   return apiFetch<Run>('/runs', {
     method: 'POST',
-    body: JSON.stringify({ company_name, industry }),
+    body: JSON.stringify({
+      company_name,
+      industry,
+      reasoning_depth: reasoningConfig?.reasoning_depth,
+      confidence_threshold: reasoningConfig?.confidence_threshold,
+    }),
   })
 }
 

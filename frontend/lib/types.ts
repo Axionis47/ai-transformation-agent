@@ -20,6 +20,11 @@ export interface CompanyIntake {
   constraints: string[]
 }
 
+export interface ReasoningConfig {
+  reasoning_depth: number
+  confidence_threshold: number
+}
+
 export interface Assumption {
   field: string
   value: string

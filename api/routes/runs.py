@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Optional
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -13,13 +15,23 @@ router = APIRouter()
 class CreateRunRequest(BaseModel):
     company_name: str
     industry: str
+    reasoning_depth: Optional[int] = None       # user-configurable: 1-10
+    confidence_threshold: Optional[float] = None  # user-configurable: 0.0-1.0
 
 
 @router.post("/runs", response_model=Run, status_code=201)
 def create_run(body: CreateRunRequest) -> Run:
+    config_overrides: dict = {}
+    if body.reasoning_depth is not None:
+        depth = max(1, min(10, body.reasoning_depth))
+        config_overrides["reasoning.depth_budget"] = depth
+    if body.confidence_threshold is not None:
+        threshold = max(0.1, min(1.0, body.confidence_threshold))
+        config_overrides["reasoning.confidence_threshold"] = threshold
     return run_manager.create_run(
         company_name=body.company_name,
         industry=body.industry,
+        config_overrides=config_overrides or None,
     )
 
 
