@@ -95,6 +95,10 @@ class ReasoningState(BaseModel):
     stop_reason: Optional[str] = None
     coverage_gaps: list[str] = []
     loops_completed: int = 0
+    escalation_reason: Optional[str] = None
+    escalation_fields: list[str] = []
+    contradictions: list[dict] = []
+    confidence_history: list[float] = []
 
 
 class ReasoningLoopResult(BaseModel):
@@ -106,6 +110,10 @@ class ReasoningLoopResult(BaseModel):
     pending_question: Optional["UserQuestion"] = None
     stop_reason: Optional[str] = None
     coverage_gaps: list[str] = []
+    escalation_reason: Optional[str] = None
+    escalation_fields: list[str] = []
+    contradictions: list[dict] = []
+    confidence_history: list[float] = []
 
 
 # --- Evidence ---
@@ -159,6 +167,7 @@ class Opportunity(BaseModel):
     rationale: str
     adaptation_needed: Optional[str] = None
     risks: list[str] = []
+    data_sufficiency: str = "scored"
 
 
 # --- Stage output ---
