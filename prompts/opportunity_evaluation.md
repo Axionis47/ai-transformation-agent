@@ -31,6 +31,15 @@ Applicable industries: {applicable_industries}
 ## Reasoning Context (what the research phase discovered and why)
 {reasoning_context}
 
+## Confidence Rubric
+
+Score your confidence using these definitions — do not default to 0.75:
+- 0.0–0.2: Highly speculative — no supporting evidence found
+- 0.2–0.4: Plausible but weak — significant unknowns remain
+- 0.4–0.6: Moderate — some proven elements, gaps in validation
+- 0.6–0.8: Strong — similar successes exist, evidence supports fit
+- 0.8–1.0: Very high — directly proven in similar context with strong evidence
+
 ## Instructions
 
 Evaluate whether this opportunity is a good fit for {company_name}. Think through:
@@ -57,7 +66,7 @@ Respond ONLY with this JSON (no other text):
   "feasibility": 0.8,
   "roi_score": 0.7,
   "time_to_value": 0.9,
-  "confidence": 0.75,
+  "confidence": 0.0,
   "rationale": "One-paragraph explanation of the opportunity and why it fits"
 }}
 ```
