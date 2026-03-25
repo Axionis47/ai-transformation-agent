@@ -81,9 +81,17 @@ def transition(run_id: str, new_status: RunStatus) -> Run:
 
 def add_evidence(run_id: str, items: list[EvidenceItem]) -> Run:
     """Append evidence items to run. Deduplication is caller's responsibility."""
+    from services.memory.store import get_evidence_store
     run = _require_run(run_id)
     run.evidence.extend(items)
+    get_evidence_store().add_many(run_id, items)
     return run
+
+
+def get_evidence(run_id: str) -> list[EvidenceItem]:
+    """Read evidence from the canonical store."""
+    from services.memory.store import get_evidence_store
+    return get_evidence_store().get_all(run_id)
 
 
 def update_reasoning_state(run_id: str, state: ReasoningState) -> Run:
@@ -102,15 +110,19 @@ def update_assumptions(run_id: str, assumptions: AssumptionsDraft) -> Run:
 
 def store_opportunities(run_id: str, opportunities: list[Opportunity]) -> Run:
     """Store synthesized opportunities on the run."""
+    from services.memory.opp_store import get_opportunity_store
     run = _require_run(run_id)
     run.opportunities = opportunities
+    get_opportunity_store().store(run_id, opportunities)
     return run
 
 
 def store_report(run_id: str, report: dict) -> Run:
     """Store composed report on the run."""
+    from services.memory.report_store import get_report_store
     run = _require_run(run_id)
     run.report = report
+    get_report_store().store(run_id, report)
     return run
 
 
