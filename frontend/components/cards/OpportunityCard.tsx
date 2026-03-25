@@ -34,11 +34,32 @@ export default function OpportunityCard({ opportunity, evidence }: OpportunityCa
         </div>
 
         <div className="grid grid-cols-4 gap-4 mt-4">
-          <ScoreBar label="Feasib." value={opportunity.feasibility} color="mint" />
-          <ScoreBar label="ROI" value={opportunity.roi} color="mint" />
-          <ScoreBar label="TTV" value={opportunity.time_to_value} color="amber" />
-          <ScoreBar label="Confid." value={opportunity.confidence} color="indigo" />
+          {opportunity.feasibility > 0 ? (
+            <ScoreBar label="Feasib." value={opportunity.feasibility} color="mint" />
+          ) : (
+            <div><span className="text-2xs text-ink-tertiary uppercase">Feasib.</span><span className="text-2xs text-ink-tertiary font-mono ml-2">—</span></div>
+          )}
+          {opportunity.roi > 0 ? (
+            <ScoreBar label="ROI" value={opportunity.roi} color="mint" />
+          ) : (
+            <div><span className="text-2xs text-ink-tertiary uppercase">ROI</span><span className="text-2xs text-ink-tertiary font-mono ml-2">—</span></div>
+          )}
+          {opportunity.time_to_value > 0 ? (
+            <ScoreBar label="TTV" value={opportunity.time_to_value} color="amber" />
+          ) : (
+            <div><span className="text-2xs text-ink-tertiary uppercase">TTV</span><span className="text-2xs text-ink-tertiary font-mono ml-2">—</span></div>
+          )}
+          {opportunity.confidence > 0 ? (
+            <ScoreBar label="Confidence" value={opportunity.confidence} color="indigo" />
+          ) : (
+            <div><span className="text-2xs text-ink-tertiary uppercase">Confidence</span><span className="text-2xs text-ink-tertiary font-mono ml-2">—</span></div>
+          )}
         </div>
+        {opportunity.data_sufficiency === 'insufficient_data' && (
+          <div className="mt-2">
+            <span className="text-2xs font-mono bg-amber/10 text-amber px-2 py-0.5 rounded uppercase">Insufficient Data</span>
+          </div>
+        )}
       </div>
 
       {expanded && (
