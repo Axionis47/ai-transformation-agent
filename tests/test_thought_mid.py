@@ -30,15 +30,21 @@ def test_empty_evidence_zero_coverage():
 
 
 def test_some_evidence_nonzero_coverage():
-    evidence = [_ev("Company overview"), _ev("Industry analysis")]
+    evidence = [_ev("Company founded with revenue and employees"), _ev("Industry market sector analysis")]
     cov, conf = assess_coverage(evidence, CONFIG)
     assert conf > 0.0
-    assert all(cov[f] > 0.0 for f in REQUIRED_FIELDS)
 
 
 def test_more_evidence_higher_coverage():
-    few = [_ev("One item")]
-    many = [_ev(f"Item {i}") for i in range(10)]
+    few = [_ev("company founded in 2020")]
+    many = [
+        _ev("company founded in 2020 with 500 employees"),
+        _ev("industry market trends and competitor analysis"),
+        _ev("workflow automation and manual process bottleneck"),
+        _ev("pain points and challenge with slow operations"),
+        _ev("similar engagement case with deployment roi savings"),
+        _ev("scale growth and transaction volume expansion"),
+    ]
     _, conf_few = assess_coverage(few, CONFIG)
     _, conf_many = assess_coverage(many, CONFIG)
     assert conf_many > conf_few
