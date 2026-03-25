@@ -22,7 +22,11 @@ from services.grounder.grounder import Grounder
 from services.rag.ingest import ensure_loaded
 from services.rag.retrieval import RAGRetriever
 from services.rag.store import RAGStore
+from services.memory.router import ContextRouter
+from services.memory.store import get_evidence_store
 from services.trace import emit
+
+_ctx_router = ContextRouter()
 
 router = APIRouter()
 
@@ -128,12 +132,18 @@ def answer_question(run_id: str, body: UserAnswer) -> ReasoningLoopResult:
         raise HTTPException(status_code=400, detail="Company intake missing")
     assumptions = run.assumptions or AssumptionsDraft(assumptions=[], open_questions=[])
     engine = _make_engine(run.config_snapshot)
+    # Route context: filter existing evidence before passing to loop
+    thought_ctx = _ctx_router.recall_for_thought(
+        run_id, get_evidence_store().get_all(run_id), run.company_intake,
+        run.budget_state, run.config_snapshot,
+        unresolved_fields=state.coverage_gaps if state else None,
+    )
     result = engine.run_loop(
         run_id,
         run.company_intake,
         assumptions,
         run.budget_state,
-        existing_evidence=run.evidence,
+        existing_evidence=thought_ctx.relevant_evidence,
         start_loop=state.loops_completed,
     )
     new_state = ReasoningState(
