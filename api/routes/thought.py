@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
@@ -18,7 +19,6 @@ from core.schemas import (
     UserAnswer,
 )
 from engines.thought import ThoughtEngine
-from services.grounder.fake_client import FakeGeminiClient
 from services.grounder.grounder import Grounder
 from services.rag.ingest import ensure_loaded
 from services.rag.retrieval import RAGRetriever
@@ -32,13 +32,24 @@ _ctx_router = ContextRouter()
 router = APIRouter()
 
 
+def _load_engagements() -> dict[str, dict]:
+    import json
+    path = Path(__file__).parent.parent.parent / "data" / "wins_kb_seed" / "engagements.json"
+    with open(path) as f:
+        return {r["engagement_id"]: r for r in json.load(f)}
+
+
 def _make_engine(config: dict) -> ThoughtEngine:
-    client = FakeGeminiClient()
+    from api.routes.grounding import _build_client
+    client = _build_client(config)
     grounder = Grounder(client=client, config=config)
     store = RAGStore()
     ensure_loaded(store)
     retriever = RAGRetriever(store=store, config=config)
-    return ThoughtEngine(grounder=grounder, rag_retriever=retriever, config=config)
+    return ThoughtEngine(
+        grounder=grounder, rag_retriever=retriever, config=config,
+        engagement_lookup=_load_engagements(),
+    )
 
 
 @router.post("/runs/{run_id}/start")

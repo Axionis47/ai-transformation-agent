@@ -52,7 +52,14 @@ def synthesize(run_id: str) -> dict:
         raise HTTPException(status_code=400, detail="Company intake missing from run")
 
     lookup = _load_engagement_lookup()
-    engine = PitchEngine(config=run.config_snapshot, engagement_lookup=lookup)
+
+    # Build grounder for LLM-based opportunity evaluation
+    from services.grounder.grounder import Grounder
+    from api.routes.grounding import _build_client
+    client = _build_client(run.config_snapshot)
+    grounder = Grounder(client=client, config=run.config_snapshot)
+
+    engine = PitchEngine(config=run.config_snapshot, engagement_lookup=lookup, grounder=grounder)
 
     assumptions = run.assumptions or AssumptionsDraft(assumptions=[], open_questions=[])
     field_coverage = state.field_coverage if state else {}
