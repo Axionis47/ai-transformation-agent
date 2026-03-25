@@ -58,10 +58,13 @@ def test_scorer_all_scores_bounded():
     match = _make_match()
     scores = score_opportunity(match, _make_roi(), _CONFIG)
     for key in ("feasibility", "roi", "time_to_value", "confidence", "composite"):
-        assert 0.0 <= scores[key] <= 1.0
+        if scores[key] is not None:
+            assert 0.0 <= scores[key] <= 1.0
 
 
-def test_scorer_no_roi_low_score():
+def test_scorer_no_roi_insufficient_data():
     match = _make_match()
     scores = score_opportunity(match, None, _CONFIG)
-    assert scores["roi"] == 0.3
+    assert scores["roi"] is None
+    assert scores["data_sufficiency"] == "insufficient_data"
+    assert "roi" in scores["missing_dimensions"]
