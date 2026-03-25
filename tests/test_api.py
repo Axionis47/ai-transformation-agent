@@ -12,8 +12,11 @@ client = TestClient(app)
 def clear_run_store():
     """Isolate in-memory state between tests."""
     run_manager._runs.clear()
+    from services.memory.store import get_evidence_store
+    get_evidence_store()._items.clear()
     yield
     run_manager._runs.clear()
+    get_evidence_store()._items.clear()
 
 
 def _create_run(company_name: str = "Acme Corp", industry: str = "logistics") -> dict:

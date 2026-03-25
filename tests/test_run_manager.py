@@ -9,8 +9,11 @@ from core.schemas import BudgetState, CompanyIntake, RunStatus
 def clear_run_store():
     """Reset in-memory run store before each test to prevent cross-test pollution."""
     run_manager._runs.clear()
+    from services.memory.store import get_evidence_store
+    get_evidence_store()._items.clear()
     yield
     run_manager._runs.clear()
+    get_evidence_store()._items.clear()
 
 
 def test_create_run_returns_run():

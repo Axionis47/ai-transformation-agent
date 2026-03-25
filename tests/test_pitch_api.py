@@ -14,8 +14,17 @@ client = TestClient(app)
 @pytest.fixture(autouse=True)
 def clear_state():
     run_manager._runs.clear()
+    from services.memory.store import get_evidence_store
+    from services.memory.opp_store import get_opportunity_store
+    from services.memory.report_store import get_report_store
+    get_evidence_store()._items.clear()
+    get_opportunity_store()._items.clear()
+    get_report_store()._items.clear()
     yield
     run_manager._runs.clear()
+    get_evidence_store()._items.clear()
+    get_opportunity_store()._items.clear()
+    get_report_store()._items.clear()
 
 
 def _run_id() -> str:

@@ -17,8 +17,11 @@ client = TestClient(app)
 def clear_run_store():
     """Isolate in-memory run state between tests."""
     run_manager._runs.clear()
+    from services.memory.store import get_evidence_store
+    get_evidence_store()._items.clear()
     yield
     run_manager._runs.clear()
+    get_evidence_store()._items.clear()
 
 
 @pytest.fixture
