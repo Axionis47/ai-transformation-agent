@@ -176,30 +176,39 @@ def assess_coverage_with_llm(
     return field_coverage, overall, gap
 
 
-def _estimate_field_coverage(evidence: list[EvidenceItem]) -> dict[str, float]:
-    """Lightweight coverage estimate based on evidence count per source type.
+_FIELD_SIGNALS: dict[str, list[str]] = {
+    "company_profile": ["founded", "headquarter", "revenue", "employees", "ceo", "product", "platform", "company"],
+    "industry_context": ["industry", "market", "sector", "competitor", "trend", "regulation", "compliance"],
+    "business_processes": ["workflow", "process", "operations", "pipeline", "automat", "manual", "system"],
+    "pain_points": ["pain", "challenge", "problem", "bottleneck", "friction", "cost", "slow", "error", "inefficien"],
+    "similar_wins": ["engagement", "case", "implementation", "deploy", "pilot", "roi", "savings", "similar"],
+    "scale_indicators": ["scale", "growth", "volume", "transaction", "headcount", "expand", "capacity"],
+}
 
-    This is NOT the decision-maker — the LLM decides what to do next.
-    This is only used for the progress display and confidence calculation.
+
+def _estimate_field_coverage(evidence: list[EvidenceItem]) -> dict[str, float]:
+    """Field-specific coverage estimate based on evidence relevance signals.
+
+    Scores each field independently by checking how much evidence relates
+    to that field, weighted by relevance scores.
     """
     if not evidence:
         return {f: 0.0 for f in REQUIRED_FIELDS}
 
-    n = len(evidence)
     unique_sources = len({e.source_type for e in evidence})
-    avg_relevance = sum(e.relevance_score for e in evidence) / n if n else 0.0
+    diversity_bonus = min(unique_sources / 3.0, 1.0) * 0.08
 
-    # Base coverage scales with evidence count (diminishing returns)
-    base = min(n / 10.0, 1.0)
-    # Distribute across fields proportionally — all fields get some coverage
     coverage: dict[str, float] = {}
-    for f in REQUIRED_FIELDS:
-        coverage[f] = round(min(base * (0.5 + avg_relevance * 0.5), 1.0), 3)
-
-    # Boost diversity
-    diversity_bonus = min(unique_sources / 3.0, 1.0) * 0.1
-    for f in REQUIRED_FIELDS:
-        coverage[f] = round(min(coverage[f] + diversity_bonus, 1.0), 3)
+    for field in REQUIRED_FIELDS:
+        signals = _FIELD_SIGNALS.get(field, [])
+        weighted_hits = 0.0
+        for ev in evidence:
+            text = f"{ev.title} {ev.snippet}".lower()
+            hit_count = sum(1 for s in signals if s in text)
+            if hit_count > 0:
+                weighted_hits += ev.relevance_score * min(hit_count / 3.0, 1.0)
+        raw = min(weighted_hits / 3.0, 1.0)
+        coverage[field] = round(min(raw + diversity_bonus, 1.0), 3)
 
     return coverage
 
