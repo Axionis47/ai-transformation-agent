@@ -150,7 +150,7 @@ class ThoughtEngine:
             })
 
             # THINK: LLM assesses state and decides next action (with prior reasoning)
-            coverage, confidence, gap = mid.assess_coverage_with_llm(
+            coverage, confidence, gap, loop_contradictions = mid.assess_coverage_with_llm(
                 acc.get_all(),
                 config_with_budget,
                 self._grounder,

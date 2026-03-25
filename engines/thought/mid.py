@@ -79,9 +79,10 @@ def assess_coverage_with_llm(
     ground_remaining = max(0, ground_total - budget_state.external_search_queries_used)
     rag_remaining = max(0, rag_total - budget_state.rag_queries_used)
 
-    # Build current coverage estimate from evidence density per field
+    # Initial fallback coverage estimate (used if LLM doesn't provide one)
     field_coverage = _estimate_field_coverage(evidence)
     overall = sum(field_coverage.values()) / max(len(REQUIRED_FIELDS), 1)
+    contradictions: list[dict] = []
 
     # Load ReAct prompt
     prompt_path = _PROMPT_DIR / "reasoning_react.md"
@@ -118,6 +119,20 @@ def assess_coverage_with_llm(
     raw_text = grounder.reason(prompt, run_id)  # type: ignore[attr-defined]
     parsed = extract_json(raw_text)
 
+    # Prefer LLM-provided field coverage over keyword fallback
+    llm_fc = parsed.get("field_coverage")
+    if llm_fc and isinstance(llm_fc, dict):
+        field_coverage = {
+            f: max(0.0, min(1.0, float(llm_fc.get(f, 0.0))))
+            for f in REQUIRED_FIELDS
+        }
+        overall = sum(field_coverage.values()) / max(len(REQUIRED_FIELDS), 1)
+
+    # Extract contradictions flagged by LLM
+    llm_contradictions = parsed.get("contradictions")
+    if llm_contradictions and isinstance(llm_contradictions, list):
+        contradictions = llm_contradictions
+
     from services.trace import emit as _emit
     from core.events import EventType as _ET
     _emit(run_id, _ET.REASONING_LOOP_STARTED, {
@@ -150,7 +165,7 @@ def assess_coverage_with_llm(
         else:
             action = "STOP"
     if action == "STOP":
-        return field_coverage, overall, None
+        return field_coverage, overall, None, contradictions
 
     # Map action to gap
     action_map = {"GROUND": "ground", "RAG": "rag", "ASK_USER": "ask_user"}
@@ -173,7 +188,7 @@ def assess_coverage_with_llm(
         query=parsed.get("query", ""),
         thinking=parsed.get("thinking", ""),
     )
-    return field_coverage, overall, gap
+    return field_coverage, overall, gap, contradictions
 
 
 _FIELD_SIGNALS: dict[str, list[str]] = {
