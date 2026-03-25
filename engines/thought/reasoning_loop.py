@@ -138,6 +138,8 @@ class ThoughtEngine:
         stop_reason: str | None = None
         pending_question: UserQuestion | None = None
         reasoning_chain: list[str] = []
+        confidence_history: list[float] = []
+        all_contradictions: list[dict] = []
 
         # Pass budget_state through config so MID can read it
         config_with_budget = {**self._config, "_budget_state": budget_state}
@@ -159,6 +161,24 @@ class ThoughtEngine:
                 assumptions,
                 prior_reasoning=reasoning_chain,
             )
+
+            # Track confidence progression and contradictions
+            confidence_history.append(confidence)
+            if loop_contradictions:
+                all_contradictions.extend(loop_contradictions)
+                emit(run_id, EventType.CONTRADICTION_DETECTED, {
+                    "loop": loop_idx, "count": len(loop_contradictions),
+                })
+
+            # Stagnation detection
+            stag_n = int(reasoning.get("stagnation_threshold", 2))
+            stag_delta = float(reasoning.get("stagnation_delta", 0.02))
+            if len(confidence_history) >= stag_n:
+                recent = confidence_history[-stag_n:]
+                if max(recent) - min(recent) < stag_delta:
+                    emit(run_id, EventType.CONFIDENCE_STAGNATION, {
+                        "loop": loop_idx, "recent_values": recent,
+                    })
 
             if confidence >= self._threshold:
                 # Override: don't stop if critical fields are undercovered
