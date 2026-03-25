@@ -1,3 +1,7 @@
+"""Opportunity scoring — uses LLM evaluation scores when available.
+
+Falls back to formula-based scoring only when LLM scores are missing.
+"""
 from __future__ import annotations
 
 from core.schemas import EvidenceItem
@@ -11,65 +15,43 @@ def score_opportunity(
     config: dict,
     evidence_map: dict[str, EvidenceItem] | None = None,
 ) -> dict:
-    """Compute four-dimension score plus composite using config weights."""
+    """Compute four-dimension score plus composite using config weights.
+
+    Prefers LLM-provided scores from the matching step.
+    """
     scoring = config.get("scoring", {})
     w_roi = float(scoring.get("w_roi", 0.30))
     w_feas = float(scoring.get("w_feasibility", 0.30))
     w_ttv = float(scoring.get("w_ttv", 0.20))
     w_conf = float(scoring.get("w_confidence", 0.20))
 
-    # Feasibility: penalise for anti-signals, boost for same-industry engagement
-    anti_count = len(match.anti_signal_hits)
-    if anti_count == 0:
-        feasibility = 0.9
-    elif anti_count == 1:
-        feasibility = 0.6
-    else:
-        feasibility = 0.3
-    # Boost if matched engagements exist (same-industry check happens in tier classifier)
-    if match.matched_engagement_ids:
-        feasibility = min(1.0, feasibility + 0.1)
+    llm = match.llm_scores
 
-    # ROI score: map adjusted ROI value to 0-1 scale
-    if roi_estimate is None:
-        roi_score = 0.3
-    else:
+    # Use LLM scores if available, otherwise fall back to ROI/engagement data
+    feasibility = float(llm.get("feasibility", 0.0)) if llm else 0.0
+    roi_score = float(llm.get("roi", 0.0)) if llm else 0.0
+    ttv = float(llm.get("time_to_value", 0.0)) if llm else 0.0
+    confidence = float(llm.get("confidence", 0.0)) if llm else 0.0
+
+    # Fallback: if LLM scores are zero/missing, use formula
+    if feasibility < 0.01:
+        feasibility = 0.7 if match.matched_engagement_ids else 0.5
+    if roi_score < 0.01 and roi_estimate:
         pct = roi_estimate.adjusted_value
-        if pct >= 50:
-            roi_score = 0.9
-        elif pct >= 20:
-            roi_score = 0.7
+        roi_score = 0.9 if pct >= 50 else (0.7 if pct >= 20 else 0.5)
+    elif roi_score < 0.01:
+        roi_score = 0.3
+    if ttv < 0.01:
+        timeline = roi_estimate.timeline_weeks if roi_estimate else match.template.typical_timeline_weeks
+        ttv = 0.9 if timeline <= 8 else (0.7 if timeline <= 12 else (0.5 if timeline <= 16 else 0.3))
+    if confidence < 0.01:
+        if evidence_map and match.matched_evidence_ids:
+            scores = [evidence_map[eid].relevance_score for eid in match.matched_evidence_ids if eid in evidence_map]
+            confidence = sum(scores) / len(scores) if scores else 0.3
         else:
-            roi_score = 0.5
+            confidence = 0.3
 
-    # Time-to-value: based on timeline weeks
-    timeline = roi_estimate.timeline_weeks if roi_estimate else match.template.typical_timeline_weeks
-    if timeline <= 8:
-        ttv = 0.9
-    elif timeline <= 12:
-        ttv = 0.7
-    elif timeline <= 16:
-        ttv = 0.5
-    else:
-        ttv = 0.3
-
-    # Confidence: average relevance_score of matched evidence items
-    if evidence_map and match.matched_evidence_ids:
-        scores = [
-            evidence_map[eid].relevance_score
-            for eid in match.matched_evidence_ids
-            if eid in evidence_map
-        ]
-        confidence = sum(scores) / len(scores) if scores else 0.3
-    else:
-        confidence = 0.3
-
-    composite = (
-        w_roi * roi_score
-        + w_feas * feasibility
-        + w_ttv * ttv
-        + w_conf * confidence
-    )
+    composite = w_roi * roi_score + w_feas * feasibility + w_ttv * ttv + w_conf * confidence
 
     return {
         "feasibility": round(feasibility, 3),

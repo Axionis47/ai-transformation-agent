@@ -1,3 +1,8 @@
+"""Tier classification — uses LLM evaluation from matcher.
+
+No if/else rules. The LLM decides the tier during opportunity evaluation.
+This module reads the LLM's decision and applies it.
+"""
 from __future__ import annotations
 
 from core.schemas import OpportunityTier
@@ -9,50 +14,25 @@ def classify_tier(
     company_industry: str,
     engagement_lookup: dict[str, dict],
 ) -> tuple[OpportunityTier, str | None]:
-    """Classify an opportunity into EASY, MEDIUM, or HARD.
+    """Classify tier using the LLM's evaluation from the matching step.
 
     Returns (tier, adaptation_needed_text).
-    adaptation_needed_text is None for EASY and HARD tiers.
     """
+    # Use LLM's tier decision if available
+    if match.tier_override:
+        tier_str = match.tier_override.upper()
+        tier_map = {"EASY": OpportunityTier.EASY, "MEDIUM": OpportunityTier.MEDIUM, "HARD": OpportunityTier.HARD}
+        tier = tier_map.get(tier_str, OpportunityTier.MEDIUM)
+        adaptation = match.adaptation_needed if tier == OpportunityTier.MEDIUM else None
+        return tier, adaptation
+
+    # Fallback: classify based on engagement match and score
     if not match.matched_engagement_ids:
         return OpportunityTier.HARD, None
 
-    # Check if any matched engagement is in same industry
-    same_industry_eng_ids = [
-        eng_id for eng_id in match.matched_engagement_ids
-        if eng_id in engagement_lookup
-        and engagement_lookup[eng_id].get("industry", "") == company_industry
-    ]
-
-    # Check size band differences
-    different_size_eng_ids = [
-        eng_id for eng_id in match.matched_engagement_ids
-        if eng_id in engagement_lookup
-        and engagement_lookup[eng_id].get("company_size_band") is not None
-    ]
-
-    if same_industry_eng_ids and match.match_score >= 0.4:
+    if match.match_score >= 0.6:
         return OpportunityTier.EASY, None
-
-    if same_industry_eng_ids and match.match_score >= 0.2:
-        return OpportunityTier.MEDIUM, (
-            f"Match score {match.match_score:.2f} is below high-confidence threshold; "
-            "additional validation recommended before committing."
-        )
-
-    # Different industry: find one example to explain the gap
-    diff_eng_ids = [
-        eng_id for eng_id in match.matched_engagement_ids
-        if eng_id in engagement_lookup
-        and engagement_lookup[eng_id].get("industry", "") != company_industry
-    ]
-    if diff_eng_ids:
-        eng = engagement_lookup[diff_eng_ids[0]]
-        eng_industry = eng.get("industry", "unknown")
-        adaptation = (
-            f"Closest evidence is from {eng_industry}, not {company_industry}. "
-            "Industry-specific data pipelines and regulatory context will need adaptation."
-        )
-        return OpportunityTier.MEDIUM, adaptation
+    if match.match_score >= 0.3:
+        return OpportunityTier.MEDIUM, match.adaptation_needed or "Further validation recommended."
 
     return OpportunityTier.HARD, None
