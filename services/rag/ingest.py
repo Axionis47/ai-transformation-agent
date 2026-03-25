@@ -20,19 +20,36 @@ def load_engagements(json_path: str | None = None) -> list[EngagementCase]:
 
 
 def build_document_text(engagement: EngagementCase) -> str:
-    """Combine key engagement fields into a single searchable text string."""
-    impact_str = "; ".join(
-        f"{k}: {v}" for k, v in engagement.measured_impact.items()
-    )
+    """Build rich document text for semantic search embedding.
+
+    Includes generalizable applicability, discovery insights, lessons learned,
+    and tags so retrieval works across industries and for abstract queries.
+    """
+    impact_str = "; ".join(f"{k}: {v}" for k, v in engagement.measured_impact.items())
     conditions_str = "; ".join(engagement.conditions_for_success)
-    return (
-        f"{engagement.title}. "
-        f"Industry: {engagement.industry}. "
-        f"Problem: {engagement.problem}. "
-        f"Solution: {engagement.solution_shape}. "
-        f"Impact: {impact_str}. "
-        f"Conditions: {conditions_str}."
-    )
+    anti_str = "; ".join(engagement.anti_patterns)
+    tags_str = ", ".join(engagement.tags)
+
+    parts = [
+        f"{engagement.title}.",
+        f"Applicable to: {engagement.industry} companies and similar businesses with {engagement.workflow_area} challenges.",
+    ]
+    if engagement.generalized_for:
+        parts.append(f"Also relevant for: {engagement.generalized_for}")
+    parts.append(f"Problem pattern: {engagement.problem}")
+    parts.append(f"Solution approach: {engagement.solution_shape}.")
+    parts.append(f"Key results: {impact_str}.")
+    if engagement.discovery_insight:
+        parts.append(f"Discovery insight: {engagement.discovery_insight}")
+    if engagement.lessons_learned:
+        parts.append(f"Lessons learned: {'; '.join(engagement.lessons_learned[:2])}")
+    if engagement.implementation_friction:
+        parts.append(f"Implementation friction: {'; '.join(engagement.implementation_friction[:2])}")
+    parts.append(f"Prerequisites: {conditions_str}.")
+    parts.append(f"Watch out for: {anti_str}.")
+    parts.append(f"Tags: {tags_str}.")
+
+    return "\n".join(parts)
 
 
 def ingest(store: RAGStore, engagements: list[EngagementCase]) -> int:

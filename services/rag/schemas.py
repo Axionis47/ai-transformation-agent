@@ -18,3 +18,9 @@ class EngagementCase(BaseModel):
     conditions_for_success: list[str]
     anti_patterns: list[str]
     tags: list[str]
+    # Analyst case notebook fields
+    generalized_for: str = ""
+    lessons_learned: list[str] = []
+    discovery_insight: str = ""
+    implementation_friction: list[str] = []
+    baseline_metrics: dict = {}

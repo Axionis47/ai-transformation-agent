@@ -36,8 +36,8 @@ def get_templates() -> list[OpportunityTemplate]:
             anti_signals=["no customer interaction", "b2b only", "no inbound requests"],
             roi_drivers=["ticket_volume", "agent_headcount", "resolution_time"],
             typical_timeline_weeks=8,
-            applicable_industries=["financial_services", "retail", "healthcare"],
-            engagement_ids=["eng-001", "eng-011"],
+            applicable_industries=["financial_services", "retail", "healthcare", "technology"],
+            engagement_ids=["eng-001", "eng-011", "eng-019"],
         ),
         OpportunityTemplate(
             template_id="tpl-finance-auto",
@@ -93,8 +93,8 @@ def get_templates() -> list[OpportunityTemplate]:
             anti_signals=["no financial risk", "no transaction monitoring", "no analyst team"],
             roi_drivers=["analyst_headcount", "fraud_loss_rate", "transaction_volume"],
             typical_timeline_weeks=12,
-            applicable_industries=["financial_services"],
-            engagement_ids=["eng-002"],
+            applicable_industries=["financial_services", "technology"],
+            engagement_ids=["eng-002", "eng-021"],
         ),
         OpportunityTemplate(
             template_id="tpl-docs-copilot",
@@ -112,8 +112,8 @@ def get_templates() -> list[OpportunityTemplate]:
             anti_signals=["no document creation", "no written output required"],
             roi_drivers=["knowledge_worker_time", "document_volume", "win_rate"],
             typical_timeline_weeks=10,
-            applicable_industries=["healthcare", "professional_services"],
-            engagement_ids=["eng-006", "eng-015"],
+            applicable_industries=["healthcare", "professional_services", "technology"],
+            engagement_ids=["eng-006", "eng-015", "eng-020"],
         ),
         OpportunityTemplate(
             template_id="tpl-predictive-ops",
@@ -131,8 +131,8 @@ def get_templates() -> list[OpportunityTemplate]:
             anti_signals=["no historical data", "no sensors", "less than 6 months data"],
             roi_drivers=["downtime_cost", "forecast_accuracy", "maintenance_cost"],
             typical_timeline_weeks=12,
-            applicable_industries=["logistics", "manufacturing", "retail"],
-            engagement_ids=["eng-009", "eng-010", "eng-013"],
+            applicable_industries=["logistics", "manufacturing", "retail", "technology"],
+            engagement_ids=["eng-009", "eng-010", "eng-013", "eng-022"],
         ),
         OpportunityTemplate(
             template_id="tpl-compliance",
