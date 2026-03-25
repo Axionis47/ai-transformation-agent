@@ -39,6 +39,78 @@ def _load_prompt(name: str) -> str:
     return text.strip()
 
 
+def _check_escalation(
+    coverage: dict[str, float],
+    confidence: float,
+    threshold: float,
+    config: dict,
+    confidence_history: list[float],
+    contradictions: list[dict],
+    budget_state: BudgetState,
+    run_id: str,
+) -> tuple[str | None, list[str], UserQuestion | None]:
+    """Evaluate escalation triggers after loop completes. Returns (reason, fields, question)."""
+    reasoning = config.get("reasoning", {})
+    budgets = config.get("budgets", {})
+    min_fc = float(reasoning.get("min_field_coverage", 0.3))
+    stag_n = int(reasoning.get("stagnation_threshold", 2))
+    stag_delta = float(reasoning.get("stagnation_delta", 0.02))
+
+    critical_gaps = [f for f, s in coverage.items() if s < min_fc]
+    all_gaps = [f for f, s in coverage.items() if s < 0.5]
+
+    ground_exhausted = budget_state.external_search_queries_used >= int(budgets.get("external_search_query_budget", 10))
+    rag_exhausted = budget_state.rag_queries_used >= int(budgets.get("rag_query_budget", 15))
+
+    reason: str | None = None
+    fields: list[str] = []
+
+    # Priority 1: Contradictions need human resolution
+    if contradictions:
+        reason = "contradictory_evidence"
+        fields = list({c.get("field", "") for c in contradictions if c.get("field")}) or all_gaps
+    # Priority 2: Critical fields below minimum after all loops
+    elif critical_gaps:
+        reason = "critical_field_gaps"
+        fields = critical_gaps
+    # Priority 3: Budget exhausted but gaps remain
+    elif ground_exhausted and rag_exhausted and all_gaps:
+        reason = "budget_exhausted_with_gaps"
+        fields = all_gaps
+    # Priority 4: Confidence stagnation
+    elif len(confidence_history) >= stag_n:
+        recent = confidence_history[-stag_n:]
+        if max(recent) - min(recent) < stag_delta and all_gaps:
+            reason = "confidence_stagnation"
+            fields = all_gaps
+    # Priority 5: Low confidence after all loops
+    elif confidence < threshold and all_gaps:
+        reason = "low_coverage_after_loops"
+        fields = all_gaps
+
+    if not reason:
+        return None, [], None
+
+    emit(run_id, EventType.ESCALATION_TRIGGERED, {"reason": reason, "fields": fields})
+
+    # Build question text based on escalation type
+    field_names = ", ".join(f.replace("_", " ") for f in fields[:3])
+    messages = {
+        "contradictory_evidence": f"Conflicting information found. Can you clarify details about: {field_names}?",
+        "critical_field_gaps": f"Missing critical information about: {field_names}. Can you provide details?",
+        "budget_exhausted_with_gaps": f"Research budget depleted. Remaining gaps in: {field_names}. Can you help fill these?",
+        "confidence_stagnation": f"Analysis stalled. More information needed about: {field_names}.",
+        "low_coverage_after_loops": f"Analysis incomplete. Key gaps remain in: {field_names}. Can you provide context?",
+    }
+    question = UserQuestion(
+        question_id=str(uuid.uuid4()),
+        run_id=run_id,
+        field=fields[0] if fields else "company_profile",
+        question_text=messages.get(reason, f"Additional information needed about: {field_names}"),
+    )
+    return reason, fields, question
+
+
 def _crossref_engagement(
     engagement: dict,
     company_summary: str,
@@ -275,6 +347,8 @@ class ThoughtEngine:
                     pending_question=pending_question,
                     stop_reason=None,
                     coverage_gaps=[f for f, s in coverage.items() if s < 0.5],
+                    confidence_history=confidence_history,
+                    contradictions=all_contradictions,
                 )
 
             # OBSERVE: Prune at loop boundary
@@ -300,6 +374,29 @@ class ThoughtEngine:
         if stop_reason is None:
             stop_reason = "depth_budget_exhausted"
         coverage, confidence = mid.assess_coverage(acc.get_all(), self._config)
+        gaps = [f for f, s in coverage.items() if s < 0.5]
+
+        # Check for escalation conditions
+        esc_reason, esc_fields, esc_question = _check_escalation(
+            coverage, confidence, self._threshold, self._config,
+            confidence_history, all_contradictions, budget_state, run_id,
+        )
+        if esc_question:
+            return ReasoningLoopResult(
+                completed=False,
+                loops_run=min(self._depth_budget - start_loop, self._depth_budget),
+                evidence_items=acc.get_all(),
+                field_coverage=coverage,
+                overall_confidence=confidence,
+                pending_question=esc_question,
+                stop_reason=None,
+                coverage_gaps=gaps,
+                escalation_reason=esc_reason,
+                escalation_fields=esc_fields,
+                contradictions=all_contradictions,
+                confidence_history=confidence_history,
+            )
+
         return ReasoningLoopResult(
             completed=True,
             loops_run=min(self._depth_budget - start_loop, self._depth_budget),
@@ -308,5 +405,7 @@ class ThoughtEngine:
             overall_confidence=confidence,
             pending_question=None,
             stop_reason=stop_reason,
-            coverage_gaps=[f for f, s in coverage.items() if s < 0.5],
+            coverage_gaps=gaps,
+            confidence_history=confidence_history,
+            contradictions=all_contradictions,
         )
