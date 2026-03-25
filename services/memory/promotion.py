@@ -29,7 +29,7 @@ class PromotionGate:
     4. Emit EVIDENCE_PROMOTED / EVIDENCE_REJECTED trace events
     """
 
-    def __init__(self, store: EvidenceStore, min_relevance: float = 0.0) -> None:
+    def __init__(self, store: EvidenceStore, min_relevance: float = 0.3) -> None:
         self._store = store
         self._min_relevance = min_relevance
 

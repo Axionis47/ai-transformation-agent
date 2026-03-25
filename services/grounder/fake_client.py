@@ -35,12 +35,51 @@ _INDUSTRY_TEXT: dict[str, str] = {
 }
 
 
+_REACT_RESPONSES: dict[int, dict] = {
+    0: {
+        "thinking": "Initial research found company overview but we lack specific pain points and operational challenges. Need to understand their workflows.",
+        "action": "GROUND",
+        "query": "What are the main operational challenges and inefficiencies?",
+        "target_field": "pain_points",
+        "reasoning": "Pain points are critical for matching AI opportunities to real problems.",
+    },
+    1: {
+        "thinking": "We have company profile and pain points. Now need similar past engagements to ground recommendations in proven results.",
+        "action": "RAG",
+        "query": "automation implementation mid-market",
+        "target_field": "similar_wins",
+        "reasoning": "Past engagement data strengthens our recommendations with proven ROI.",
+    },
+    2: {
+        "thinking": "We have good coverage across most fields. Evidence is sufficient to proceed to synthesis.",
+        "action": "STOP",
+        "query": "",
+        "target_field": "",
+        "reasoning": "Enough evidence across company profile, pain points, and similar wins to generate recommendations.",
+    },
+}
+
+
 class FakeGeminiClient:
-    """Test double for GeminiClient. Returns canned grounding responses."""
+    """Test double for GeminiClient. Returns canned grounding and reasoning responses."""
 
     def __init__(self, responses: list[dict] | None = None) -> None:
         self._queue: list[dict] = list(responses) if responses else []
         self.call_count: int = 0
+        self._reason_count: int = 0
+
+    def generate(self, prompt: str) -> dict:
+        """Pure reasoning response for ReAct steps and evaluations."""
+        self._reason_count += 1
+        if "evaluate whether this opportunity" in prompt.lower():
+            return {"text": FakeGeminiClient._fake_opportunity_eval(prompt)}
+        if "extract structured assumptions" in prompt.lower():
+            return {"text": FakeGeminiClient._fake_assumption_extraction(prompt)}
+        # ReAct step
+        idx = min(self._reason_count - 1, 2)
+        react = _REACT_RESPONSES.get(idx, _REACT_RESPONSES[2])
+        import json
+        return {"text": json.dumps(react)}
 
     def generate_with_grounding(self, prompt: str) -> dict:
         self.call_count += 1
@@ -58,6 +97,40 @@ class FakeGeminiClient:
             "The company is mid-market with manual workflows across support, "
             "operations, and compliance. Processes are bottleneck-prone."
         )
+
+    @staticmethod
+    def _fake_assumption_extraction(prompt: str) -> str:
+        import json
+        return json.dumps({
+            "assumptions": [
+                {"field": "company_description", "value": "Mid-market company with manual workflows across support and operations", "confidence": 0.8, "confidence_reasoning": "Grounding text directly describes company operations", "source_quote": "operates with manual workflows"},
+                {"field": "industry_segment", "value": "Core operations within the industry vertical", "confidence": 0.7, "confidence_reasoning": "Industry identified from grounding", "source_quote": "industry segment identified"},
+                {"field": "company_size", "value": "Mid-market, estimated 200-2000 employees", "confidence": 0.5, "confidence_reasoning": "Inferred from operational scale", "source_quote": "mid-market scale"},
+            ],
+            "open_questions": [
+                {"field": "key_products", "reason": "No specific product details in research", "suggested_query": "What products does the company offer?"},
+                {"field": "technology_stack", "reason": "No technology details found", "suggested_query": "What technology platforms does the company use?"},
+                {"field": "business_model", "reason": "Revenue model not described", "suggested_query": "How does the company generate revenue?"},
+            ],
+        })
+
+    @staticmethod
+    def _fake_opportunity_eval(prompt: str) -> str:
+        import json
+        return json.dumps({
+            "fit_score": 0.65,
+            "tier": "MEDIUM",
+            "reasoning": "Evidence suggests operational inefficiencies that this template addresses, but industry-specific validation is limited.",
+            "supporting_evidence_ids": [],
+            "matched_engagement_ids": [],
+            "risks": ["Limited industry-specific evidence", "Scale assumptions need validation"],
+            "adaptation_needed": "Industry-specific workflows may require customization of the standard approach.",
+            "feasibility": 0.7,
+            "roi_score": 0.6,
+            "time_to_value": 0.7,
+            "confidence": 0.55,
+            "rationale": "The company shows patterns consistent with this opportunity but requires adaptation for their specific context.",
+        })
 
     @staticmethod
     def default_response(prompt: str) -> dict:
