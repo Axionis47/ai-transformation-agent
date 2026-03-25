@@ -86,15 +86,16 @@ class PitchEngine:
                 name=match.template.name,
                 description=match.template.description,
                 tier=tier,
-                feasibility=scores["feasibility"],
-                roi=scores["roi"],
-                time_to_value=scores["time_to_value"],
-                confidence=scores["confidence"],
+                feasibility=scores["feasibility"] or 0.0,
+                roi=scores["roi"] or 0.0,
+                time_to_value=scores["time_to_value"] or 0.0,
+                confidence=scores["confidence"] or 0.0,
                 evidence_ids=match.matched_evidence_ids,
                 assumptions=roi_estimate.assumptions if roi_estimate else {},
                 rationale=rationale,
                 adaptation_needed=adaptation,
                 risks=risks,
+                data_sufficiency=scores.get("data_sufficiency", "scored"),
             )
             opportunities.append(opp)
 
