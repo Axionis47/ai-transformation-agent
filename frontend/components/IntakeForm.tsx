@@ -129,7 +129,7 @@ export default function IntakeForm({ onSubmit, loading, depth, threshold, onDept
             <div>
               <p className="text-sm text-ink-secondary">
                 {ready
-                  ? <><span className="text-ink font-medium">{companyName || 'Target'}</span> · {industry || 'industry'} · depth {depth} · {(threshold * 100).toFixed(0)}% confidence</>
+                  ? <><span className="text-ink font-medium">{companyName}</span> · {industry} · {depth} reasoning loops · target ≥{(threshold * 100).toFixed(0)}%</>
                   : 'Enter company name and industry to begin analysis.'
                 }
               </p>

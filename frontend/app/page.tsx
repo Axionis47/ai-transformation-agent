@@ -166,7 +166,7 @@ export default function HomePage() {
                   </div>
                   <div className="p-4 space-y-3">
                     <ConfigRow label="Reasoning Depth" value={`${depth} / 10`} />
-                    <ConfigRow label="Confidence Target" value={`${(threshold * 100).toFixed(0)}%`} />
+                    <ConfigRow label="Stop Threshold" value={`≥${(threshold * 100).toFixed(0)}%`} />
                     <ConfigRow label="RAG Budget" value="15 queries" />
                     <ConfigRow label="Search Budget" value="10 queries" />
                     <ConfigRow label="Model" value="Gemini 2.5" />
