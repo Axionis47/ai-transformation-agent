@@ -10,6 +10,9 @@ budgets:
 reasoning:
   depth_budget: 5                      # max reasoning loops (user can set 1-10)
   confidence_threshold: 0.7            # stop if overall confidence exceeds this
+  min_field_coverage: 0.3              # don't stop if any field below this
+  stagnation_threshold: 2              # consecutive loops with no improvement
+  stagnation_delta: 0.02              # minimum improvement to not count as stagnant
 
 # Scoring weights (opportunity ranking)
 scoring:
