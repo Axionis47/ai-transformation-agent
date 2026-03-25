@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 
 from core.events import EventType
 from core.schemas import EvidenceItem
+from services.memory.contradiction import ContradictionDetector
 from services.memory.store import EvidenceStore
 from services.trace import emit
 
@@ -40,6 +41,7 @@ class PromotionGate:
     ) -> PromotionResult:
         """Validate and promote a batch of evidence candidates."""
         result = PromotionResult()
+        detector = ContradictionDetector()
 
         for item in candidates:
             # Step 1: Schema check
@@ -69,6 +71,18 @@ class PromotionGate:
                     "source_label": source_label,
                 })
                 continue
+
+            # Step 2.5: Contradiction detection
+            existing = self._store.get_all(run_id)
+            contradictions = detector.check(existing, item)
+            for c in contradictions:
+                emit(run_id, EventType.EVIDENCE_CONTRADICTION, {
+                    "field": c.field,
+                    "existing_id": c.existing_evidence_id,
+                    "new_id": c.new_evidence_id,
+                    "resolution": c.resolution,
+                    "source_label": source_label,
+                })
 
             # Step 3: Dedup via store (handles score-based replacement)
             is_new = self._store.add(run_id, item)
