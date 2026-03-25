@@ -17,3 +17,8 @@ rag/store/
 .vscode/
 .idea/
 team/
+CLAUDE.md
+SPRINT_PLAN.md
+SPRINT_*_PLAN.md
+.claude/
+data/chroma_store/
