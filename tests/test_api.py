@@ -54,7 +54,7 @@ def test_create_run_status_is_created():
 def test_create_run_has_budgets():
     data = _create_run()
     assert "budgets" in data
-    assert data["budgets"]["rag_query_budget"] == 8
+    assert data["budgets"]["rag_query_budget"] == 15
 
 
 def test_create_run_has_config_snapshot():

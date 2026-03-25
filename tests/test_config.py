@@ -20,9 +20,9 @@ def test_load_config_top_level_keys():
 def test_load_config_budget_values():
     config = load_config()
     budgets = config["budgets"]
-    assert budgets["external_search_query_budget"] == 5
-    assert budgets["external_search_max_calls"] == 3
-    assert budgets["rag_query_budget"] == 8
+    assert budgets["external_search_query_budget"] == 10
+    assert budgets["external_search_max_calls"] == 8
+    assert budgets["rag_query_budget"] == 15
     assert budgets["rag_top_k"] == 5
     assert budgets["rag_min_score"] == pytest.approx(0.3)
 
@@ -65,7 +65,7 @@ def test_freeze_config_nested_budget_override():
 
 def test_freeze_config_no_overrides_unchanged():
     result = freeze_config(overrides=None)
-    assert result["budgets"]["rag_query_budget"] == 8
+    assert result["budgets"]["rag_query_budget"] == 15
 
 
 def test_env_var_override_reasoning_model(monkeypatch):

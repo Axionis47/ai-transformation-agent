@@ -1,8 +1,10 @@
-"""Tests for engines/thought/mid.py -- MID gap detection."""
+"""Tests for engines/thought/mid.py -- LLM-based MID gap detection."""
 from __future__ import annotations
+
 import uuid
+
 from core.schemas import BudgetState, EvidenceItem, EvidenceSource
-from engines.thought.mid import REQUIRED_FIELDS, assess_coverage, detect_gap
+from engines.thought.mid import REQUIRED_FIELDS, assess_coverage, _estimate_field_coverage
 
 CONFIG = {
     "confidence": {"evidence_coverage_weight": 0.45, "evidence_strength_weight": 0.35, "source_diversity_weight": 0.20},
@@ -10,61 +12,58 @@ CONFIG = {
 }
 
 
-def _ev(s: str, src: EvidenceSource = EvidenceSource.GOOGLE_SEARCH) -> EvidenceItem:
+def _ev(s: str, src: EvidenceSource = EvidenceSource.GOOGLE_SEARCH, score: float = 0.8) -> EvidenceItem:
     return EvidenceItem(evidence_id=str(uuid.uuid4()), run_id="r", source_type=src,
-        source_ref=f"ref-{uuid.uuid4().hex[:8]}", title="T", snippet=s, relevance_score=0.8)
+        source_ref=f"ref-{uuid.uuid4().hex[:8]}", title="T", snippet=s, relevance_score=score)
 
 
-def _full():
-    snippets = ["company provides offers", "company provides offers",
-        "industry market sector", "industry market sector",
-        "workflow process operations", "workflow process operations",
-        "challenge problem bottleneck", "challenge problem bottleneck",
-        "engagement automation roi reduction", "engagement automation roi reduction",
-        "employees revenue customers volume", "employees revenue customers volume"]
-    return [_ev(s) for s in snippets]
+def test_required_fields_defined():
+    assert len(REQUIRED_FIELDS) == 6
+    assert "company_profile" in REQUIRED_FIELDS
+    assert "pain_points" in REQUIRED_FIELDS
 
 
 def test_empty_evidence_zero_coverage():
     cov, conf = assess_coverage([], CONFIG)
-    assert all(cov[f] == 0.0 for f in REQUIRED_FIELDS) and conf == 0.0
+    assert all(cov[f] == 0.0 for f in REQUIRED_FIELDS)
+    assert conf == 0.0
 
 
-def test_company_keywords_score_company_profile():
-    cov, _ = assess_coverage([_ev("The company provides logistics services.")], CONFIG)
-    assert cov["company_profile"] > 0.0
+def test_some_evidence_nonzero_coverage():
+    evidence = [_ev("Company overview"), _ev("Industry analysis")]
+    cov, conf = assess_coverage(evidence, CONFIG)
+    assert conf > 0.0
+    assert all(cov[f] > 0.0 for f in REQUIRED_FIELDS)
 
 
-def test_industry_keywords_score_industry_context():
-    cov, _ = assess_coverage([_ev("The industry faces market disruption in the sector.")], CONFIG)
-    assert cov["industry_context"] > 0.0
+def test_more_evidence_higher_coverage():
+    few = [_ev("One item")]
+    many = [_ev(f"Item {i}") for i in range(10)]
+    _, conf_few = assess_coverage(few, CONFIG)
+    _, conf_many = assess_coverage(many, CONFIG)
+    assert conf_many > conf_few
 
 
-def test_mid_returns_gap_for_lowest_coverage():
-    gap = detect_gap([_ev("company provides products")], BudgetState(), CONFIG)
-    assert gap is not None and gap.field in REQUIRED_FIELDS and gap.coverage < 0.5
+def test_source_diversity_boosts_confidence():
+    single = [_ev("A", EvidenceSource.GOOGLE_SEARCH), _ev("B", EvidenceSource.GOOGLE_SEARCH)]
+    diverse = [_ev("A", EvidenceSource.GOOGLE_SEARCH), _ev("B", EvidenceSource.WINS_KB)]
+    _, conf_single = assess_coverage(single, CONFIG)
+    _, conf_diverse = assess_coverage(diverse, CONFIG)
+    assert conf_diverse > conf_single
 
 
-def test_mid_returns_none_when_all_covered():
-    assert detect_gap(_full(), BudgetState(), CONFIG) is None
+def test_estimate_field_coverage_empty():
+    cov = _estimate_field_coverage([])
+    assert all(v == 0.0 for v in cov.values())
 
 
-def test_mid_suggests_ground_for_company_profile():
-    gap = detect_gap([], BudgetState(), CONFIG)
-    assert gap is not None and gap.action == "ground"
+def test_estimate_field_coverage_scales_with_count():
+    few = _estimate_field_coverage([_ev("x")])
+    many = _estimate_field_coverage([_ev("x") for _ in range(10)])
+    assert all(many[f] >= few[f] for f in REQUIRED_FIELDS)
 
 
-def test_mid_suggests_rag_for_similar_wins():
-    ev = [_ev("company provides."), _ev("company provides."),
-        _ev("industry market."), _ev("industry market."),
-        _ev("workflow process."), _ev("workflow process."),
-        _ev("challenge problem."), _ev("challenge problem."),
-        _ev("employees revenue."), _ev("employees revenue.")]
-    gap = detect_gap(ev, BudgetState(), CONFIG)
-    assert gap is not None and gap.field == "similar_wins" and gap.action == "rag"
-
-
-def test_mid_fallback_ask_user_when_budget_exhausted():
-    state = BudgetState(external_search_queries_used=5)
-    gap = detect_gap([], state, CONFIG)
-    assert gap is not None and gap.action in ("ask_user", "rag")
+def test_confidence_weights_applied():
+    evidence = [_ev("Test", score=0.9)]
+    cov, conf = assess_coverage(evidence, CONFIG)
+    assert 0.0 < conf < 1.0
