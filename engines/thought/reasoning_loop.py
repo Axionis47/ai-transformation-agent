@@ -111,6 +111,22 @@ def _check_escalation(
     return reason, fields, question
 
 
+def _synthesize_field(
+    grounder: object, run_id: str, intake: CompanyIntake,
+    field: str, old_synthesis: str, new_evidence: str,
+) -> str:
+    """Synthesize new evidence into a field summary using LLM."""
+    template = _load_prompt("field_synthesis")
+    prompt = template.replace("{company_name}", intake.company_name)
+    prompt = prompt.replace("{industry}", intake.industry)
+    prompt = prompt.replace("{field_name}", field)
+    prompt = prompt.replace("{field_label}", field.replace("_", " "))
+    prompt = prompt.replace("{previous_synthesis}", old_synthesis or "No prior understanding.")
+    prompt = prompt.replace("{new_evidence}", new_evidence)
+    result = grounder.reason(prompt, run_id)  # type: ignore[attr-defined]
+    return result.strip() if result else old_synthesis
+
+
 def _crossref_engagement(
     engagement: dict,
     company_summary: str,
@@ -206,7 +222,9 @@ class ThoughtEngine:
         existing_evidence: list[EvidenceItem] | None = None,
         start_loop: int = 0,
     ) -> ReasoningLoopResult:
+        from engines.thought.working_memory import WorkingMemory
         acc = EvidenceAccumulator(existing_evidence)
+        wmem = WorkingMemory()
         stop_reason: str | None = None
         pending_question: UserQuestion | None = None
         reasoning_chain: list[str] = []
@@ -237,6 +255,8 @@ class ThoughtEngine:
             })
 
             # THINK: LLM assesses state and decides next action (with prior reasoning)
+            # Pass structured briefing to LLM instead of raw evidence dump
+            briefing = wmem.build_briefing() if loop_idx > start_loop else None
             coverage, confidence, gap, loop_contradictions = mid.assess_coverage_with_llm(
                 acc.get_all(),
                 config_with_budget,
@@ -245,6 +265,7 @@ class ThoughtEngine:
                 intake,
                 assumptions,
                 prior_reasoning=reasoning_chain,
+                briefing=briefing,
             )
 
             # Track confidence progression and contradictions
@@ -364,6 +385,22 @@ class ThoughtEngine:
                     confidence_history=confidence_history,
                     contradictions=all_contradictions,
                 )
+
+            # SYNTHESIZE: Update working memory with new evidence
+            if new_count > 0:
+                new_items = acc.get_all()[:new_count]  # newest items are highest relevance
+                classified = wmem.classify_evidence(new_items)
+                for field, items in classified.items():
+                    if not items:
+                        continue
+                    ev_ids = [e.evidence_id for e in items]
+                    ev_text = "\n".join(f"- {e.title}: {e.snippet[:200]}" for e in items)
+                    old_synthesis = wmem.get_field(field).synthesis
+                    synthesis = _synthesize_field(
+                        self._grounder, run_id, intake, field, old_synthesis, ev_text,
+                    )
+                    if synthesis:
+                        wmem.update_field(field, synthesis, ev_ids, coverage.get(field, 0.0), loop_idx)
 
             # OBSERVE: Prune at loop boundary
             if acc.count() > _LOOP_MAX_EVIDENCE:

@@ -113,6 +113,7 @@ def assess_coverage_with_llm(
     intake: object,
     assumptions: object,
     prior_reasoning: list[str] | None = None,
+    briefing: str | None = None,
 ) -> tuple[dict[str, float], float, MIDGap | None]:
     """Use the LLM to assess coverage, confidence, and decide next action.
 
@@ -151,7 +152,7 @@ def assess_coverage_with_llm(
     prompt = template
     prompt = prompt.replace("{company_name}", company_name)
     prompt = prompt.replace("{industry}", industry)
-    prompt = prompt.replace("{evidence_summary}", _build_evidence_summary(evidence))
+    prompt = prompt.replace("{evidence_summary}", briefing or _build_evidence_summary(evidence))
     prompt = prompt.replace("{field_coverage_table}", _build_field_coverage_table(field_coverage))
     prompt = prompt.replace("{assumptions_summary}", "\n".join(assumptions_lines) or "None confirmed yet.")
     reasoning_text = "No prior steps yet — this is the first reasoning loop."
