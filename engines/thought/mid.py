@@ -21,6 +21,52 @@ REQUIRED_FIELDS = [
 
 _PROMPT_DIR = Path(__file__).parent.parent.parent / "prompts"
 
+# Research phases — ordered like a real analyst would work
+PHASES = [
+    {
+        "name": "PROFILE",
+        "fields": ["company_profile", "industry_context", "scale_indicators"],
+        "threshold": 0.4,
+        "instructions": "Focus on understanding who this company is. What do they do, how big are they, what market are they in? Use GROUND (web search) — do NOT search the knowledge base yet.",
+        "tool_guidance": "Use GROUND for company-specific facts. Do not use RAG in this phase — you need company context before searching past engagements.",
+        "prefer": "ground",
+    },
+    {
+        "name": "DISCOVER",
+        "fields": ["business_processes", "pain_points"],
+        "threshold": 0.4,
+        "instructions": "Now dig into their operational challenges. What processes are manual? Where are the bottlenecks and inefficiencies? Use GROUND to find specific pain points.",
+        "tool_guidance": "Use GROUND for operational details, challenges, and workflow information. RAG is acceptable if you need to check if a specific pain pattern matches past cases.",
+        "prefer": "ground",
+    },
+    {
+        "name": "MATCH",
+        "fields": ["similar_wins"],
+        "threshold": 0.4,
+        "instructions": "You now understand the company and their pain points. Search our knowledge base for past engagements with similar patterns. Use SPECIFIC queries referencing the company's industry, size, and pain points — not generic searches.",
+        "tool_guidance": "Use RAG to search past engagements. Reference specific pain points and industry context you discovered in earlier phases. GROUND is acceptable for follow-up validation.",
+        "prefer": "rag",
+    },
+    {
+        "name": "FILL",
+        "fields": REQUIRED_FIELDS,
+        "threshold": 0.5,
+        "instructions": "Fill remaining gaps. Target the weakest fields. Use whichever tool is most appropriate. If tools cannot answer, ask the user.",
+        "tool_guidance": "Use any tool. Prefer ASK_USER for information that only the company would know.",
+        "prefer": "any",
+    },
+]
+
+
+def detect_phase(field_coverage: dict[str, float]) -> dict:
+    """Determine current research phase based on field coverage."""
+    for phase in PHASES:
+        target_fields = phase["fields"]
+        avg_coverage = sum(field_coverage.get(f, 0.0) for f in target_fields) / max(len(target_fields), 1)
+        if avg_coverage < phase["threshold"]:
+            return phase
+    return PHASES[-1]  # Default to FILL if all phases met
+
 
 @dataclass
 class MIDGap:
