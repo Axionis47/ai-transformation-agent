@@ -147,6 +147,12 @@ export default function RunPage() {
             {reasoning?.completed && status === 'reasoning' && (
               <ActionButton onClick={handleSynthesize} loading={loading} label="Synthesize Opportunities" loadingLabel="Evaluating templates..." />
             )}
+            {!reasoning?.completed && reasoning?.escalation_reason && status === 'reasoning' && (
+              <div className="mt-4 flex items-center gap-3">
+                <ActionButton onClick={handleSynthesize} loading={loading} label="Skip and Synthesize" loadingLabel="Evaluating templates..." />
+                <span className="text-2xs text-ink-tertiary">Proceed with current evidence — gaps will be noted in the report</span>
+              </div>
+            )}
           </section>
 
           {/* SYNTHESIS + REPORT */}
