@@ -36,7 +36,7 @@ def test_create_run_sets_config_snapshot():
 def test_create_run_sets_budgets():
     run = run_manager.create_run("Acme Corp", "logistics")
     assert run.budgets.rag_query_budget == 15
-    assert run.budgets.external_search_query_budget == 10
+    assert run.budgets.external_search_query_budget == 25
     assert run.budgets.rag_min_score == pytest.approx(0.3)
 
 

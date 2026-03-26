@@ -20,7 +20,7 @@ def test_load_config_top_level_keys():
 def test_load_config_budget_values():
     config = load_config()
     budgets = config["budgets"]
-    assert budgets["external_search_query_budget"] == 10
+    assert budgets["external_search_query_budget"] == 25
     assert budgets["external_search_max_calls"] == 8
     assert budgets["rag_query_budget"] == 15
     assert budgets["rag_top_k"] == 5

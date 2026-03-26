@@ -76,7 +76,7 @@ def test_ground_budget_exhaustion_returns_budget_exhausted_true():
     run_data = _create_run()
     run_id = run_data["run_id"]
     run = run_manager.get_run(run_id)
-    run.budget_state.external_search_queries_used = 10  # saturate budget (matches new default)
+    run.budget_state.external_search_queries_used = 25  # saturate budget (matches defaults.yaml)
 
     with _fake_patch():
         resp = client.post(f"/v1/runs/{run_id}/ground", json={"prompt": "What does Acme do?"})
