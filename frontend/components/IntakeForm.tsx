@@ -15,9 +15,9 @@ interface IntakeFormProps {
 
 const SIZE_OPTIONS = ['50-100', '100-200', '200-500', '500-2000', '2000+']
 
-const field = 'w-full bg-canvas-inset border border-edge text-ink text-sm font-sans p-2 rounded focus:border-mint focus:outline-none transition-colors font-mono'
-const sectionLabel = 'text-2xs text-ink-tertiary uppercase tracking-wider font-medium'
-const fieldLabel = 'text-2xs text-ink-tertiary uppercase tracking-wider mb-1 block'
+const field = 'w-full bg-canvas-inset border border-edge text-ink text-sm font-sans p-2.5 rounded focus:border-mint focus:outline-none transition-colors'
+const sectionLabel = 'text-xs text-ink-secondary uppercase tracking-wider font-medium'
+const fieldLabel = 'text-2xs text-ink-secondary uppercase tracking-wider mb-1.5 block font-medium'
 
 export default function IntakeForm({ onSubmit, loading, depth, threshold, onDepthChange, onThresholdChange }: IntakeFormProps) {
   const [companyName, setCompanyName] = useState('')
@@ -41,7 +41,7 @@ export default function IntakeForm({ onSubmit, loading, depth, threshold, onDept
       <div className="border border-edge-subtle rounded bg-canvas-raised">
         <div className="px-4 py-2.5 border-b border-edge-subtle flex items-center justify-between">
           <p className={sectionLabel}>Company Profile</p>
-          <span className="text-2xs text-ink-tertiary font-mono">01</span>
+          <span className="text-2xs text-ink-secondary font-mono">01</span>
         </div>
         <div className="p-4">
           <div className="grid grid-cols-3 gap-4">
@@ -79,7 +79,7 @@ export default function IntakeForm({ onSubmit, loading, depth, threshold, onDept
       <div className="border border-edge-subtle rounded bg-canvas-raised mt-4">
         <div className="px-4 py-2.5 border-b border-edge-subtle flex items-center justify-between">
           <p className={sectionLabel}>Analysis Parameters</p>
-          <span className="text-2xs text-ink-tertiary font-mono">02</span>
+          <span className="text-2xs text-ink-secondary font-mono">02</span>
         </div>
         <div className="p-4">
           <div className="grid grid-cols-2 gap-6">
@@ -93,10 +93,10 @@ export default function IntakeForm({ onSubmit, loading, depth, threshold, onDept
                 onChange={(e) => onDepthChange(Number(e.target.value))}
                 className="w-full h-1 bg-edge-subtle rounded-full appearance-none cursor-pointer accent-mint" />
               <div className="flex justify-between mt-1.5">
-                <span className="text-2xs text-ink-tertiary font-mono">1 QUICK</span>
-                <span className="text-2xs text-ink-tertiary font-mono">10 DEEP</span>
+                <span className="text-2xs text-ink-secondary font-mono">1 QUICK</span>
+                <span className="text-2xs text-ink-secondary font-mono">10 DEEP</span>
               </div>
-              <p className="text-2xs text-ink-tertiary mt-2">Number of iterative reasoning loops. Higher values explore more evidence paths.</p>
+              <p className="text-2xs text-ink-secondary/70 mt-2">Number of iterative reasoning loops. Higher values explore more evidence paths.</p>
             </div>
 
             {/* Confidence target */}
@@ -109,10 +109,10 @@ export default function IntakeForm({ onSubmit, loading, depth, threshold, onDept
                 onChange={(e) => onThresholdChange(Number(e.target.value))}
                 className="w-full h-1 bg-edge-subtle rounded-full appearance-none cursor-pointer accent-mint" />
               <div className="flex justify-between mt-1.5">
-                <span className="text-2xs text-ink-tertiary font-mono">30% EXPLORE</span>
-                <span className="text-2xs text-ink-tertiary font-mono">100% STRICT</span>
+                <span className="text-2xs text-ink-secondary font-mono">30% EXPLORE</span>
+                <span className="text-2xs text-ink-secondary font-mono">100% STRICT</span>
               </div>
-              <p className="text-2xs text-ink-tertiary mt-2">Engine stops early when overall confidence exceeds this threshold.</p>
+              <p className="text-2xs text-ink-secondary/70 mt-2">Engine stops early when overall confidence exceeds this threshold.</p>
             </div>
           </div>
         </div>
@@ -122,7 +122,7 @@ export default function IntakeForm({ onSubmit, loading, depth, threshold, onDept
       <div className="border border-edge-subtle rounded bg-canvas-raised mt-4">
         <div className="px-4 py-2.5 border-b border-edge-subtle flex items-center justify-between">
           <p className={sectionLabel}>Execution</p>
-          <span className="text-2xs text-ink-tertiary font-mono">03</span>
+          <span className="text-2xs text-ink-secondary font-mono">03</span>
         </div>
         <div className="p-4">
           <div className="flex items-center justify-between">

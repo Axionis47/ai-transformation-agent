@@ -162,7 +162,7 @@ export default function HomePage() {
                 {/* Run Configuration Summary */}
                 <div className="border border-edge-subtle rounded bg-canvas-raised">
                   <div className="px-4 py-2.5 border-b border-edge-subtle">
-                    <p className="text-2xs text-ink-tertiary uppercase tracking-wider font-medium">Run Configuration</p>
+                    <p className="text-xs text-ink-secondary uppercase tracking-wider font-medium">Run Configuration</p>
                   </div>
                   <div className="p-4 space-y-3">
                     <ConfigRow label="Reasoning Depth" value={`${depth} / 10`} />
@@ -176,7 +176,7 @@ export default function HomePage() {
                 {/* Execution Estimate */}
                 <div className="border border-edge-subtle rounded bg-canvas-raised">
                   <div className="px-4 py-2.5 border-b border-edge-subtle">
-                    <p className="text-2xs text-ink-tertiary uppercase tracking-wider font-medium">Execution Estimate</p>
+                    <p className="text-xs text-ink-secondary uppercase tracking-wider font-medium">Execution Estimate</p>
                   </div>
                   <div className="p-4 space-y-3">
                     <ConfigRow label="Pipeline" value="5 stages" />
@@ -189,7 +189,7 @@ export default function HomePage() {
                 {/* System Status */}
                 <div className="border border-edge-subtle rounded bg-canvas-raised">
                   <div className="px-4 py-2.5 border-b border-edge-subtle">
-                    <p className="text-2xs text-ink-tertiary uppercase tracking-wider font-medium">System Status</p>
+                    <p className="text-xs text-ink-secondary uppercase tracking-wider font-medium">System Status</p>
                   </div>
                   <div className="p-4 space-y-2.5">
                     <StatusRow label="Grounder" status="online" />
@@ -242,7 +242,7 @@ export default function HomePage() {
 function ConfigRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-2xs text-ink-tertiary">{label}</span>
+      <span className="text-xs text-ink-secondary">{label}</span>
       <span className="text-sm text-ink font-mono tabular">{value}</span>
     </div>
   )
@@ -252,7 +252,7 @@ function StatusRow({ label, status }: { label: string; status: 'online' | 'stand
   const color = status === 'online' ? 'bg-mint' : status === 'standby' ? 'bg-amber' : 'bg-rose'
   return (
     <div className="flex items-center justify-between">
-      <span className="text-2xs text-ink-tertiary">{label}</span>
+      <span className="text-xs text-ink-secondary">{label}</span>
       <div className="flex items-center gap-1.5">
         <div className={`w-1.5 h-1.5 rounded-full ${color}`} />
         <span className="text-2xs text-ink-secondary font-mono uppercase">{status}</span>
