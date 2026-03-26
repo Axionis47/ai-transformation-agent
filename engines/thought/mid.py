@@ -130,6 +130,9 @@ def assess_coverage_with_llm(
     overall = sum(field_coverage.values()) / max(len(REQUIRED_FIELDS), 1)
     contradictions: list[dict] = []
 
+    # Detect research phase based on current coverage
+    phase = detect_phase(field_coverage)
+
     # Load ReAct prompt
     prompt_path = _PROMPT_DIR / "reasoning_react.md"
     template = prompt_path.read_text()
@@ -159,6 +162,9 @@ def assess_coverage_with_llm(
     prompt = prompt.replace("{ground_total}", str(ground_total))
     prompt = prompt.replace("{rag_remaining}", str(rag_remaining))
     prompt = prompt.replace("{rag_total}", str(rag_total))
+    prompt = prompt.replace("{phase_name}", phase["name"])
+    prompt = prompt.replace("{phase_instructions}", phase["instructions"])
+    prompt = prompt.replace("{phase_tool_guidance}", phase["tool_guidance"])
     # Convert escaped braces back for JSON example
     prompt = prompt.replace("{{", "{").replace("}}", "}")
 
@@ -217,11 +223,18 @@ def assess_coverage_with_llm(
     action_map = {"GROUND": "ground", "RAG": "rag", "ASK_USER": "ask_user"}
     gap_action = action_map.get(action, "ask_user")
 
-    # Budget enforcement: if model chose a tool that's exhausted, fall back
+    # Phase enforcement: nudge LLM toward phase-preferred tool
+    phase_prefer = phase.get("prefer", "any")
+    if phase_prefer == "ground" and gap_action == "rag" and ground_remaining > 0:
+        gap_action = "ground"  # Stay on web search during PROFILE/DISCOVER
+    elif phase_prefer == "rag" and gap_action == "ground" and rag_remaining > 0:
+        gap_action = "rag"  # Stay on KB search during MATCH
+
+    # Budget enforcement: if chosen tool is exhausted, fall back
     if gap_action == "ground" and ground_remaining <= 0:
         gap_action = "rag" if rag_remaining > 0 else "ask_user"
     if gap_action == "rag" and rag_remaining <= 0:
-        gap_action = "ask_user"
+        gap_action = "ground" if ground_remaining > 0 else "ask_user"
 
     target_field = parsed.get("target_field", "company_profile")
     if target_field not in REQUIRED_FIELDS:
