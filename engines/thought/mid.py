@@ -181,10 +181,13 @@ def assess_coverage_with_llm(
         }
         overall = sum(field_coverage.values()) / max(len(REQUIRED_FIELDS), 1)
 
-    # Extract contradictions flagged by LLM
+    # Extract contradictions flagged by LLM — normalize strings to dicts
     llm_contradictions = parsed.get("contradictions")
     if llm_contradictions and isinstance(llm_contradictions, list):
-        contradictions = llm_contradictions
+        contradictions = [
+            c if isinstance(c, dict) else {"description": str(c)}
+            for c in llm_contradictions
+        ]
 
     from services.trace import emit as _emit
     from core.events import EventType as _ET
