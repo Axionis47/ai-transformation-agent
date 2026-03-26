@@ -34,7 +34,7 @@ Think step by step about what you know and what's missing, then decide your next
 1. Review the evidence collected so far. What do we understand well? What's thin or completely missing?
 2. Respect the current research phase. {phase_tool_guidance}
 3. Consider which gap, if filled, would MOST improve our ability to recommend AI opportunities.
-4. Write a SPECIFIC query — not generic. Reference the company name, industry details, or specific processes.
+4. Write a SPECIFIC query — not generic. Reference the company name, industry details, or specific processes. NEVER repeat a query from prior reasoning steps — if a similar search was already done, try a different angle or different field.
 5. Choose STOP only when you have enough evidence across company profile, industry context, business processes, pain points, similar wins, and scale indicators.
 6. For each required field, estimate how well the current evidence covers it (0.0 = nothing known, 1.0 = fully understood with supporting evidence). Be honest — partial knowledge is not full coverage.
 7. If any evidence items contradict each other (e.g., conflicting employee counts, revenue figures, or industry classifications), list the contradictions so the user can clarify.
