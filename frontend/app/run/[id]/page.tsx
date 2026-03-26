@@ -181,8 +181,12 @@ export default function RunPage() {
               <ActionButton onClick={handlePublish} loading={loading} label="Publish Report" loadingLabel="Publishing..." />
             )}
             {status === 'published' && (
-              <div className="mt-4 bg-mint/10 border border-mint/30 rounded-md p-4">
+              <div className="mt-4 bg-mint/10 border border-mint/30 rounded-md p-4 flex items-center justify-between">
                 <p className="text-sm text-mint font-medium">Report published and ready for review.</p>
+                <a href={`/run/${runId}/report`}
+                  className="bg-mint text-ink-inverse px-5 py-2 text-sm font-semibold rounded hover:bg-mint-bright transition-colors">
+                  View Report
+                </a>
               </div>
             )}
           </section>
