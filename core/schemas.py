@@ -202,6 +202,15 @@ class TraceEvent(BaseModel):
 
 
 # --- Confidence ---
+class FieldKnowledge(BaseModel):
+    """Per-field synthesized understanding, updated each reasoning loop."""
+    field: str
+    synthesis: str = ""
+    evidence_ids: list[str] = []
+    confidence: float = 0.0
+    last_updated_loop: int = -1
+
+
 class FieldConfidence(BaseModel):
     field: str
     evidence_coverage: float
