@@ -48,6 +48,9 @@ def _check_escalation(
     contradictions: list[dict],
     budget_state: BudgetState,
     run_id: str,
+    grounder: object | None = None,
+    intake: CompanyIntake | None = None,
+    briefing: str = "",
 ) -> tuple[str | None, list[str], UserQuestion | None]:
     """Evaluate escalation triggers after loop completes. Returns (reason, fields, question)."""
     reasoning = config.get("reasoning", {})
@@ -93,20 +96,31 @@ def _check_escalation(
 
     emit(run_id, EventType.ESCALATION_TRIGGERED, {"reason": reason, "fields": fields})
 
-    # Build question text based on escalation type
+    # Use LLM to formulate a specific question based on what we know and what's missing
     field_names = ", ".join(f.replace("_", " ") for f in fields[:3])
-    messages = {
-        "contradictory_evidence": f"Conflicting information found. Can you clarify details about: {field_names}?",
-        "critical_field_gaps": f"Missing critical information about: {field_names}. Can you provide details?",
-        "budget_exhausted_with_gaps": f"Research budget depleted. Remaining gaps in: {field_names}. Can you help fill these?",
-        "confidence_stagnation": f"Analysis stalled. More information needed about: {field_names}.",
-        "low_coverage_after_loops": f"Analysis incomplete. Key gaps remain in: {field_names}. Can you provide context?",
-    }
+    company = intake.company_name if intake else "the company"
+    question_text = f"Can you provide details about {field_names} for {company}?"
+
+    if grounder and intake and briefing:
+        prompt = (
+            f"You are researching {intake.company_name} ({intake.industry}) for AI opportunities.\n\n"
+            f"## What we know so far\n{briefing}\n\n"
+            f"## What's missing\nWe need more information about: {field_names}\n"
+            f"## Escalation reason: {reason.replace('_', ' ')}\n\n"
+            f"Write ONE specific, actionable question to ask the user that would fill the biggest gap. "
+            f"Reference what you already know. Do not ask a generic question. "
+            f"Respond with ONLY the question text, nothing else."
+        )
+        llm_question = grounder.reason(prompt, run_id)  # type: ignore[attr-defined]
+        if llm_question and llm_question.strip():
+            question_text = llm_question.strip()
+
     question = UserQuestion(
         question_id=str(uuid.uuid4()),
         run_id=run_id,
         field=fields[0] if fields else "company_profile",
-        question_text=messages.get(reason, f"Additional information needed about: {field_names}"),
+        question_text=question_text,
+        context=f"Escalation: {reason.replace('_', ' ')}. Fields: {field_names}",
     )
     return reason, fields, question
 
@@ -433,6 +447,7 @@ class ThoughtEngine:
             esc_reason, esc_fields, esc_question = _check_escalation(
                 coverage, confidence, self._threshold, self._config,
                 confidence_history, all_contradictions, budget_state, run_id,
+                grounder=self._grounder, intake=intake, briefing=wmem.build_briefing(),
             )
         if esc_question:
             return ReasoningLoopResult(
