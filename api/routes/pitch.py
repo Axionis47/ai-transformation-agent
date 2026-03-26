@@ -8,11 +8,13 @@ from fastapi import APIRouter, HTTPException
 from core import run_manager
 from core.events import EventType
 from core.schemas import (
+    Assumption,
     AssumptionsDraft,
     BudgetState,
     EvidenceItem,
     Opportunity,
     ReasoningState,
+    RefineRequest,
     Run,
     RunStatus,
 )
@@ -106,6 +108,64 @@ def publish(run_id: str) -> Run:
     run_manager.transition(run_id, RunStatus.PUBLISHED)
     emit(run_id, EventType.RUN_PUBLISHED, {"run_id": run_id})
     return run_manager.get_run(run_id)  # type: ignore[return-value]
+
+
+@router.post("/runs/{run_id}/refine")
+def refine_report(run_id: str, body: RefineRequest) -> dict:
+    """Apply corrections and re-score opportunities without re-running full pipeline."""
+    run = run_manager.get_run(run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail=f"Run not found: {run_id}")
+    if run.status not in (RunStatus.REPORT, RunStatus.PUBLISHED):
+        raise HTTPException(status_code=409, detail=f"Run must be in REPORT or PUBLISHED status")
+
+    changes: dict = {"corrected": [], "removed": []}
+
+    # Apply assumption corrections
+    if body.corrections and run.assumptions:
+        for corr in body.corrections:
+            for a in run.assumptions.assumptions:
+                if a.field == corr.field:
+                    changes["corrected"].append({"field": corr.field, "old": a.value, "new": corr.new_value})
+                    a.value = corr.new_value
+                    a.confidence = 1.0
+                    a.source = "user"
+        run_manager.update_assumptions(run_id, run.assumptions)
+        emit(run_id, EventType.ASSUMPTIONS_CORRECTED, {"corrections": changes["corrected"]})
+
+    # Remove opportunities
+    if body.removed_opportunity_ids:
+        kept = [o for o in run.opportunities if o.opportunity_id not in body.removed_opportunity_ids]
+        changes["removed"] = body.removed_opportunity_ids
+        run_manager.store_opportunities(run_id, kept)
+        emit(run_id, EventType.OPPORTUNITIES_REMOVED, {"ids": body.removed_opportunity_ids})
+
+    # Add user context as evidence
+    if body.additional_context:
+        from core.schemas import EvidenceSource
+        import uuid
+        ev = EvidenceItem(
+            evidence_id=str(uuid.uuid4()), run_id=run_id,
+            source_type=EvidenceSource.USER_PROVIDED, source_ref="user_refinement",
+            title="User-provided context during refinement",
+            snippet=body.additional_context, relevance_score=0.9,
+        )
+        run_manager.add_evidence(run_id, ev)
+
+    # Re-compose report with updated state
+    run = run_manager.get_run(run_id)
+    state = run.reasoning_state or ReasoningState()
+    intake = run.company_intake
+    budget_state = run.budget_state or BudgetState()
+    evidence = get_evidence_store().get_all(run_id)
+
+    from engines.pitch.composer import compose_report as _compose
+    report = _compose(intake, run.opportunities, evidence, state, budget_state, assumptions=run.assumptions)
+    report["metadata"]["refinement_count"] = report["metadata"].get("refinement_count", 0) + 1
+    run_manager.store_report(run_id, report)
+
+    emit(run_id, EventType.REPORT_REFINED, {"changes": changes})
+    return {"report": report, "changes": changes}
 
 
 @router.get("/runs/{run_id}/evidence")
