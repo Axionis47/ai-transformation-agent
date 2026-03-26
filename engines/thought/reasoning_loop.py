@@ -68,7 +68,7 @@ def _check_escalation(
     # Priority 1: Contradictions need human resolution
     if contradictions:
         reason = "contradictory_evidence"
-        fields = list({c.get("field", "") for c in contradictions if c.get("field")}) or all_gaps
+        fields = list({c.get("field", "") for c in contradictions if isinstance(c, dict) and c.get("field")}) or all_gaps
     # Priority 2: Critical fields below minimum after all loops
     elif critical_gaps:
         reason = "critical_field_gaps"
