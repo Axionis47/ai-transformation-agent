@@ -100,3 +100,17 @@ export async function getReport(runId: string): Promise<Record<string, unknown>>
 export async function getOpportunities(runId: string): Promise<Opportunity[]> {
   return apiFetch<Opportunity[]>(`/runs/${runId}/opportunities`)
 }
+
+export async function refineReport(
+  runId: string,
+  body: {
+    corrections?: { field: string; new_value: string; reason?: string }[]
+    removed_opportunity_ids?: string[]
+    additional_context?: string
+  },
+): Promise<Record<string, unknown>> {
+  return apiFetch<Record<string, unknown>>(`/runs/${runId}/refine`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
