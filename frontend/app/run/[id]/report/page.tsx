@@ -48,7 +48,7 @@ export default function ReportPage() {
       try {
         const [r, rpt] = await Promise.all([getRun(runId), getReport(runId)])
         setRun(r)
-        setReport(rpt as ReportData)
+        setReport(rpt as unknown as ReportData)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load report')
       }
