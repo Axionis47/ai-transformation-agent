@@ -12,9 +12,10 @@ from services.rag.store import RAGStore
 INTAKE = CompanyIntake(company_name="Acme Logistics", industry="logistics")
 NO_ASSUMPTIONS = AssumptionsDraft(assumptions=[], open_questions=[])
 CFG = {
-    "reasoning": {"depth_budget": 3, "confidence_threshold": 0.7},
-    "budgets": {"external_search_query_budget": 5, "external_search_max_calls": 3,
-        "rag_query_budget": 8, "rag_top_k": 5, "rag_min_score": 0.3},
+    "reasoning": {"depth_budget": 5, "confidence_threshold": 0.7,
+        "min_field_coverage": 0.3, "stagnation_threshold": 2, "stagnation_delta": 0.02},
+    "budgets": {"external_search_query_budget": 10, "external_search_max_calls": 8,
+        "rag_query_budget": 15, "rag_top_k": 5, "rag_min_score": 0.3},
     "confidence": {"evidence_coverage_weight": 0.45, "evidence_strength_weight": 0.35,
         "source_diversity_weight": 0.20},
 }
@@ -33,12 +34,12 @@ def test_loop_completes_depth_budget():
     with tempfile.TemporaryDirectory() as d:
         eng, _ = _engine(tmpdir=d)
         r = eng.run_loop("r1", INTAKE, NO_ASSUMPTIONS, BudgetState())
-        assert r.completed is True and r.loops_run <= 3
+        assert r.completed is True and r.loops_run <= 5
 
 
 def test_loop_stops_on_confidence_threshold():
     with tempfile.TemporaryDirectory() as d:
-        cfg = {**CFG, "reasoning": {"depth_budget": 3, "confidence_threshold": 0.01}}
+        cfg = {**CFG, "reasoning": {**CFG["reasoning"], "depth_budget": 5, "confidence_threshold": 0.01}}
         eng, _ = _engine(cfg, d)
         r = eng.run_loop("r2", INTAKE, NO_ASSUMPTIONS, BudgetState())
         assert r.stop_reason == "confidence_met"
