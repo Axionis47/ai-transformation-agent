@@ -84,6 +84,10 @@ def start_run(run_id: str) -> AssumptionsDraft | ReasoningLoopResult:
             stop_reason=result.stop_reason,
             coverage_gaps=result.coverage_gaps,
             loops_completed=result.loops_run,
+            escalation_reason=result.escalation_reason,
+            escalation_fields=result.escalation_fields,
+            contradictions=result.contradictions,
+            confidence_history=result.confidence_history,
         )
         run_manager.add_evidence(run_id, result.evidence_items, source_label="reasoning_loop")
         run_manager.update_reasoning_state(run_id, state)
@@ -173,6 +177,10 @@ def answer_question(run_id: str, body: UserAnswer) -> ReasoningLoopResult:
         stop_reason=result.stop_reason,
         coverage_gaps=result.coverage_gaps,
         loops_completed=result.loops_run,
+        escalation_reason=result.escalation_reason,
+        escalation_fields=result.escalation_fields,
+        contradictions=result.contradictions,
+        confidence_history=result.confidence_history,
     )
     run_manager.add_evidence(run_id, result.evidence_items, source_label="reasoning_loop_resumed")
     run_manager.update_reasoning_state(run_id, new_state)
