@@ -36,30 +36,43 @@ _INDUSTRY_TEXT: dict[str, str] = {
 
 
 _REACT_RESPONSES: dict[int, dict] = {
+    # Phase 1: PROFILE — understand the company via web search
     0: {
-        "thinking": "Initial research found company overview but we lack specific pain points and operational challenges. Need to understand their workflows.",
+        "thinking": "Phase PROFILE: We know almost nothing about this company. Need to understand who they are, what industry they're in, and their scale before we can search for comparable cases.",
         "action": "GROUND",
-        "query": "What are the main operational challenges and inefficiencies?",
-        "target_field": "pain_points",
-        "reasoning": "Pain points are critical for matching AI opportunities to real problems.",
-        "field_coverage": {"company_profile": 0.3, "industry_context": 0.2, "business_processes": 0.1, "pain_points": 0.0, "similar_wins": 0.0, "scale_indicators": 0.1},
+        "query": "What does this company do, how many employees, what products and market position?",
+        "target_field": "company_profile",
+        "reasoning": "Must understand the company before searching our knowledge base. Web search first.",
+        "field_coverage": {"company_profile": 0.1, "industry_context": 0.1, "business_processes": 0.0, "pain_points": 0.0, "similar_wins": 0.0, "scale_indicators": 0.1},
         "contradictions": [],
     },
+    # Phase 2: DISCOVER — dig into pain points via web search
     1: {
-        "thinking": "We have company profile and pain points. Now need similar past engagements to ground recommendations in proven results.",
-        "action": "RAG",
-        "query": "automation implementation mid-market",
-        "target_field": "similar_wins",
-        "reasoning": "Past engagement data strengthens our recommendations with proven ROI.",
-        "field_coverage": {"company_profile": 0.7, "industry_context": 0.5, "business_processes": 0.4, "pain_points": 0.6, "similar_wins": 0.1, "scale_indicators": 0.3},
+        "thinking": "Phase DISCOVER: We have a company profile now. Need to understand their specific operational challenges and bottlenecks before matching against past cases.",
+        "action": "GROUND",
+        "query": "What are the operational challenges, manual processes, and inefficiencies?",
+        "target_field": "pain_points",
+        "reasoning": "Need specific pain points to make targeted RAG queries in the next phase.",
+        "field_coverage": {"company_profile": 0.6, "industry_context": 0.5, "business_processes": 0.2, "pain_points": 0.1, "similar_wins": 0.0, "scale_indicators": 0.4},
         "contradictions": [],
     },
+    # Phase 3: MATCH — search knowledge base with informed queries
     2: {
-        "thinking": "We have good coverage across most fields. Evidence is sufficient to proceed to synthesis.",
+        "thinking": "Phase MATCH: We understand the company and their pain points. Now searching our engagement database for similar cases using specific context.",
+        "action": "RAG",
+        "query": "mid-market company manual compliance workflow automation",
+        "target_field": "similar_wins",
+        "reasoning": "With company context established, we can make targeted KB queries for comparable engagements.",
+        "field_coverage": {"company_profile": 0.7, "industry_context": 0.6, "business_processes": 0.5, "pain_points": 0.6, "similar_wins": 0.1, "scale_indicators": 0.5},
+        "contradictions": [],
+    },
+    # Phase 4: FILL/STOP — enough evidence gathered
+    3: {
+        "thinking": "Phase FILL: Coverage is strong across all fields. We have company context, pain points, and matched past engagements. Ready for synthesis.",
         "action": "STOP",
         "query": "",
         "target_field": "",
-        "reasoning": "Enough evidence across company profile, pain points, and similar wins to generate recommendations.",
+        "reasoning": "All required fields have adequate coverage. Evidence is sufficient for opportunity synthesis.",
         "field_coverage": {"company_profile": 0.9, "industry_context": 0.8, "business_processes": 0.7, "pain_points": 0.8, "similar_wins": 0.6, "scale_indicators": 0.6},
         "contradictions": [],
     },
@@ -81,9 +94,9 @@ class FakeGeminiClient:
             return {"text": FakeGeminiClient._fake_opportunity_eval(prompt)}
         if "extract structured assumptions" in prompt.lower():
             return {"text": FakeGeminiClient._fake_assumption_extraction(prompt)}
-        # ReAct step
-        idx = min(self._reason_count - 1, 2)
-        react = _REACT_RESPONSES.get(idx, _REACT_RESPONSES[2])
+        # ReAct step — cycle through phase-aware responses
+        idx = min(self._reason_count - 1, 3)
+        react = _REACT_RESPONSES.get(idx, _REACT_RESPONSES[3])
         import json
         return {"text": json.dumps(react)}
 
