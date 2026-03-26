@@ -26,7 +26,7 @@ PHASES = [
     {
         "name": "PROFILE",
         "fields": ["company_profile", "industry_context", "scale_indicators"],
-        "threshold": 0.4,
+        "threshold": 0.5,
         "instructions": "Focus on understanding who this company is. What do they do, how big are they, what market are they in? Use GROUND (web search) — do NOT search the knowledge base yet.",
         "tool_guidance": "Use GROUND for company-specific facts. Do not use RAG in this phase — you need company context before searching past engagements.",
         "prefer": "ground",
@@ -34,7 +34,7 @@ PHASES = [
     {
         "name": "DISCOVER",
         "fields": ["business_processes", "pain_points"],
-        "threshold": 0.4,
+        "threshold": 0.5,
         "instructions": "Now dig into their operational challenges. What processes are manual? Where are the bottlenecks and inefficiencies? Use GROUND to find specific pain points.",
         "tool_guidance": "Use GROUND for operational details, challenges, and workflow information. RAG is acceptable if you need to check if a specific pain pattern matches past cases.",
         "prefer": "ground",
@@ -188,11 +188,12 @@ def assess_coverage_with_llm(
 
     from services.trace import emit as _emit
     from core.events import EventType as _ET
-    _emit(run_id, _ET.REASONING_LOOP_STARTED, {
+    _emit(run_id, _ET.MID_GAP_DETECTED, {
         "react_raw_length": len(raw_text),
         "react_parsed_keys": list(parsed.keys()),
         "react_action": parsed.get("action", "NONE"),
         "react_thinking": str(parsed.get("thinking", ""))[:200],
+        "phase": phase["name"],
     })
 
     action = parsed.get("action", "STOP").upper()
