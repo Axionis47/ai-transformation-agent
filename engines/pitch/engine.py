@@ -128,9 +128,11 @@ class PitchEngine:
         reasoning_state: ReasoningState,
         company_intake: CompanyIntake,
         budget_state: BudgetState,
+        assumptions: "AssumptionsDraft | None" = None,
     ) -> dict:
         report = composer_mod.compose_report(
             company_intake, opportunities, evidence, reasoning_state, budget_state,
+            assumptions=assumptions,
         )
         emit(run_id, EventType.REPORT_RENDERED, {
             "opportunity_count": len(opportunities),

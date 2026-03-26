@@ -80,7 +80,8 @@ def synthesize(run_id: str) -> dict:
         run_id, opportunities, get_evidence_store().get_all(run_id), intake, state, budget_state
     )
     report = engine.compose_report(
-        run_id, opportunities, report_ctx.linked_evidence, state, intake, budget_state
+        run_id, opportunities, report_ctx.linked_evidence, state, intake, budget_state,
+        assumptions=run.assumptions,
     )
     run_manager.store_report(run_id, report)
     run_manager.transition(run_id, RunStatus.REPORT)
