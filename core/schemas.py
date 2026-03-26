@@ -170,6 +170,19 @@ class Opportunity(BaseModel):
     data_sufficiency: str = "scored"
 
 
+# --- Refinement ---
+class AssumptionCorrection(BaseModel):
+    field: str
+    new_value: str
+    reason: Optional[str] = None
+
+
+class RefineRequest(BaseModel):
+    corrections: list[AssumptionCorrection] = []
+    removed_opportunity_ids: list[str] = []
+    additional_context: Optional[str] = None
+
+
 # --- Stage output ---
 class StageOutput(BaseModel):
     run_id: str
