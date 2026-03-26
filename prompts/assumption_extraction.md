@@ -25,8 +25,13 @@ Extract structured assumptions from the research. For each of these fields, dete
 
 For each field:
 - Extract the most specific, factual statement from the research
-- Rate your confidence (0.0-1.0) based on how well-supported the claim is
-- Explain your confidence rating
+- Rate confidence using this rubric — do NOT default to high values:
+  - 0.9-1.0: Direct from official source (company website, SEC filing, press release with date)
+  - 0.7-0.8: Multiple sources agree but no official confirmation
+  - 0.5-0.6: Single source or general industry knowledge applied to this company
+  - 0.3-0.4: Inferred from indirect signals, not directly stated
+  - 0.1-0.2: Educated guess, very little supporting evidence
+- Explain your confidence rating — cite what supports it and what's uncertain
 - If no information is available, list it as an open question with a suggested follow-up query
 
 Respond ONLY with this JSON (no other text):
@@ -36,7 +41,7 @@ Respond ONLY with this JSON (no other text):
     {{
       "field": "company_description",
       "value": "Clear, specific statement about what the company does",
-      "confidence": 0.85,
+      "confidence": 0.65,
       "confidence_reasoning": "Why you're this confident — cite what supports it",
       "source_quote": "Exact quote or paraphrase from the research text"
     }}
