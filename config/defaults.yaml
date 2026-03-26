@@ -1,6 +1,6 @@
 # Budget controls
 budgets:
-  external_search_query_budget: 10     # max Google Search queries total
+  external_search_query_budget: 25     # max Google Search queries total (Gemini uses 5-10 per call)
   external_search_max_calls: 8         # max Gemini grounding calls
   rag_query_budget: 15                 # max RAG retrievals
   rag_top_k: 5                         # results per RAG query
