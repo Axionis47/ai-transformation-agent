@@ -72,12 +72,15 @@ export default function ReasoningStage({ state, depthBudget, onAnswer, loading }
         </div>
       )}
 
-      {/* Escalation panel (amber) — distinct from regular agent question (mint) */}
+      {/* Escalation panel (amber) — optional, not blocking */}
       {pending_question && !completed && isEscalation && (
-        <div className="bg-canvas-overlay border border-amber/30 rounded-md p-5">
-          <p className="text-2xs text-amber uppercase tracking-wider mb-2 font-medium">
-            {escalation_reason?.replace(/_/g, ' ') || 'Input Required'}
-          </p>
+        <div className="bg-canvas-overlay border border-amber/20 rounded-md p-5">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-2xs text-amber uppercase tracking-wider font-medium">
+              Optional: Improve Coverage
+            </p>
+            <span className="text-2xs text-ink-tertiary">You can skip this and proceed to synthesis</span>
+          </div>
           {escalation_fields && escalation_fields.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-3">
               {escalation_fields.map(f => (
@@ -93,14 +96,14 @@ export default function ReasoningStage({ state, depthBudget, onAnswer, loading }
               ))}
             </div>
           )}
-          <p className="text-base text-ink leading-relaxed mb-3">{pending_question.question_text}</p>
+          <p className="text-sm text-ink-secondary leading-relaxed mb-3">{pending_question.question_text}</p>
           <form onSubmit={handleSubmit} className="flex gap-2">
             <input type="text" value={answer} onChange={(e) => setAnswer(e.target.value)}
-              placeholder="Your answer..."
+              placeholder="Optional: provide additional context..."
               className="flex-1 bg-canvas-inset border border-edge text-ink text-sm font-sans p-2.5 rounded-md focus:border-amber focus:outline-none" />
             <button type="submit" disabled={loading || !answer.trim()}
-              className="bg-amber text-ink-inverse px-4 py-2 text-sm font-semibold rounded-md disabled:opacity-40 hover:brightness-110 transition-colors">
-              Submit
+              className="bg-amber/80 text-ink-inverse px-4 py-2 text-sm font-medium rounded-md disabled:opacity-40 hover:bg-amber transition-colors">
+              Add Context
             </button>
           </form>
         </div>
