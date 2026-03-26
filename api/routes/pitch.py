@@ -46,7 +46,10 @@ def synthesize(run_id: str) -> dict:
     if run.status != RunStatus.REASONING:
         raise HTTPException(status_code=409, detail=f"Run must be in REASONING status, got: {run.status.value}")
     state = run.reasoning_state
-    if state is None or not state.completed:
+    if state is None:
+        raise HTTPException(status_code=400, detail="Reasoning not started.")
+    # Allow synthesis when reasoning completed OR when escalation is active (user chose to skip)
+    if not state.completed and not state.escalation_reason:
         raise HTTPException(status_code=400, detail="Reasoning not completed. Call POST /answer until completed=true.")
 
     intake = run.company_intake
