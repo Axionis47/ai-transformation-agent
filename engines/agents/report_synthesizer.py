@@ -14,6 +14,7 @@ from core.schemas import (
     AdaptiveReport,
     AgentResult,
     Hypothesis,
+    ReportFeedback,
     ReportOpportunity,
 )
 from engines.agents.base import AgentThought, BaseResearchAgent
@@ -32,11 +33,13 @@ class ReportSynthesizerAgent(BaseResearchAgent):
         self,
         hypotheses: list[Hypothesis] | None = None,
         tracker: HypothesisTracker | None = None,
+        feedback: list[ReportFeedback] | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
         self._hypotheses = hypotheses or []
         self._tracker = tracker or HypothesisTracker()
+        self._feedback = feedback or []
 
     async def run(self) -> AgentResult:
         """Single synthesis call — no ReAct loop."""
@@ -81,7 +84,7 @@ class ReportSynthesizerAgent(BaseResearchAgent):
         chains = self._build_reasoning_chains()
         ev_count = sum(len(h.evidence_for) for h in self._hypotheses)
 
-        return self._system_prompt.format(
+        prompt = self._system_prompt.format(
             company_name=company,
             industry=industry,
             context_briefing=context_briefing,
@@ -89,6 +92,28 @@ class ReportSynthesizerAgent(BaseResearchAgent):
             reasoning_chains=chains,
             evidence_count=ev_count,
         )
+
+        if self._feedback:
+            prompt += self._build_feedback_section()
+        return prompt
+
+    def _build_feedback_section(self) -> str:
+        """Append user feedback instructions to the prompt."""
+        lines = [
+            "\n\n## USER FEEDBACK — INCORPORATE THESE CHANGES",
+            "The user has reviewed the previous version of this "
+            "report and wants specific changes:\n",
+        ]
+        for i, fb in enumerate(self._feedback, 1):
+            lines.append(
+                f"{i}. [{fb.feedback_type}] Target: "
+                f"{fb.target_section} — \"{fb.instruction}\""
+            )
+        lines.append(
+            "\nRegenerate the report incorporating ALL feedback. "
+            "Keep everything else that was good."
+        )
+        return "\n".join(lines)
 
     def _build_hypotheses_summary(self) -> str:
         if not self._hypotheses:
