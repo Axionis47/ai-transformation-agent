@@ -6,6 +6,7 @@ import type {
   Hypothesis,
   Opportunity,
   ReasoningConfig,
+  ReportFeedback,
   Run,
   UIHints,
   UserInteractionPoint,
@@ -191,4 +192,14 @@ export async function requestDeeperInvestigation(
     `/runs/${runId}/review/investigate`,
     { method: 'POST' },
   )
+}
+
+export async function refineReportWithFeedback(
+  runId: string,
+  feedbacks: ReportFeedback[],
+): Promise<Run> {
+  return apiFetch<Run>(`/runs/${runId}/report/refine`, {
+    method: 'POST',
+    body: JSON.stringify({ feedbacks }),
+  })
 }

@@ -106,6 +106,7 @@ export interface Run {
   reasoning_state: ReasoningState | null
   opportunities: Opportunity[]
   report: Record<string, unknown>
+  feedback_history: ReportFeedback[]
 }
 
 export interface UIAction {
@@ -264,4 +265,10 @@ export interface AdaptiveReport {
   recommended_next_steps: string[]
   evidence_annex: Record<string, unknown>[]
   agent_activity_summary: Record<string, unknown>[]
+}
+
+export interface ReportFeedback {
+  feedback_type: 'edit' | 'deepen' | 'reinvestigate'
+  target_section: string
+  instruction: string
 }
