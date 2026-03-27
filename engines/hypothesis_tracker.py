@@ -72,12 +72,19 @@ class HypothesisTracker:
         h.test_results.append(test_result)
         h.confidence = max(0.0, min(1.0, h.confidence + test_result.impact_on_confidence))
 
-        if test_result.impact_on_confidence >= 0:
-            h.evidence_for.extend(test_result.evidence_ids)
-            step_type = "tested_with"
-        else:
+        is_condition = test_result.test_type in (
+            "prerequisite", "condition", "caveat",
+        ) or "prerequisit" in narrative.lower() or "condition" in narrative.lower()
+
+        if test_result.impact_on_confidence < 0:
             h.evidence_against.extend(test_result.evidence_ids)
             step_type = "contradicted_by"
+        elif is_condition:
+            h.evidence_conditions.extend(test_result.evidence_ids)
+            step_type = "tested_with"
+        else:
+            h.evidence_for.extend(test_result.evidence_ids)
+            step_type = "tested_with"
 
         h.reasoning_chain.append(ReasoningStep(
             step_type=step_type,

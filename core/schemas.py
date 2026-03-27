@@ -268,6 +268,7 @@ class Hypothesis(BaseModel):
     confidence: float = 0.0
     evidence_for: list[str] = []
     evidence_against: list[str] = []
+    evidence_conditions: list[str] = []  # prerequisite/caveat evidence
     analogous_engagements: list[str] = []
     conditions_for_success: list[str] = []
     risks: list[str] = []
