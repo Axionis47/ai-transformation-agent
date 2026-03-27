@@ -35,12 +35,37 @@ class HypothesisFormerAgent(BaseResearchAgent):
         company = intake.company_name if intake else "unknown"
         industry = intake.industry if intake else "unknown"
 
+        # Pull structured insights and pain points from prior phases
+        insights = self._ctx.get_derived_insights() if self._ctx else []
+        pain_points = self._ctx.get_pain_points() if self._ctx else []
+
+        structured_inputs = ""
+        if insights:
+            structured_inputs += (
+                "\nSTRUCTURED INSIGHTS (from prior agents):\n"
+            )
+            structured_inputs += "\n".join(
+                f"- [{i.phase}] {i.statement} [{i.confidence:.0%}]"
+                for i in insights
+            )
+        if pain_points:
+            structured_inputs += "\nIDENTIFIED PAIN POINTS:\n"
+            structured_inputs += "\n".join(
+                f"- [{pp.severity.upper()}] {pp.description}"
+                f" (process: {pp.affected_process})"
+                for pp in pain_points
+            )
+
         prompt = self._system_prompt.format(
             company_name=company,
             industry=industry,
             context_briefing=context,
             rag_remaining=self._rag_remaining(),
         )
+
+        # Inject structured inputs after context briefing
+        if structured_inputs:
+            prompt += structured_inputs
 
         if self._past_queries:
             prompt += "\n\nPrevious RAG queries (do NOT repeat):\n"
