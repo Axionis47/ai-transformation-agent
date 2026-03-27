@@ -58,14 +58,26 @@ PHASES = [
 ]
 
 
-def detect_phase(field_coverage: dict[str, float]) -> dict:
-    """Determine current research phase based on field coverage."""
+def detect_phase(field_coverage: dict[str, float], loop_idx: int = 0) -> dict:
+    """Determine current research phase based on field coverage and loop progress.
+
+    Forces phase advancement after 2 loops per phase to prevent getting stuck.
+    """
+    # Time-based phase boundaries: don't spend more than 2 loops per phase
+    if loop_idx >= 4:
+        return PHASES[3]  # FILL
+    if loop_idx >= 3:
+        return PHASES[2]  # MATCH
+    if loop_idx >= 2:
+        return PHASES[1]  # DISCOVER
+
+    # Coverage-based: advance when phase fields are adequately covered
     for phase in PHASES:
         target_fields = phase["fields"]
         avg_coverage = sum(field_coverage.get(f, 0.0) for f in target_fields) / max(len(target_fields), 1)
         if avg_coverage < phase["threshold"]:
             return phase
-    return PHASES[-1]  # Default to FILL if all phases met
+    return PHASES[-1]
 
 
 @dataclass

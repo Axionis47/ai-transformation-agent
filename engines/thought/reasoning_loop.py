@@ -252,8 +252,11 @@ class ThoughtEngine:
         for loop_idx in range(start_loop, self._depth_budget):
             # Detect phase from current coverage
             from engines.thought.mid import detect_phase
-            phase = detect_phase({f: 0.0 for f in mid.REQUIRED_FIELDS} if acc.count() == 0
-                                 else mid._estimate_field_coverage(acc.get_all()))
+            phase = detect_phase(
+                {f: 0.0 for f in mid.REQUIRED_FIELDS} if acc.count() == 0
+                else mid._estimate_field_coverage(acc.get_all()),
+                loop_idx=loop_idx,
+            )
             if phase["name"] != current_phase:
                 current_phase = phase["name"]
                 emit(run_id, EventType.MID_GAP_DETECTED, {
