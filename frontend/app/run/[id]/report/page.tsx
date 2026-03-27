@@ -3,12 +3,13 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { getRun, getReport, refineReport } from '@/lib/api'
+import { getRun, getReport, refineReport, approveReport, requestDeeperInvestigation } from '@/lib/api'
+import AdaptiveReportView from '@/components/AdaptiveReportView'
 import TierBadge from '@/components/ui/TierBadge'
 import ScoreBar from '@/components/ui/ScoreBar'
 import Spinner from '@/components/ui/Spinner'
 import Badge from '@/components/ui/Badge'
-import type { Run } from '@/lib/types'
+import type { Run, AdaptiveReport } from '@/lib/types'
 
 interface ReportData {
   operator_brief: {
@@ -31,13 +32,19 @@ interface ReportOpp {
   data_sufficiency?: string
 }
 
+function isAdaptiveReport(data: Record<string, unknown>): data is Record<string, unknown> & AdaptiveReport {
+  return typeof data.executive_summary === 'string' && typeof data.key_insight === 'string' && Array.isArray(data.opportunities)
+}
+
 export default function ReportPage() {
   const params = useParams()
   const runId = params.id as string
   const [run, setRun] = useState<Run | null>(null)
   const [report, setReport] = useState<ReportData | null>(null)
+  const [adaptiveReport, setAdaptiveReport] = useState<AdaptiveReport | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [refining, setRefining] = useState(false)
+  const [reviewAction, setReviewAction] = useState<string | null>(null)
   const [context, setContext] = useState('')
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set())
   const [editingAssumption, setEditingAssumption] = useState<string | null>(null)
@@ -48,7 +55,11 @@ export default function ReportPage() {
     try {
       const [r, rpt] = await Promise.all([getRun(runId), getReport(runId)])
       setRun(r)
-      setReport(rpt as unknown as ReportData)
+      if (isAdaptiveReport(rpt)) {
+        setAdaptiveReport(rpt as unknown as AdaptiveReport)
+      } else {
+        setReport(rpt as unknown as ReportData)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load report')
     }
@@ -71,6 +82,26 @@ export default function ReportPage() {
     } finally { setRefining(false) }
   }
 
+  async function handleApprove() {
+    setReviewAction('approving'); setError(null)
+    try {
+      await approveReport(runId)
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Approval failed')
+    } finally { setReviewAction(null) }
+  }
+
+  async function handleInvestigate() {
+    setReviewAction('investigating'); setError(null)
+    try {
+      await requestDeeperInvestigation(runId)
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Investigation request failed')
+    } finally { setReviewAction(null) }
+  }
+
   function startEdit(field: string, value: string) {
     setEditingAssumption(field); setEditValue(value)
   }
@@ -81,11 +112,41 @@ export default function ReportPage() {
 
   const hasPendingChanges = corrections.length > 0 || removedIds.size > 0 || context.trim().length > 0
 
-  if (error && !report) return <div className="min-h-screen flex items-center justify-center"><p className="text-rose text-sm">{error}</p></div>
-  if (!run || !report) return <div className="min-h-screen flex items-center justify-center"><Spinner size={24} /></div>
+  if (error && !report && !adaptiveReport) return <div className="min-h-screen flex items-center justify-center"><p className="text-rose text-sm">{error}</p></div>
+  if (!run || (!report && !adaptiveReport)) return <div className="min-h-screen flex items-center justify-center"><Spinner size={24} /></div>
 
-  const brief = report.operator_brief
-  const meta = report.metadata
+  // Adaptive report: render AdaptiveReportView with review actions
+  if (adaptiveReport) {
+    return (
+      <div className="min-h-screen bg-canvas">
+        <header className="h-11 bg-canvas-raised border-b border-edge-subtle flex items-center px-5 shrink-0 sticky top-0 z-20">
+          <Link href={`/run/${runId}`} className="text-2xs text-ink-tertiary hover:text-ink transition-colors font-mono">&larr; Analysis</Link>
+          <div className="w-px h-4 bg-edge mx-4" />
+          <span className="text-2xs font-mono text-ink-tertiary uppercase tracking-[0.15em]">Adaptive Report</span>
+          <div className="flex-1" />
+        </header>
+        <main className="max-w-5xl mx-auto p-6 lg:p-8">
+          {error && <div className="bg-rose/10 border border-rose/20 rounded p-3 mb-6"><p className="text-sm text-rose font-mono">{error}</p></div>}
+          <AdaptiveReportView report={adaptiveReport} />
+          <section className="mt-8 border-t border-edge-subtle pt-6 flex items-center gap-4">
+            <button onClick={handleApprove} disabled={!!reviewAction}
+              className="bg-mint text-ink-inverse px-6 py-2.5 text-sm font-semibold rounded-md disabled:opacity-40 hover:bg-mint-bright transition-colors flex items-center gap-2">
+              {reviewAction === 'approving' ? <><Spinner size={14} />Approving...</> : 'Approve Report'}
+            </button>
+            <button onClick={handleInvestigate} disabled={!!reviewAction}
+              className="bg-canvas-raised border border-edge-subtle text-ink px-6 py-2.5 text-sm font-semibold rounded-md disabled:opacity-40 hover:border-amber hover:text-amber transition-colors flex items-center gap-2">
+              {reviewAction === 'investigating' ? <><Spinner size={14} />Requesting...</> : 'Investigate Deeper'}
+            </button>
+          </section>
+        </main>
+      </div>
+    )
+  }
+
+  // Legacy report: fall through to existing rendering
+  // report is guaranteed non-null here (early return + adaptive guard above)
+  const brief = report!.operator_brief
+  const meta = report!.metadata
   const tiers = ['easy', 'medium', 'hard'] as const
 
   return (
@@ -254,11 +315,11 @@ export default function ReportPage() {
         <section className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <p className="text-2xs text-ink-tertiary uppercase tracking-wider font-medium">Evidence Annex</p>
-            <span className="text-2xs text-ink-tertiary font-mono">{report.evidence_annex.length}</span>
+            <span className="text-2xs text-ink-tertiary font-mono">{report!.evidence_annex.length}</span>
             <div className="flex-1 border-t border-edge-subtle" />
           </div>
           <div className="space-y-2">
-            {report.evidence_annex.map(ev => (
+            {report!.evidence_annex.map(ev => (
               <div key={ev.evidence_id} className="bg-canvas-raised border border-edge-subtle rounded p-3">
                 <div className="flex items-center gap-3 mb-1">
                   <span className="text-2xs font-mono text-ink-tertiary uppercase">{ev.source_type.replace(/_/g, ' ')}</span>
