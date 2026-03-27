@@ -154,7 +154,7 @@ def match_templates_llm(
         parsed = extract_json(raw_text)
 
         fit_score = float(parsed.get("fit_score", 0.0))
-        if fit_score < 0.15:
+        if fit_score < 0.35:
             continue
 
         # Extract evidence and engagement IDs from LLM response
