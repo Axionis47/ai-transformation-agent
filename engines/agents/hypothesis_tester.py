@@ -88,22 +88,39 @@ class HypothesisTesterAgent(BaseResearchAgent):
         self._process_test_result(parsed)
         self._process_spawn_request(parsed)
 
-        # Check confidence thresholds
-        if self._confidence < 0.3:
+        # Check confidence thresholds and LLM recommendation
+        recommendation = parsed.get("recommendation", "continue")
+        conditions = parsed.get("conditions", [])
+        if not isinstance(conditions, list):
+            conditions = []
+
+        if self._confidence < 0.2:
             self._tracker.reject(
                 self._hypothesis.hypothesis_id,
                 f"Confidence dropped to {self._confidence:.2f} after {self._test_count} tests",
             )
             self._early_stop = True
-            return AgentThought(action="STOP", reasoning="confidence below 0.3 — rejected")
+            return AgentThought(action="STOP", reasoning="confidence below 0.2 — rejected")
 
-        if self._confidence > 0.7 and self._test_count >= 3:
+        if recommendation == "validate_with_conditions" and conditions:
+            self._tracker.validate_with_conditions(
+                self._hypothesis.hypothesis_id,
+                f"Conditionally validated at {self._confidence:.2f} after {self._test_count} tests",
+                conditions,
+            )
+            self._early_stop = True
+            return AgentThought(
+                action="STOP",
+                reasoning=f"conditionally validated — requires: {', '.join(conditions)}",
+            )
+
+        if recommendation == "validate" and self._confidence > 0.5 and self._test_count >= 3:
             self._tracker.validate(
                 self._hypothesis.hypothesis_id,
                 f"Confidence held at {self._confidence:.2f} after {self._test_count} tests",
             )
             self._early_stop = True
-            return AgentThought(action="STOP", reasoning="confidence above 0.7 after 3+ tests — validated")
+            return AgentThought(action="STOP", reasoning="confidence above 0.5 after 3+ tests — validated")
 
         # Duplicate query guard
         if action in ("GROUND", "RAG") and query:
@@ -127,7 +144,7 @@ class HypothesisTesterAgent(BaseResearchAgent):
         if not isinstance(ev_ids, list):
             ev_ids = []
         impact = float(raw_tr.get("impact_on_confidence", 0))
-        impact = max(-0.25, min(0.15, impact))  # clamp per prompt rules
+        impact = max(-0.20, min(0.20, impact))  # symmetric clamp
 
         tr = TestResult(
             test_type=raw_tr.get("test_type", "evidence_search"),
