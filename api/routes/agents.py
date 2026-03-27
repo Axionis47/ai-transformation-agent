@@ -10,6 +10,8 @@ from core import run_manager
 from core.schemas import (
     AgentState,
     Hypothesis,
+    ReportRefineRequest,
+    Run,
     RunStatus,
     UserInteractionPoint,
 )
@@ -126,3 +128,66 @@ def request_investigation(run_id: str) -> ReviewResponse:
         run_id=run_id, status="hypothesis_testing",
         message="Returning to hypothesis testing for deeper investigation",
     )
+
+
+@router.post("/runs/{run_id}/report/refine", response_model=Run)
+async def refine_report(run_id: str, body: ReportRefineRequest) -> Run:
+    """Refine the report based on user feedback.
+
+    - "edit" feedback: re-runs ReportSynthesizer with feedback,
+      stays at REVIEW.
+    - "deepen": transitions to HYPOTHESIS_TESTING for re-test.
+    - "reinvestigate": transitions to DEEP_RESEARCH for full re-run.
+    """
+    run = _get_run_or_404(run_id)
+    if run.status != RunStatus.REVIEW:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Run must be in REVIEW status, got: {run.status.value}",
+        )
+
+    edits = [f for f in body.feedbacks if f.feedback_type == "edit"]
+    deepens = [f for f in body.feedbacks if f.feedback_type == "deepen"]
+    reinvestigates = [f for f in body.feedbacks if f.feedback_type == "reinvestigate"]
+
+    # Store all feedback on run history
+    run.feedback_history.extend(body.feedbacks)
+
+    # Handle "reinvestigate" — backtrack furthest
+    if reinvestigates:
+        run_manager.transition(run_id, RunStatus.DEEP_RESEARCH)
+        return run_manager.get_run(run_id)
+
+    # Handle "deepen" — backtrack to hypothesis testing
+    if deepens:
+        run_manager.transition(run_id, RunStatus.HYPOTHESIS_TESTING)
+        return run_manager.get_run(run_id)
+
+    # Handle "edit" — regenerate report in-place, stay at REVIEW
+    if edits:
+        from engines.orchestrator_helpers import generate_report
+        from engines.hypothesis_tracker import HypothesisTracker
+
+        tracker = HypothesisTracker()
+        for h in run.hypotheses:
+            tracker._hypotheses[h.hypothesis_id] = h
+
+        result = await generate_report(
+            run_id, run, tracker,
+            run.config_snapshot,
+            _get_grounder(run.config_snapshot),
+            None,  # rag not needed for edit-only re-synthesis
+            feedback=edits,
+        )
+        if result and result.adaptive_report:
+            run_manager.store_adaptive_report(run_id, result.adaptive_report)
+
+    return run_manager.get_run(run_id)
+
+
+def _get_grounder(config: dict) -> object:
+    """Obtain a grounder instance for report re-synthesis."""
+    from api.routes.grounding import _build_client
+    from services.grounder.grounder import Grounder
+    client = _build_client(config)
+    return Grounder(client=client, config=config)
