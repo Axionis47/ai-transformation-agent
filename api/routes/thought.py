@@ -53,7 +53,7 @@ def _make_engine(config: dict) -> ThoughtEngine:
 
 
 @router.post("/runs/{run_id}/start")
-def start_run(run_id: str) -> AssumptionsDraft | ReasoningLoopResult:
+async def start_run(run_id: str) -> AssumptionsDraft | ReasoningLoopResult:
     run = run_manager.get_run(run_id)
     if run is None:
         raise HTTPException(status_code=404, detail=f"Run not found: {run_id}")
@@ -67,12 +67,14 @@ def start_run(run_id: str) -> AssumptionsDraft | ReasoningLoopResult:
         run_manager.update_assumptions(run_id, draft)
         return draft
 
-    if run.status == RunStatus.ASSUMPTIONS_CONFIRMED:
+    if run.status in (RunStatus.ASSUMPTIONS_CONFIRMED, RunStatus.INTAKE):
         if run.company_intake is None:
             raise HTTPException(status_code=400, detail="Company intake missing")
         mode = run.config_snapshot.get("orchestration", {}).get("mode", "legacy")
         if mode == "multi_agent":
-            return _start_multi_agent(run_id, run)
+            return await _start_multi_agent(run_id, run)
+        if run.status != RunStatus.ASSUMPTIONS_CONFIRMED:
+            raise HTTPException(status_code=409, detail="Legacy mode requires assumptions confirmation first")
         return _start_legacy(run_id, run)
 
     raise HTTPException(status_code=409, detail=f"Cannot start from status: {run.status.value}")
@@ -98,9 +100,8 @@ def _start_legacy(run_id: str, run: Run) -> ReasoningLoopResult:
     return result
 
 
-def _start_multi_agent(run_id: str, run: Run) -> Run:
+async def _start_multi_agent(run_id: str, run: Run) -> Run:
     """Launch the multi-agent orchestrator pipeline."""
-    import asyncio
     from engines.orchestrator import Orchestrator
     from api.routes.grounding import _build_client
     config = run.config_snapshot
@@ -111,7 +112,7 @@ def _start_multi_agent(run_id: str, run: Run) -> Run:
         config=config, grounder=grounder,
         rag_retriever=RAGRetriever(store=store, config=config),
     )
-    return asyncio.run(orch.run(run_id))
+    return await orch.run(run_id)
 
 
 @router.post("/runs/{run_id}/assumptions/confirm", response_model=Run)
