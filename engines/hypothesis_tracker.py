@@ -46,13 +46,13 @@ class HypothesisTracker:
             formed_by_agent=agent_id,
             parent_hypothesis_id=parent_id,
             status=HypothesisStatus.FORMING,
-            confidence=0.3,  # initial confidence
+            confidence=0.5,  # hypotheses are formed from evidence — benefit of doubt
             reasoning_chain=[
                 ReasoningStep(
                     step_type="formed_because",
                     description=reason,
                     evidence_ids=evidence_for,
-                    confidence_delta=0.3,
+                    confidence_delta=0.5,
                     timestamp=datetime.now(timezone.utc),
                 ),
             ],
@@ -114,6 +114,28 @@ class HypothesisTracker:
         h.reasoning_chain.append(ReasoningStep(
             step_type="validated_by",
             description=reason,
+            evidence_ids=[],
+            confidence_delta=0.0,
+            timestamp=datetime.now(timezone.utc),
+        ))
+        return h
+
+    def validate_with_conditions(
+        self,
+        hypothesis_id: str,
+        reason: str,
+        conditions: list[str],
+    ) -> Hypothesis:
+        """Validate a hypothesis conditionally — it passes, but with caveats."""
+        h = self._get(hypothesis_id)
+        h.status = HypothesisStatus.VALIDATED
+        h.conditions_for_success = conditions
+        h.reasoning_chain.append(ReasoningStep(
+            step_type="validated_by",
+            description=(
+                f"Conditionally validated: {reason}. "
+                f"Requires: {', '.join(conditions)}"
+            ),
             evidence_ids=[],
             confidence_delta=0.0,
             timestamp=datetime.now(timezone.utc),
@@ -196,9 +218,11 @@ class HypothesisTracker:
 
     @staticmethod
     def _classify_tier(h: Hypothesis) -> str:
-        if h.confidence >= 0.7 and len(h.analogous_engagements) >= 1:
+        # Conditional validation means it is not a slam-dunk — at least medium
+        has_conditions = bool(h.conditions_for_success)
+        if not has_conditions and h.confidence >= 0.7 and len(h.analogous_engagements) >= 1:
             return "easy"
-        if h.confidence >= 0.5:
+        if h.confidence >= 0.5 or has_conditions:
             return "medium"
         return "hard"
 
