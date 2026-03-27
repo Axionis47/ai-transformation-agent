@@ -55,6 +55,7 @@ class BudgetState(BaseModel):
     external_search_queries_used: int = 0
     external_search_calls_used: int = 0
     rag_queries_used: int = 0
+    total_tool_calls_used: int = 0
 
 
 class RunStatus(str, Enum):
@@ -62,9 +63,14 @@ class RunStatus(str, Enum):
     INTAKE = "intake"
     ASSUMPTIONS_DRAFT = "assumptions_draft"
     ASSUMPTIONS_CONFIRMED = "assumptions_confirmed"
+    GROUNDING = "grounding"
+    DEEP_RESEARCH = "deep_research"
+    HYPOTHESIS_FORMATION = "hypothesis_formation"
+    HYPOTHESIS_TESTING = "hypothesis_testing"
     REASONING = "reasoning"
     SYNTHESIS = "synthesis"
     REPORT = "report"
+    REVIEW = "review"
     PUBLISHED = "published"
     FAILED = "failed"
 
@@ -80,8 +86,21 @@ class Run(BaseModel):
     assumptions: Optional[AssumptionsDraft] = None
     evidence: list["EvidenceItem"] = []
     reasoning_state: Optional[ReasoningState] = None
+    working_memory: dict[str, "FieldKnowledge"] = {}
+    hypotheses_legacy: list[str] = []  # old field, kept for backward compat
     opportunities: list["Opportunity"] = []
     report: dict = {}
+    # --- Multi-agent fields ---
+    company_understanding: Optional["CompanyUnderstanding"] = None
+    industry_context: Optional["IndustryContext"] = None
+    pain_points: list["PainPoint"] = []
+    hypotheses: list["Hypothesis"] = []
+    agent_states: list["AgentState"] = []
+    user_interactions: list["UserInteractionPoint"] = []
+    spawn_requests: list["SpawnRequest"] = []
+    derived_insights: list["DerivedInsight"] = []
+    phase_briefings: dict[str, str] = {}  # phase_name -> compressed briefing
+    adaptive_report: Optional["AdaptiveReport"] = None
 
 
 # --- Reasoning ---
@@ -142,6 +161,7 @@ class EvidenceItem(BaseModel):
     confidence_score: Optional[float] = None
     retrieval_meta: dict = {}
     provenance: Optional[Provenance] = None
+    produced_by: str = ""  # which agent produced this evidence
 
 
 # --- Opportunity ---
@@ -209,6 +229,177 @@ class FieldKnowledge(BaseModel):
     evidence_ids: list[str] = []
     confidence: float = 0.0
     last_updated_loop: int = -1
+
+
+# --- Multi-agent hypothesis system ---
+class HypothesisStatus(str, Enum):
+    FORMING = "forming"
+    TESTING = "testing"
+    VALIDATED = "validated"
+    REJECTED = "rejected"
+    NEEDS_USER_INPUT = "needs_user_input"
+
+
+class TestResult(BaseModel):
+    test_type: str  # "evidence_search" | "analogous_case" | "counter_evidence"
+    finding: str
+    impact_on_confidence: float
+    evidence_ids: list[str] = []
+
+
+class Hypothesis(BaseModel):
+    hypothesis_id: str
+    statement: str
+    category: str  # "automation" | "copilot" | "decision_support" | "optimization"
+    target_process: str
+    status: HypothesisStatus = HypothesisStatus.FORMING
+    confidence: float = 0.0
+    evidence_for: list[str] = []
+    evidence_against: list[str] = []
+    analogous_engagements: list[str] = []
+    conditions_for_success: list[str] = []
+    risks: list[str] = []
+    open_questions: list[str] = []
+    test_results: list[TestResult] = []
+    reasoning_chain: list["ReasoningStep"] = []  # full causal chain
+    formed_by_agent: str = ""
+    tested_by_agent: str = ""
+    parent_hypothesis_id: Optional[str] = None
+
+
+class CompanyUnderstanding(BaseModel):
+    company_name: str
+    what_they_do: str = ""
+    how_they_make_money: str = ""
+    size_and_scale: str = ""
+    technology_landscape: str = ""
+    organizational_structure: str = ""
+    confidence: float = 0.0
+    evidence_ids: list[str] = []
+
+
+class IndustryContext(BaseModel):
+    industry: str
+    key_trends: list[str] = []
+    competitive_dynamics: str = ""
+    regulatory_landscape: str = ""
+    ai_adoption_level: str = ""
+    confidence: float = 0.0
+    evidence_ids: list[str] = []
+
+
+class PainPoint(BaseModel):
+    pain_id: str
+    description: str
+    affected_process: str
+    severity: str = "medium"  # "high" | "medium" | "low"
+    current_workaround: str = ""
+    evidence_ids: list[str] = []
+    confidence: float = 0.0
+
+
+class AgentState(BaseModel):
+    agent_id: str
+    agent_type: str
+    status: str = "pending"  # "pending" | "running" | "completed" | "failed" | "waiting_user"
+    tool_calls_made: int = 0
+    tool_calls_budget: int = 0
+    evidence_produced: list[str] = []
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    summary: str = ""
+
+
+class SpawnRequest(BaseModel):
+    requesting_agent: str
+    reason: str
+    suggested_hypothesis: str
+    priority: str = "medium"  # "high" | "medium" | "low"
+
+
+class UserInteractionPoint(BaseModel):
+    interaction_id: str
+    run_id: str
+    interaction_type: str  # "interesting_finding" | "confirmation" | "ambiguity"
+    message: str
+    context: dict = {}
+    agent_source: str = ""
+    requires_response: bool = True
+    response: Optional[str] = None
+
+
+class ReportOpportunity(BaseModel):
+    title: str
+    hypothesis_id: str
+    narrative: str
+    tier: str  # "easy" | "medium" | "hard"
+    confidence: float = 0.0
+    roi_estimate: Optional[dict] = None
+    evidence_summary: str = ""
+    analogous_cases: list[dict] = []
+    risks: list[str] = []
+    conditions_for_success: list[str] = []
+    recommended_approach: str = ""
+
+
+class AdaptiveReport(BaseModel):
+    run_id: str
+    executive_summary: str = ""
+    key_insight: str = ""
+    opportunities: list[ReportOpportunity] = []
+    reasoning_chain: list[str] = []
+    confidence_assessment: str = ""
+    what_we_dont_know: list[str] = []
+    recommended_next_steps: list[str] = []
+    evidence_annex: list[dict] = []
+    agent_activity_summary: list[dict] = []
+
+
+class ReasoningStep(BaseModel):
+    """One step in a hypothesis's causal reasoning chain."""
+    step_type: str  # "formed_because" | "tested_with" | "contradicted_by" | "revised_because" | "validated_by"
+    description: str
+    evidence_ids: list[str] = []
+    confidence_delta: float = 0.0
+    timestamp: Optional[datetime] = None
+
+
+class DerivedInsight(BaseModel):
+    """A conclusion drawn from evidence — not raw evidence itself."""
+    insight_id: str
+    phase: str  # which phase produced this
+    statement: str  # "Their dispatch is manual, costing ~15% efficiency"
+    supporting_evidence_ids: list[str] = []
+    confidence: float = 0.0
+    produced_by_agent: str = ""
+
+
+class AgentScope(str, Enum):
+    """Controls what context an agent can see."""
+    COMPANY_PROFILER = "company_profiler"
+    INDUSTRY_ANALYST = "industry_analyst"
+    PAIN_INVESTIGATOR = "pain_investigator"
+    HYPOTHESIS_FORMER = "hypothesis_former"
+    HYPOTHESIS_TESTER = "hypothesis_tester"
+    REPORT_SYNTHESIZER = "report_synthesizer"
+
+
+class AgentResult(BaseModel):
+    """Typed result returned by every research agent to the orchestrator."""
+    agent_id: str
+    agent_type: str
+    success: bool = True
+    evidence_items: list["EvidenceItem"] = []
+    summary: str = ""
+    spawn_requests: list[SpawnRequest] = []
+    error: Optional[str] = None
+    derived_insights: list["DerivedInsight"] = []  # conclusions drawn from evidence
+    # Domain-specific outputs (one will be populated per agent type)
+    company_understanding: Optional[CompanyUnderstanding] = None
+    industry_context: Optional[IndustryContext] = None
+    pain_points: list[PainPoint] = []
+    hypotheses: list[Hypothesis] = []
+    adaptive_report: Optional[AdaptiveReport] = None
 
 
 class FieldConfidence(BaseModel):
