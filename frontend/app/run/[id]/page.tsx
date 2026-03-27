@@ -102,9 +102,6 @@ export default function RunPage() {
   const { company_intake: intake, assumptions, reasoning_state: reasoning, status, budgets, budget_state } = run
   const multiAgent = isMultiAgentRun(status)
   const depthBudget = getDepthBudget(run.config_snapshot as Record<string, unknown>)
-  const ragRemaining = budgets.rag_query_budget - budget_state.rag_queries_used
-  const searchRemaining = budgets.external_search_query_budget - budget_state.external_search_queries_used
-
   const s = (targets: string[]) => stageStatus(status, targets)
   const s1 = s(['created', 'intake'])
   const s2 = s(['assumptions_draft'])
@@ -112,24 +109,11 @@ export default function RunPage() {
   const s4 = s(['synthesis'])
   const s5 = s(['report', 'published'])
 
-  const stages = [
-    { id: 'intake', label: 'Intake', status: s1 },
-    { id: 'assumptions', label: 'Assumptions', status: s2 },
-    { id: 'reasoning', label: 'Reasoning', status: s3 },
-    { id: 'synthesis', label: 'Synthesis', status: s4 },
-    { id: 'report', label: 'Report', status: s5 },
-  ] as { id: string; label: string; status: 'completed' | 'active' | 'pending' }[]
-
   const showReportLink = ['REVIEW', 'PUBLISHED'].includes(status)
 
   return (
     <div className="min-h-screen bg-canvas">
-      <Header
-        companyName={intake?.company_name} industry={intake?.industry} sizeBand={intake?.employee_count_band}
-        confidence={reasoning?.overall_confidence}
-        ragRemaining={ragRemaining} ragTotal={budgets.rag_query_budget}
-        searchRemaining={searchRemaining} searchTotal={budgets.external_search_query_budget}
-      />
+      <Header run={run} />
       <div className="flex">
         <Sidebar
           currentPhase={status}
