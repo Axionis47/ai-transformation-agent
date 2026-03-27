@@ -6,8 +6,10 @@ or budget exhausted. Returns typed AgentResult with CompanyUnderstanding.
 """
 from __future__ import annotations
 
+import uuid
+
 from core.json_parser import extract_json
-from core.schemas import AgentResult, CompanyUnderstanding
+from core.schemas import AgentResult, CompanyUnderstanding, DerivedInsight
 from engines.agents.base import AgentThought, BaseResearchAgent
 
 _DIMENSIONS = [
@@ -112,11 +114,28 @@ class CompanyProfilerAgent(BaseResearchAgent):
             agent_type=self.AGENT_TYPE,
             success=error is None,
             evidence_items=self._evidence,
-            derived_insights=self._insights,
+            derived_insights=self._build_derived_insights(),
             summary=self._build_summary(),
             error=error,
             company_understanding=cu,
         )
+
+    def _build_derived_insights(self) -> list[DerivedInsight]:
+        insights: list[DerivedInsight] = []
+        for dim in _DIMENSIONS:
+            val = self._assessment.get(dim, "unknown")
+            if val.lower() != "unknown":
+                insights.append(DerivedInsight(
+                    insight_id=f"ins-{uuid.uuid4().hex[:8]}",
+                    phase="grounding",
+                    statement=f"Company {dim.replace('_', ' ')}: {val[:200]}",
+                    supporting_evidence_ids=[
+                        e.evidence_id for e in self._evidence[:5]
+                    ],
+                    confidence=self._compute_confidence(),
+                    produced_by_agent=self._agent_id,
+                ))
+        return insights
 
     # ------------------------------------------------------------------
     # Helpers
