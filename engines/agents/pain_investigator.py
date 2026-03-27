@@ -36,6 +36,19 @@ class PainPointInvestigatorAgent(BaseResearchAgent):
         company = intake.company_name if intake else "unknown"
         industry = intake.industry if intake else "unknown"
 
+        # Pull structured insights from grounding phase
+        insights = self._ctx.get_derived_insights() if self._ctx else []
+        insight_block = ""
+        if insights:
+            insight_lines = [
+                f"- [{i.produced_by_agent}] {i.statement}"
+                for i in insights
+            ]
+            insight_block = (
+                "\nSTRUCTURED INSIGHTS FROM PRIOR PHASES:\n"
+                + "\n".join(insight_lines)
+            )
+
         prompt = self._system_prompt.format(
             company_name=company,
             industry=industry,
@@ -43,6 +56,10 @@ class PainPointInvestigatorAgent(BaseResearchAgent):
             ground_remaining=self._ground_remaining(),
             rag_remaining=self._rag_remaining(),
         )
+
+        # Inject structured insights after context briefing
+        if insight_block:
+            prompt += insight_block
 
         if self._past_queries:
             prompt += "\n\nPrevious queries (do NOT repeat):\n"
