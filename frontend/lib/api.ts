@@ -1,11 +1,14 @@
 import type {
+  AgentState,
   AssumptionsDraft,
   CompanyIntake,
   EvidenceItem,
+  Hypothesis,
   Opportunity,
   ReasoningConfig,
   Run,
   UIHints,
+  UserInteractionPoint,
 } from './types'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -117,4 +120,75 @@ export async function refineReport(
     method: 'POST',
     body: JSON.stringify(body),
   })
+}
+
+// --- Multi-agent endpoints ---
+
+export async function getAgentStates(runId: string): Promise<AgentState[]> {
+  const res = await apiFetch<{ agents: AgentState[]; count: number }>(
+    `/runs/${runId}/agents`,
+  )
+  return res.agents
+}
+
+export async function getHypotheses(runId: string): Promise<Hypothesis[]> {
+  const res = await apiFetch<{ hypotheses: Hypothesis[]; count: number }>(
+    `/runs/${runId}/hypotheses`,
+  )
+  return res.hypotheses
+}
+
+export async function getHypothesis(
+  runId: string,
+  hypothesisId: string,
+): Promise<Hypothesis> {
+  return apiFetch<Hypothesis>(
+    `/runs/${runId}/hypotheses/${hypothesisId}`,
+  )
+}
+
+export async function getInteractions(
+  runId: string,
+): Promise<UserInteractionPoint[]> {
+  const res = await apiFetch<{
+    interactions: UserInteractionPoint[]
+    pending: number
+    resolved: number
+  }>(`/runs/${runId}/interactions`)
+  return res.interactions
+}
+
+export async function respondToInteraction(
+  runId: string,
+  interactionId: string,
+  response: string,
+): Promise<UserInteractionPoint> {
+  return apiFetch<UserInteractionPoint>(
+    `/runs/${runId}/interactions/${interactionId}/respond`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        interaction_id: interactionId,
+        response,
+      }),
+    },
+  )
+}
+
+export async function approveReport(
+  runId: string,
+): Promise<{ run_id: string; status: string; message: string }> {
+  return apiFetch<{ run_id: string; status: string; message: string }>(
+    `/runs/${runId}/review/approve`,
+    { method: 'POST' },
+  )
+}
+
+export async function requestDeeperInvestigation(
+  runId: string,
+): Promise<{ run_id: string; status: string; message: string }> {
+  return apiFetch<{ run_id: string; status: string; message: string }>(
+    `/runs/${runId}/review/investigate`,
+    { method: 'POST' },
+  )
 }
