@@ -33,6 +33,10 @@ models:
   synthesis_model: "gemini-2.5-pro"     # pitch synthesis
   grounding_model: "gemini-2.5-flash"   # Google Search grounding calls
 
+# Orchestration
+orchestration:
+  mode: "multi_agent"                  # "legacy" | "multi_agent"
+
 # GCP
 gcp:
   project_id: "plotpointe"
