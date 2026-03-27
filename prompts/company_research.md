@@ -1,21 +1,24 @@
 ---
 prompt_id: company_research
-version: 1.0
+version: 2.0
 used_by: engines/thought/assumptions.py
 ---
 
-Research this company and provide factual information:
-
-Company: {company_name}
-Industry: {industry}
+Research {company_name} in the {industry} industry. Focus on OPERATIONAL details, not marketing copy.
 {notes_section}
 
-Answer these questions based on publicly available information:
-1. What does {company_name} do? Describe their main products and services.
-2. What specific segment of the {industry} industry are they in?
-3. How large is the company (employees, revenue if public)?
-4. What technology or platforms do they use?
-5. What are the main business challenges companies like this face?
-6. What is their business model?
+Find specific answers to these questions:
 
-Be specific and factual. Cite sources where possible.
+1. OPERATIONS: What are {company_name}'s core operational workflows? How do they process transactions, handle customer requests, manage compliance? Look for specific volumes (transactions per day, tickets per week, reviews per month).
+
+2. PAIN POINTS: What operational bottlenecks or manual processes does {company_name} have? Look for hiring patterns (are they hiring for repetitive roles?), customer complaints, Glassdoor reviews about process inefficiency, or press about operational challenges.
+
+3. TECHNOLOGY: What is their tech stack? Do they have a data warehouse, ML platform, or existing automation? This determines what AI solutions are feasible.
+
+4. SCALE: How many employees? What's their revenue or transaction volume? Growth rate? This determines which solutions are worth the investment.
+
+5. COMPETITIVE PRESSURE: What are competitors doing with AI/automation that {company_name} might need to match?
+
+6. BUSINESS MODEL: How do they make money? What drives their unit economics? This determines where AI creates the most ROI.
+
+Be factual and specific. Include numbers, names, and dates. Do NOT give generic industry analysis — focus on what is known about THIS specific company.
