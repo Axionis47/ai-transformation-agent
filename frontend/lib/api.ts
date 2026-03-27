@@ -101,6 +101,10 @@ export async function getOpportunities(runId: string): Promise<Opportunity[]> {
   return apiFetch<Opportunity[]>(`/runs/${runId}/opportunities`)
 }
 
+export async function getTrace(runId: string): Promise<Record<string, unknown>[]> {
+  return apiFetch<Record<string, unknown>[]>(`/runs/${runId}/trace`)
+}
+
 export async function refineReport(
   runId: string,
   body: {
