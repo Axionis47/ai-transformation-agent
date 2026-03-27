@@ -189,10 +189,16 @@ export default function RunPage() {
             {status === 'published' && (
               <div className="mt-4 bg-mint/10 border border-mint/30 rounded-md p-4 flex items-center justify-between">
                 <p className="text-sm text-mint font-medium">Report published and ready for review.</p>
-                <a href={`/run/${runId}/report`}
-                  className="bg-mint text-ink-inverse px-5 py-2 text-sm font-semibold rounded hover:bg-mint-bright transition-colors">
-                  View Report
-                </a>
+                <div className="flex items-center gap-3">
+                  <a href={`/run/${runId}/trace`}
+                    className="text-2xs text-ink-tertiary hover:text-ink-secondary font-mono transition-colors">
+                    View Trace
+                  </a>
+                  <a href={`/run/${runId}/report`}
+                    className="bg-mint text-ink-inverse px-5 py-2 text-sm font-semibold rounded hover:bg-mint-bright transition-colors">
+                    View Report
+                  </a>
+                </div>
               </div>
             )}
           </section>
