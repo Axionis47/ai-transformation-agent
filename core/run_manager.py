@@ -37,7 +37,7 @@ VALID_TRANSITIONS: dict[RunStatus, list[RunStatus]] = {
     RunStatus.ASSUMPTIONS_CONFIRMED: [RunStatus.REASONING, RunStatus.GROUNDING, RunStatus.FAILED],
     RunStatus.REASONING: [RunStatus.SYNTHESIS, RunStatus.FAILED],
     RunStatus.SYNTHESIS: [RunStatus.REPORT, RunStatus.FAILED],
-    RunStatus.REPORT: [RunStatus.PUBLISHED, RunStatus.FAILED],
+    RunStatus.REPORT: [RunStatus.REVIEW, RunStatus.PUBLISHED, RunStatus.FAILED],
     # Multi-agent pipeline (with backtracking)
     RunStatus.GROUNDING: [RunStatus.DEEP_RESEARCH, RunStatus.FAILED],
     RunStatus.DEEP_RESEARCH: [RunStatus.HYPOTHESIS_FORMATION, RunStatus.GROUNDING, RunStatus.FAILED],
