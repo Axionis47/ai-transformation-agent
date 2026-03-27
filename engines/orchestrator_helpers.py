@@ -6,7 +6,14 @@ from __future__ import annotations
 
 import logging
 
-from core.schemas import AgentResult, AgentScope, AgentState, BudgetState, Run
+from core.schemas import (
+    AgentResult,
+    AgentScope,
+    AgentState,
+    BudgetState,
+    ReportFeedback,
+    Run,
+)
 from core import run_manager as rm
 from engines.context_provider import AgentContextProvider
 from engines.hypothesis_tracker import HypothesisTracker
@@ -134,12 +141,14 @@ async def generate_report(
     config: dict,
     grounder: object,
     rag: object,
+    feedback: list[ReportFeedback] | None = None,
 ) -> AgentResult | None:
     """Run ReportSynthesizerAgent to produce the AdaptiveReport."""
     ctx = AgentContextProvider(run, AgentScope.REPORT_SYNTHESIZER)
     agent = ReportSynthesizerAgent(
         hypotheses=run.hypotheses,
         tracker=tracker,
+        feedback=feedback,
         config=config,
         grounder=grounder,
         rag_retriever=rag,
