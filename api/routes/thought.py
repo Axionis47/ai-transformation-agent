@@ -58,6 +58,14 @@ async def start_run(run_id: str) -> AssumptionsDraft | ReasoningLoopResult:
     if run is None:
         raise HTTPException(status_code=404, detail=f"Run not found: {run_id}")
 
+    # Multi-agent mode: skip assumptions, go straight to orchestrator
+    mode = run.config_snapshot.get("orchestration", {}).get("mode", "legacy")
+    if mode == "multi_agent" and run.status == RunStatus.INTAKE:
+        if run.company_intake is None:
+            raise HTTPException(status_code=400, detail="Company intake missing")
+        return await _start_multi_agent(run_id, run)
+
+    # Legacy mode: INTAKE → generate assumptions
     if run.status == RunStatus.INTAKE:
         if run.company_intake is None:
             raise HTTPException(status_code=400, detail="Company intake not submitted")
@@ -67,14 +75,10 @@ async def start_run(run_id: str) -> AssumptionsDraft | ReasoningLoopResult:
         run_manager.update_assumptions(run_id, draft)
         return draft
 
-    if run.status in (RunStatus.ASSUMPTIONS_CONFIRMED, RunStatus.INTAKE):
+    # Legacy mode: ASSUMPTIONS_CONFIRMED → start reasoning
+    if run.status == RunStatus.ASSUMPTIONS_CONFIRMED:
         if run.company_intake is None:
             raise HTTPException(status_code=400, detail="Company intake missing")
-        mode = run.config_snapshot.get("orchestration", {}).get("mode", "legacy")
-        if mode == "multi_agent":
-            return await _start_multi_agent(run_id, run)
-        if run.status != RunStatus.ASSUMPTIONS_CONFIRMED:
-            raise HTTPException(status_code=409, detail="Legacy mode requires assumptions confirmation first")
         return _start_legacy(run_id, run)
 
     raise HTTPException(status_code=409, detail=f"Cannot start from status: {run.status.value}")
