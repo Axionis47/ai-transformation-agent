@@ -140,3 +140,128 @@ export interface UIHints {
   budget_view: BudgetView
   agent_message?: string
 }
+
+// --- Multi-agent hypothesis system ---
+
+export type HypothesisStatus =
+  | 'forming'
+  | 'testing'
+  | 'validated'
+  | 'rejected'
+  | 'needs_user_input'
+
+export interface TestResult {
+  test_type: string
+  finding: string
+  impact_on_confidence: number
+  evidence_ids: string[]
+}
+
+export interface ReasoningStep {
+  step_type: string
+  description: string
+  evidence_ids: string[]
+  confidence_delta: number
+  timestamp?: string
+}
+
+export interface Hypothesis {
+  hypothesis_id: string
+  statement: string
+  category: string
+  target_process: string
+  status: HypothesisStatus
+  confidence: number
+  evidence_for: string[]
+  evidence_against: string[]
+  analogous_engagements: string[]
+  conditions_for_success: string[]
+  risks: string[]
+  open_questions: string[]
+  test_results: TestResult[]
+  reasoning_chain: ReasoningStep[]
+  formed_by_agent: string
+  tested_by_agent: string
+  parent_hypothesis_id?: string
+}
+
+export interface CompanyUnderstanding {
+  company_name: string
+  what_they_do: string
+  how_they_make_money: string
+  size_and_scale: string
+  technology_landscape: string
+  organizational_structure: string
+  confidence: number
+  evidence_ids: string[]
+}
+
+export interface IndustryContext {
+  industry: string
+  key_trends: string[]
+  competitive_dynamics: string
+  regulatory_landscape: string
+  ai_adoption_level: string
+  confidence: number
+  evidence_ids: string[]
+}
+
+export interface PainPoint {
+  pain_id: string
+  description: string
+  affected_process: string
+  severity: string
+  current_workaround: string
+  evidence_ids: string[]
+  confidence: number
+}
+
+export interface AgentState {
+  agent_id: string
+  agent_type: string
+  status: string
+  tool_calls_made: number
+  tool_calls_budget: number
+  evidence_produced: string[]
+  started_at?: string
+  completed_at?: string
+  summary: string
+}
+
+export interface UserInteractionPoint {
+  interaction_id: string
+  run_id: string
+  interaction_type: string
+  message: string
+  context: Record<string, unknown>
+  agent_source: string
+  requires_response: boolean
+  response: string | null
+}
+
+export interface ReportOpportunity {
+  title: string
+  hypothesis_id: string
+  narrative: string
+  tier: string
+  confidence: number
+  roi_estimate?: Record<string, unknown>
+  evidence_summary: string
+  analogous_cases: Record<string, unknown>[]
+  risks: string[]
+  conditions_for_success: string[]
+  recommended_approach: string
+}
+
+export interface AdaptiveReport {
+  run_id: string
+  executive_summary: string
+  key_insight: string
+  opportunities: ReportOpportunity[]
+  reasoning_chain: string[]
+  confidence_assessment: string
+  what_we_dont_know: string[]
+  recommended_next_steps: string[]
+  evidence_annex: Record<string, unknown>[]
+  agent_activity_summary: Record<string, unknown>[]
+}
