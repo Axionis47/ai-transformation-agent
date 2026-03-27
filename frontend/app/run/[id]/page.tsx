@@ -132,9 +132,29 @@ export default function RunPage() {
       />
       <div className="flex">
         <Sidebar
-          stages={stages} fieldCoverage={reasoning?.field_coverage}
-          ragRemaining={ragRemaining} ragTotal={budgets.rag_query_budget}
-          searchRemaining={searchRemaining} searchTotal={budgets.external_search_query_budget}
+          currentPhase={status}
+          completedPhases={MULTI_AGENT_PHASES.filter(p => {
+            const idx = MULTI_AGENT_PHASES.indexOf(p)
+            const currentIdx = MULTI_AGENT_PHASES.indexOf(status)
+            return idx < currentIdx
+          })}
+          agentCounts={agents.reduce((acc, a) => {
+            const phase = a.agent_type === 'company_profiler' || a.agent_type === 'industry_analyst'
+              ? 'GROUNDING'
+              : a.agent_type === 'deep_researcher'
+              ? 'DEEP_RESEARCH'
+              : a.agent_type === 'hypothesis_former'
+              ? 'HYPOTHESIS_FORMATION'
+              : a.agent_type === 'hypothesis_tester'
+              ? 'HYPOTHESIS_TESTING'
+              : undefined
+            if (phase) acc[phase] = (acc[phase] || 0) + 1
+            return acc
+          }, {} as Record<string, number>)}
+          searchUsed={budget_state.external_search_queries_used}
+          searchTotal={budgets.external_search_query_budget}
+          ragUsed={budget_state.rag_queries_used}
+          ragTotal={budgets.rag_query_budget}
         />
         <main className="flex-1 min-w-0 p-6 lg:p-8">
           {error && (
