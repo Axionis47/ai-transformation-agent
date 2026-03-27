@@ -101,6 +101,7 @@ class Run(BaseModel):
     derived_insights: list["DerivedInsight"] = []
     phase_briefings: dict[str, str] = {}  # phase_name -> compressed briefing
     adaptive_report: Optional["AdaptiveReport"] = None
+    feedback_history: list["ReportFeedback"] = []
 
 
 # --- Reasoning ---
@@ -188,6 +189,17 @@ class Opportunity(BaseModel):
     adaptation_needed: Optional[str] = None
     risks: list[str] = []
     data_sufficiency: str = "scored"
+
+
+# --- Report feedback ---
+class ReportFeedback(BaseModel):
+    feedback_type: str  # "edit" | "deepen" | "reinvestigate"
+    target_section: str  # "executive_summary" | "opportunity:{hyp_id}" | "unknowns" | "next_steps" | "confidence"
+    instruction: str  # user's specific feedback text
+
+
+class ReportRefineRequest(BaseModel):
+    feedbacks: list[ReportFeedback]
 
 
 # --- Refinement ---
