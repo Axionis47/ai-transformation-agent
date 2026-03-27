@@ -13,12 +13,10 @@ from core.json_parser import extract_json
 from core.schemas import (
     AdaptiveReport,
     AgentResult,
-    BudgetState,
     Hypothesis,
     ReportOpportunity,
 )
-from engines.agents.base import AgentThought, BaseResearchAgent, _load_prompt
-from engines.context_provider import AgentContextProvider
+from engines.agents.base import AgentThought, BaseResearchAgent
 from engines.hypothesis_tracker import HypothesisTracker
 from services.trace import emit
 
@@ -40,10 +38,8 @@ class ReportSynthesizerAgent(BaseResearchAgent):
         self._hypotheses = hypotheses or []
         self._tracker = tracker or HypothesisTracker()
 
-    # ------------------------------------------------------------------
-    # Override run() — single synthesis call, no ReAct loop
-    # ------------------------------------------------------------------
     async def run(self) -> AgentResult:
+        """Single synthesis call — no ReAct loop."""
         emit(self._run_id, EventType.AGENT_SPAWNED, {
             "agent_id": self._agent_id,
             "agent_type": self.AGENT_TYPE,
@@ -76,9 +72,6 @@ class ReportSynthesizerAgent(BaseResearchAgent):
             fallback = self._fallback_report()
             return self._build_result(report=fallback, error=str(e))
 
-    # ------------------------------------------------------------------
-    # Prompt construction
-    # ------------------------------------------------------------------
     def _build_synthesis_prompt(self, context_briefing: str) -> str:
         intake = self._ctx.get_intake() if self._ctx else None
         company = intake.company_name if intake else "unknown"
@@ -118,9 +111,6 @@ class ReportSynthesizerAgent(BaseResearchAgent):
                 )
         return "\n".join(lines) if lines else "(no steps recorded)"
 
-    # ------------------------------------------------------------------
-    # Response parsing
-    # ------------------------------------------------------------------
     def _parse_report(self, raw: str) -> AdaptiveReport:
         parsed = extract_json(raw)
         report_data = parsed.get("report", parsed)
@@ -159,9 +149,6 @@ class ReportSynthesizerAgent(BaseResearchAgent):
             ))
         return result
 
-    # ------------------------------------------------------------------
-    # Fallback when LLM output is malformed
-    # ------------------------------------------------------------------
     def _fallback_report(self) -> AdaptiveReport:
         opps = [
             ReportOpportunity(
@@ -181,9 +168,6 @@ class ReportSynthesizerAgent(BaseResearchAgent):
             what_we_dont_know=["LLM synthesis unavailable — raw data used"],
         )
 
-    # ------------------------------------------------------------------
-    # Result builder
-    # ------------------------------------------------------------------
     def _build_result(
         self,
         report: AdaptiveReport | None = None,
@@ -204,8 +188,5 @@ class ReportSynthesizerAgent(BaseResearchAgent):
         n = len(self._hypotheses)
         return f"report_synthesizer: {n} hypotheses synthesized into report"
 
-    # ------------------------------------------------------------------
-    # Unused ReAct methods — not called, but satisfy base interface
-    # ------------------------------------------------------------------
     async def _think(self, context: str) -> AgentThought:
         return AgentThought(action="STOP", reasoning="single-shot agent")
