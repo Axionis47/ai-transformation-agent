@@ -419,6 +419,18 @@ class ThoughtEngine:
                     if synthesis:
                         wmem.update_field(field, synthesis, ev_ids, coverage.get(field, 0.0), loop_idx)
 
+                # Emit working memory snapshot for observability
+                emit(run_id, EventType.WORKING_MEMORY_UPDATED, {
+                    "loop": loop_idx,
+                    "phase": current_phase,
+                    "fields": {
+                        f: {"synthesis": fk.synthesis[:200], "confidence": fk.confidence,
+                            "evidence_count": len(fk.evidence_ids), "last_updated": fk.last_updated_loop}
+                        for f, fk in wmem.get_all_fields().items() if fk.synthesis
+                    },
+                    "briefing_length": len(wmem.build_briefing()),
+                })
+
             # OBSERVE: Prune at loop boundary
             if acc.count() > _LOOP_MAX_EVIDENCE:
                 pruned, _ = prune_by_relevance(
