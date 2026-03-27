@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import Header from '@/components/shell/Header'
 import Sidebar from '@/components/shell/Sidebar'
@@ -8,19 +8,34 @@ import AssumptionCard from '@/components/cards/AssumptionCard'
 import OpportunityCard from '@/components/cards/OpportunityCard'
 import EvidenceCard from '@/components/cards/EvidenceCard'
 import ReasoningStage from '@/components/stages/ReasoningStage'
+import PhaseProgress from '@/components/PhaseProgress'
+import AgentActivityPanel from '@/components/AgentActivityPanel'
+import HypothesisList from '@/components/HypothesisList'
 import Badge from '@/components/ui/Badge'
 import Spinner from '@/components/ui/Spinner'
-import { getRun, startRun, confirmAssumptions, answerQuestion, synthesize, publish } from '@/lib/api'
+import { getRun, startRun, confirmAssumptions, answerQuestion, synthesize, publish, getAgentStates, getHypotheses } from '@/lib/api'
 import { stageStatus, getDepthBudget } from '@/lib/stage-utils'
-import type { Run, AssumptionsDraft, Assumption } from '@/lib/types'
+import type { Run, AssumptionsDraft, Assumption, AgentState, Hypothesis } from '@/lib/types'
+
+const MULTI_AGENT_PHASES = ['INTAKE', 'GROUNDING', 'DEEP_RESEARCH', 'HYPOTHESIS_FORMATION', 'HYPOTHESIS_TESTING', 'SYNTHESIS', 'REVIEW', 'PUBLISHED']
+const AGENT_ACTIVE_PHASES = ['GROUNDING', 'DEEP_RESEARCH', 'HYPOTHESIS_FORMATION', 'HYPOTHESIS_TESTING']
+const HYPOTHESIS_PHASES = ['HYPOTHESIS_FORMATION', 'HYPOTHESIS_TESTING']
+const TERMINAL_STATUSES = ['PUBLISHED', 'published', 'FAILED', 'failed']
+
+function isMultiAgentRun(status: string): boolean {
+  return MULTI_AGENT_PHASES.includes(status)
+}
 
 export default function RunPage() {
   const params = useParams()
   const runId = params.id as string
   const [run, setRun] = useState<Run | null>(null)
+  const [agents, setAgents] = useState<AgentState[]>([])
+  const [hypotheses, setHypotheses] = useState<Hypothesis[]>([])
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [editedAssumptions, setEditedAssumptions] = useState<Map<string, string>>(new Map())
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const fetchRun = useCallback(async () => {
     try { setRun(await getRun(runId)) } catch (err) {
@@ -29,6 +44,34 @@ export default function RunPage() {
   }, [runId])
 
   useEffect(() => { fetchRun() }, [fetchRun])
+
+  // Polling for multi-agent data during active phases
+  useEffect(() => {
+    if (!run) return
+    const status = run.status
+    if (TERMINAL_STATUSES.includes(status)) {
+      if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null }
+      return
+    }
+    if (!isMultiAgentRun(status)) return
+
+    async function pollData() {
+      try {
+        const s = run!.status
+        await fetchRun()
+        if (AGENT_ACTIVE_PHASES.includes(s)) {
+          setAgents(await getAgentStates(runId))
+        }
+        if (HYPOTHESIS_PHASES.includes(s)) {
+          setHypotheses(await getHypotheses(runId))
+        }
+      } catch { /* polling errors are non-fatal */ }
+    }
+
+    pollData()
+    intervalRef.current = setInterval(pollData, 2000)
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  }, [run?.status, runId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function doAction(msg: string, fn: () => Promise<unknown>) {
     setLoading(msg); setError(null)
@@ -57,6 +100,7 @@ export default function RunPage() {
   )
 
   const { company_intake: intake, assumptions, reasoning_state: reasoning, status, budgets, budget_state } = run
+  const multiAgent = isMultiAgentRun(status)
   const depthBudget = getDepthBudget(run.config_snapshot as Record<string, unknown>)
   const ragRemaining = budgets.rag_query_budget - budget_state.rag_queries_used
   const searchRemaining = budgets.external_search_query_budget - budget_state.external_search_queries_used
@@ -75,6 +119,8 @@ export default function RunPage() {
     { id: 'synthesis', label: 'Synthesis', status: s4 },
     { id: 'report', label: 'Report', status: s5 },
   ] as { id: string; label: string; status: 'completed' | 'active' | 'pending' }[]
+
+  const showReportLink = ['REVIEW', 'PUBLISHED'].includes(status)
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -97,7 +143,45 @@ export default function RunPage() {
             </div>
           )}
 
-          {/* INTAKE */}
+          {/* MULTI-AGENT PHASE PROGRESS */}
+          {multiAgent && (
+            <section className="mb-8">
+              <PhaseProgress currentPhase={status} phases={MULTI_AGENT_PHASES} />
+            </section>
+          )}
+
+          {/* MULTI-AGENT: AGENT ACTIVITY */}
+          {multiAgent && AGENT_ACTIVE_PHASES.includes(status) && (
+            <section className="mb-8">
+              <SectionHeader title="Agent Activity" status="active" extra={`${agents.filter(a => a.status === 'running').length} running`} />
+              <AgentActivityPanel agents={agents} />
+            </section>
+          )}
+
+          {/* MULTI-AGENT: HYPOTHESES */}
+          {multiAgent && HYPOTHESIS_PHASES.includes(status) && hypotheses.length > 0 && (
+            <section className="mb-8">
+              <SectionHeader title="Hypotheses" status="active" extra={`${hypotheses.length} total`} />
+              <HypothesisList hypotheses={hypotheses} />
+            </section>
+          )}
+
+          {/* MULTI-AGENT: REPORT LINK */}
+          {multiAgent && showReportLink && (
+            <section className="mb-8">
+              <div className="bg-mint/10 border border-mint/30 rounded-md p-4 flex items-center justify-between">
+                <p className="text-sm text-mint font-medium">
+                  {status === 'REVIEW' ? 'Report ready for review.' : 'Report published.'}
+                </p>
+                <a href={`/run/${runId}/report`}
+                  className="bg-mint text-ink-inverse px-5 py-2 text-sm font-semibold rounded hover:bg-mint-bright transition-colors">
+                  View Report
+                </a>
+              </div>
+            </section>
+          )}
+
+          {/* INTAKE (legacy + multi-agent INTAKE) */}
           <section id="stage-intake" className="mb-8">
             <SectionHeader title="Intake" status={s1} />
             {intake && (
@@ -113,7 +197,8 @@ export default function RunPage() {
             )}
           </section>
 
-          {/* ASSUMPTIONS */}
+          {/* ASSUMPTIONS (legacy flow) */}
+          {!multiAgent && (
           <section id="stage-assumptions" className="mb-8">
             <SectionHeader title="Assumptions" status={s2} extra={assumptions ? `${assumptions.assumptions.length} fields` : undefined} />
             {assumptions && (s2 === 'active' || s2 === 'completed') && (
@@ -136,8 +221,10 @@ export default function RunPage() {
               <ActionButton onClick={handleConfirm} loading={loading} label="Confirm & Start Reasoning" loadingLabel="Starting reasoning..." />
             )}
           </section>
+          )}
 
-          {/* REASONING */}
+          {/* REASONING (legacy flow) */}
+          {!multiAgent && (
           <section id="stage-reasoning" className="mb-8">
             <SectionHeader title="Reasoning" status={s3}
               extra={reasoning ? `${reasoning.loops_completed} loops, ${(reasoning.overall_confidence * 100).toFixed(0)}% confidence` : undefined} />
@@ -154,8 +241,10 @@ export default function RunPage() {
               </div>
             )}
           </section>
+          )}
 
-          {/* SYNTHESIS + REPORT */}
+          {/* SYNTHESIS + REPORT (legacy flow) */}
+          {!multiAgent && (
           <section id="stage-synthesis" className="mb-8">
             <SectionHeader title="Opportunities" status={s4 === 'completed' || s5 !== 'pending' ? 'completed' : s4}
               extra={run.opportunities.length > 0 ? `${run.opportunities.length} found` : undefined} />
@@ -170,7 +259,9 @@ export default function RunPage() {
               </div>
             )}
           </section>
+          )}
 
+          {!multiAgent && (
           <section id="stage-report" className="mb-8">
             <SectionHeader title="Report" status={s5} />
             {(s5 === 'active' || s5 === 'completed') && run.evidence.length > 0 && (
@@ -202,6 +293,7 @@ export default function RunPage() {
               </div>
             )}
           </section>
+          )}
         </main>
       </div>
     </div>
