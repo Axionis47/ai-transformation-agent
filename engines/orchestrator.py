@@ -21,6 +21,7 @@ from engines.agents.hypothesis_former import HypothesisFormerAgent
 from engines.context_provider import AgentContextProvider
 from engines.hypothesis_tracker import HypothesisTracker
 from engines.orchestrator_helpers import (
+    generate_report,
     handle_spawns,
     has_budget,
     promote_result,
@@ -56,6 +57,7 @@ class Orchestrator:
             await self._run_hypothesis_testing_phase(run_id)
             await synthesize_between_phases(self._synthesizer, run_id, "hypothesis_testing")
             rm.transition(run_id, RunStatus.SYNTHESIS)
+            await self._run_report_phase(run_id)
             return rm.get_run(run_id)  # type: ignore[return-value]
         except Exception as exc:
             log.exception("Pipeline failed for run %s", run_id)
@@ -144,6 +146,20 @@ class Orchestrator:
         assert run is not None
         if run.spawn_requests and has_budget(run.budget_state, self._config):
             await handle_spawns(run_id, run.budget_state, *args)
+
+    async def _run_report_phase(self, run_id: str) -> None:
+        rm.transition(run_id, RunStatus.REPORT)
+        emit(run_id, EventType.REASONING_LOOP_STARTED, {"phase": "report"})
+        run = rm.get_run(run_id)
+        assert run is not None
+        report_result = await generate_report(
+            run_id, run, self._tracker, self._config,
+            self._grounder, self._rag,
+        )
+        if report_result and report_result.adaptive_report:
+            rm.store_adaptive_report(run_id, report_result.adaptive_report)
+            promote_result(run_id, report_result)
+        rm.transition(run_id, RunStatus.REVIEW)
 
     # ------------------------------------------------------------------
     # Factory

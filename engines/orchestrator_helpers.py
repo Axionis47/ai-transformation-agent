@@ -6,11 +6,12 @@ from __future__ import annotations
 
 import logging
 
-from core.schemas import AgentResult, AgentScope, AgentState, BudgetState
+from core.schemas import AgentResult, AgentScope, AgentState, BudgetState, Run
 from core import run_manager as rm
 from engines.context_provider import AgentContextProvider
 from engines.hypothesis_tracker import HypothesisTracker
 from engines.agents.hypothesis_tester import HypothesisTesterAgent
+from engines.agents.report_synthesizer import ReportSynthesizerAgent
 from services.memory.synthesis_store import get_synthesis_store
 from services.trace import emit
 from core.events import EventType
@@ -124,6 +125,34 @@ async def handle_spawns(
     spawned = [h for h in tracker.get_all() if h.hypothesis_id not in existing_ids]
     if spawned and has_budget(budget, config):
         await test_hypotheses(run_id, spawned, budget, tracker, config, grounder, rag)
+
+
+async def generate_report(
+    run_id: str,
+    run: Run,
+    tracker: HypothesisTracker,
+    config: dict,
+    grounder: object,
+    rag: object,
+) -> AgentResult | None:
+    """Run ReportSynthesizerAgent to produce the AdaptiveReport."""
+    ctx = AgentContextProvider(run, AgentScope.REPORT_SYNTHESIZER)
+    agent = ReportSynthesizerAgent(
+        hypotheses=run.hypotheses,
+        tracker=tracker,
+        config=config,
+        grounder=grounder,
+        rag_retriever=rag,
+        context_provider=ctx,
+        budget_state=run.budget_state,
+        run_id=run_id,
+    )
+    try:
+        result = await agent.run()
+        return result
+    except Exception as exc:
+        log.error("ReportSynthesizer failed: %s", exc)
+        return None
 
 
 def has_budget(budget: BudgetState, config: dict) -> bool:
