@@ -22,7 +22,7 @@ from engines.thought import ThoughtEngine
 from services.grounder.grounder import Grounder
 from services.rag.ingest import ensure_loaded
 from services.rag.retrieval import RAGRetriever
-from services.rag.store import RAGStore
+from services.rag.store import get_rag_store
 from services.memory.router import ContextRouter
 from services.memory.store import get_evidence_store
 from services.trace import emit
@@ -43,7 +43,7 @@ def _make_engine(config: dict) -> ThoughtEngine:
     from api.routes.grounding import _build_client
     client = _build_client(config)
     grounder = Grounder(client=client, config=config)
-    store = RAGStore()
+    store = get_rag_store()
     ensure_loaded(store)
     retriever = RAGRetriever(store=store, config=config)
     return ThoughtEngine(
@@ -70,30 +70,48 @@ def start_run(run_id: str) -> AssumptionsDraft | ReasoningLoopResult:
     if run.status == RunStatus.ASSUMPTIONS_CONFIRMED:
         if run.company_intake is None:
             raise HTTPException(status_code=400, detail="Company intake missing")
-        assumptions = run.assumptions or AssumptionsDraft(assumptions=[], open_questions=[])
-        engine = _make_engine(run.config_snapshot)
-        run_manager.transition(run_id, RunStatus.REASONING)
-        result = engine.run_loop(run_id, run.company_intake, assumptions, run.budget_state)
-        state = ReasoningState(
-            current_loop=result.loops_run,
-            evidence_ids=result.evidence_items and [e.evidence_id for e in result.evidence_items] or [],
-            field_coverage=result.field_coverage,
-            overall_confidence=result.overall_confidence,
-            pending_question=result.pending_question,
-            completed=result.completed,
-            stop_reason=result.stop_reason,
-            coverage_gaps=result.coverage_gaps,
-            loops_completed=result.loops_run,
-            escalation_reason=result.escalation_reason,
-            escalation_fields=result.escalation_fields,
-            contradictions=result.contradictions,
-            confidence_history=result.confidence_history,
-        )
-        run_manager.add_evidence(run_id, result.evidence_items, source_label="reasoning_loop")
-        run_manager.update_reasoning_state(run_id, state)
-        return result
+        mode = run.config_snapshot.get("orchestration", {}).get("mode", "legacy")
+        if mode == "multi_agent":
+            return _start_multi_agent(run_id, run)
+        return _start_legacy(run_id, run)
 
     raise HTTPException(status_code=409, detail=f"Cannot start from status: {run.status.value}")
+
+
+def _start_legacy(run_id: str, run: Run) -> ReasoningLoopResult:
+    assumptions = run.assumptions or AssumptionsDraft(assumptions=[], open_questions=[])
+    engine = _make_engine(run.config_snapshot)
+    run_manager.transition(run_id, RunStatus.REASONING)
+    result = engine.run_loop(run_id, run.company_intake, assumptions, run.budget_state)
+    eids = [e.evidence_id for e in result.evidence_items] if result.evidence_items else []
+    state = ReasoningState(
+        current_loop=result.loops_run, evidence_ids=eids,
+        field_coverage=result.field_coverage, overall_confidence=result.overall_confidence,
+        pending_question=result.pending_question, completed=result.completed,
+        stop_reason=result.stop_reason, coverage_gaps=result.coverage_gaps,
+        loops_completed=result.loops_run, escalation_reason=result.escalation_reason,
+        escalation_fields=result.escalation_fields, contradictions=result.contradictions,
+        confidence_history=result.confidence_history,
+    )
+    run_manager.add_evidence(run_id, result.evidence_items, source_label="reasoning_loop")
+    run_manager.update_reasoning_state(run_id, state)
+    return result
+
+
+def _start_multi_agent(run_id: str, run: Run) -> Run:
+    """Launch the multi-agent orchestrator pipeline."""
+    import asyncio
+    from engines.orchestrator import Orchestrator
+    from api.routes.grounding import _build_client
+    config = run.config_snapshot
+    grounder = Grounder(client=_build_client(config), config=config)
+    store = get_rag_store()
+    ensure_loaded(store)
+    orch = Orchestrator(
+        config=config, grounder=grounder,
+        rag_retriever=RAGRetriever(store=store, config=config),
+    )
+    return asyncio.run(orch.run(run_id))
 
 
 @router.post("/runs/{run_id}/assumptions/confirm", response_model=Run)
@@ -170,16 +188,11 @@ def answer_question(run_id: str, body: UserAnswer) -> ReasoningLoopResult:
     new_state = ReasoningState(
         current_loop=result.loops_run,
         evidence_ids=[e.evidence_id for e in result.evidence_items],
-        field_coverage=result.field_coverage,
-        overall_confidence=result.overall_confidence,
-        pending_question=result.pending_question,
-        completed=result.completed,
-        stop_reason=result.stop_reason,
-        coverage_gaps=result.coverage_gaps,
-        loops_completed=result.loops_run,
-        escalation_reason=result.escalation_reason,
-        escalation_fields=result.escalation_fields,
-        contradictions=result.contradictions,
+        field_coverage=result.field_coverage, overall_confidence=result.overall_confidence,
+        pending_question=result.pending_question, completed=result.completed,
+        stop_reason=result.stop_reason, coverage_gaps=result.coverage_gaps,
+        loops_completed=result.loops_run, escalation_reason=result.escalation_reason,
+        escalation_fields=result.escalation_fields, contradictions=result.contradictions,
         confidence_history=result.confidence_history,
     )
     run_manager.add_evidence(run_id, result.evidence_items, source_label="reasoning_loop_resumed")
