@@ -175,6 +175,7 @@ export interface Hypothesis {
   confidence: number
   evidence_for: string[]
   evidence_against: string[]
+  evidence_conditions: string[]
   analogous_engagements: string[]
   conditions_for_success: string[]
   risks: string[]

@@ -31,7 +31,7 @@ function confidenceColor(c: number): 'mint' | 'amber' | 'rose' {
 
 export default function HypothesisCard({ hypothesis }: HypothesisCardProps) {
   const [expanded, setExpanded] = useState(false)
-  const { status, confidence, evidence_for, evidence_against } = hypothesis
+  const { status, confidence, evidence_for, evidence_against, evidence_conditions } = hypothesis
   const badge = STATUS_BADGE[status]
   const isRejected = status === 'rejected'
   const isForming = status === 'forming'
@@ -55,7 +55,8 @@ export default function HypothesisCard({ hypothesis }: HypothesisCardProps) {
 
         <div className="flex items-center gap-4 mt-3 text-2xs font-mono">
           <span className="text-mint">{evidence_for.length} for</span>
-          <span className="text-rose">{evidence_against.length} against</span>
+          {(evidence_conditions?.length ?? 0) > 0 && <span className="text-amber">{evidence_conditions.length} conditions</span>}
+          {evidence_against.length > 0 && <span className="text-rose">{evidence_against.length} against</span>}
           <span className="text-ink-tertiary ml-auto">{hypothesis.category}</span>
         </div>
       </div>
