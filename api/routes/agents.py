@@ -158,9 +158,53 @@ async def refine_report(run_id: str, body: ReportRefineRequest) -> Run:
         run_manager.transition(run_id, RunStatus.DEEP_RESEARCH)
         return run_manager.get_run(run_id)
 
-    # Handle "deepen" — backtrack to hypothesis testing
+    # Handle "deepen" — targeted re-test of specific hypotheses, then re-generate report
     if deepens:
-        run_manager.transition(run_id, RunStatus.HYPOTHESIS_TESTING)
+        from engines.orchestrator_helpers import generate_report, test_hypotheses
+        from engines.hypothesis_tracker import HypothesisTracker
+
+        tracker = HypothesisTracker()
+        for h in run.hypotheses:
+            tracker._hypotheses[h.hypothesis_id] = h
+
+        grounder = _get_grounder(run.config_snapshot)
+        rag = _get_rag()
+
+        # Find only the targeted hypotheses
+        target_ids = set()
+        for fb in deepens:
+            # target_section is "opportunity:{hyp_id}"
+            if ":" in fb.target_section:
+                target_ids.add(fb.target_section.split(":", 1)[1])
+        targets = [h for h in run.hypotheses if h.hypothesis_id in target_ids]
+        if not targets:
+            targets = run.hypotheses  # fallback: re-test all if no match
+
+        # Re-test only the targeted hypotheses
+        await test_hypotheses(
+            run_id, targets, run.budget_state, tracker,
+            run.config_snapshot, grounder, rag,
+        )
+
+        # Sync updated hypotheses back to run
+        for h in run.hypotheses:
+            updated = tracker.get(h.hypothesis_id)
+            if updated:
+                h.status = updated.status
+                h.confidence = updated.confidence
+                h.test_results = updated.test_results
+                h.reasoning_chain = updated.reasoning_chain
+                h.conditions_for_success = updated.conditions_for_success
+
+        # Re-generate report with deepen feedback context
+        result = await generate_report(
+            run_id, run, tracker,
+            run.config_snapshot, grounder, rag,
+            feedback=deepens,
+        )
+        if result and result.adaptive_report:
+            run_manager.store_adaptive_report(run_id, result.adaptive_report)
+
         return run_manager.get_run(run_id)
 
     # Handle "edit" — regenerate report in-place, stay at REVIEW
@@ -191,3 +235,13 @@ def _get_grounder(config: dict) -> object:
     from services.grounder.grounder import Grounder
     client = _build_client(config)
     return Grounder(client=client, config=config)
+
+
+def _get_rag() -> object:
+    """Obtain a RAG retriever for targeted hypothesis re-testing."""
+    from services.rag.store import get_rag_store
+    from services.rag.ingest import ensure_loaded
+    from services.rag.retrieval import RAGRetriever
+    store = get_rag_store()
+    ensure_loaded(store)
+    return RAGRetriever(store=store, config={})
