@@ -8,8 +8,10 @@ Runs in PARALLEL with CompanyProfiler — fully independent, no shared state.
 """
 from __future__ import annotations
 
+import uuid
+
 from core.json_parser import extract_json
-from core.schemas import AgentResult, IndustryContext
+from core.schemas import AgentResult, DerivedInsight, IndustryContext
 from engines.agents.base import AgentThought, BaseResearchAgent
 
 _DIMENSIONS = [
@@ -123,11 +125,43 @@ class IndustryAnalystAgent(BaseResearchAgent):
             agent_type=self.AGENT_TYPE,
             success=error is None,
             evidence_items=self._evidence,
-            derived_insights=self._insights,
+            derived_insights=self._build_derived_insights(),
             summary=self._build_summary(),
             error=error,
             industry_context=ic,
         )
+
+    def _build_derived_insights(self) -> list[DerivedInsight]:
+        insights: list[DerivedInsight] = []
+        trends = self._assessment.get("key_trends", [])
+        if isinstance(trends, list) and trends:
+            insights.append(DerivedInsight(
+                insight_id=f"ins-{uuid.uuid4().hex[:8]}",
+                phase="grounding",
+                statement=f"Industry trends: {', '.join(trends[:3])}",
+                supporting_evidence_ids=[
+                    e.evidence_id for e in self._evidence[:5]
+                ],
+                confidence=self._compute_confidence(),
+                produced_by_agent=self._agent_id,
+            ))
+        for dim in ("competitive_dynamics", "regulatory_landscape",
+                     "ai_adoption_level"):
+            val = self._assessment.get(dim, "")
+            if isinstance(val, str) and val.strip():
+                insights.append(DerivedInsight(
+                    insight_id=f"ins-{uuid.uuid4().hex[:8]}",
+                    phase="grounding",
+                    statement=(
+                        f"Industry {dim.replace('_', ' ')}: {val[:200]}"
+                    ),
+                    supporting_evidence_ids=[
+                        e.evidence_id for e in self._evidence[:5]
+                    ],
+                    confidence=self._compute_confidence(),
+                    produced_by_agent=self._agent_id,
+                ))
+        return insights
 
     # ------------------------------------------------------------------
     # Helpers
