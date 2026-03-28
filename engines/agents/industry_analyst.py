@@ -30,8 +30,11 @@ class IndustryAnalystAgent(BaseResearchAgent):
 
     def __init__(self, **kwargs) -> None:  # type: ignore[override]
         super().__init__(**kwargs)
-        agent_cfg = self._config.get("agents", {}).get("industry_analyst", {})
-        self.MAX_STEPS = int(agent_cfg.get("max_steps", 6))
+        if self._max_steps_override is not None:
+            self.MAX_STEPS = self._max_steps_override
+        else:
+            agent_cfg = self._config.get("agents", {}).get("industry_analyst", {})
+            self.MAX_STEPS = int(agent_cfg.get("max_steps", 6))
         self._past_queries: list[str] = []
         self._current_dimension: str = "industry"
         self._assessment: dict[str, str | list[str]] = {

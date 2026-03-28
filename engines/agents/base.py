@@ -72,6 +72,7 @@ class BaseResearchAgent:
         context_provider: AgentContextProvider | None = None,
         budget_state: BudgetState | None = None,
         run_id: str = "",
+        max_steps: int | None = None,
     ) -> None:
         self._agent_id = agent_id or f"{self.AGENT_TYPE}-{uuid.uuid4().hex[:6]}"
         self._config = config or {}
@@ -80,6 +81,7 @@ class BaseResearchAgent:
         self._ctx = context_provider
         self._budget = budget_state or BudgetState()
         self._run_id = run_id
+        self._max_steps_override = max_steps
 
         # Internal state — reset per run
         self._evidence: list[EvidenceItem] = []

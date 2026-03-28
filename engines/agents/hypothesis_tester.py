@@ -29,8 +29,11 @@ class HypothesisTesterAgent(BaseResearchAgent):
         self, *, hypothesis: Hypothesis, tracker: HypothesisTracker, **kwargs
     ) -> None:
         super().__init__(**kwargs)
-        agent_cfg = self._config.get("agents", {}).get("hypothesis_tester", {})
-        self.MAX_STEPS = int(agent_cfg.get("max_steps", 6))
+        if self._max_steps_override is not None:
+            self.MAX_STEPS = self._max_steps_override
+        else:
+            agent_cfg = self._config.get("agents", {}).get("hypothesis_tester", {})
+            self.MAX_STEPS = int(agent_cfg.get("max_steps", 6))
         self._hypothesis = hypothesis
         self._tracker = tracker
         # Register hypothesis in tracker if not already there

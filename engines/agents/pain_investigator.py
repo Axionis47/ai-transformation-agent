@@ -23,8 +23,11 @@ class PainPointInvestigatorAgent(BaseResearchAgent):
 
     def __init__(self, **kwargs) -> None:  # type: ignore[override]
         super().__init__(**kwargs)
-        agent_cfg = self._config.get("agents", {}).get("pain_investigator", {})
-        self.MAX_STEPS = int(agent_cfg.get("max_steps", 8))
+        if self._max_steps_override is not None:
+            self.MAX_STEPS = self._max_steps_override
+        else:
+            agent_cfg = self._config.get("agents", {}).get("pain_investigator", {})
+            self.MAX_STEPS = int(agent_cfg.get("max_steps", 8))
         self._past_queries: list[str] = []
         self._pain_points: list[dict] = []
         self._current_process: str = ""
