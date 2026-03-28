@@ -496,9 +496,11 @@ INTAKE → GROUNDING (profiler ‖ analyst) → synthesis
 
 ### Stage 6: Report Synthesis
 - ReportSynthesizer: single-shot (MAX_STEPS=1), no ReAct loop
-- Input: validated hypotheses + reasoning chains + all evidence + insights
+- Input: pre-structured hypothesis blocks with citable evidence IDs (not raw dump); rejected hypotheses as one-line summaries
 - Output: AdaptiveReport (executive_summary, opportunities, evidence_annex, what_we_dont_know)
 - Structure follows evidence, not a fixed template
+- Prompt v2.0 with structured placeholders (`{validated_hypothesis_blocks}`, `{rejected_summaries}`, `{evidence_appendix}`)
+- Section-aware feedback: "edit" mode passes previous report JSON, instructs LLM to change only the target section
 - Emits: REPORT_STRUCTURE_DECIDED, REPORT_RENDERED
 
 ### Stage 7: Review
