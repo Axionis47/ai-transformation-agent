@@ -156,10 +156,12 @@ async def generate_report(
 ) -> AgentResult | None:
     """Run ReportSynthesizerAgent to produce the AdaptiveReport."""
     ctx = AgentContextProvider(run, AgentScope.REPORT_SYNTHESIZER)
+    previous = run.adaptive_report if feedback else None
     agent = ReportSynthesizerAgent(
         hypotheses=run.hypotheses,
         tracker=tracker,
         feedback=feedback,
+        previous_report=previous,
         config=config,
         grounder=grounder,
         rag_retriever=rag,
