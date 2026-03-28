@@ -100,21 +100,22 @@ class ReportSynthesizerAgent(BaseResearchAgent):
         return prompt
 
     def _build_feedback_section(self) -> str:
-        """Append user feedback instructions to the prompt."""
-        lines = [
-            "\n\n## USER FEEDBACK — INCORPORATE THESE CHANGES",
-            "The user has reviewed the previous version of this "
-            "report and wants specific changes:\n",
-        ]
+        """Append feedback instructions — section-aware when previous report exists."""
+        if self._previous_report:
+            lines = [
+                "\n\n## EDITING MODE — TARGETED CHANGES ONLY",
+                "The previous report JSON is provided above.",
+                "Change ONLY the sections specified below.",
+                "Return the COMPLETE report with targeted sections updated",
+                "and ALL other sections IDENTICAL.\n",
+            ]
+        else:
+            lines = ["\n\n## USER FEEDBACK", "Incorporate these changes:\n"]
         for i, fb in enumerate(self._feedback, 1):
             lines.append(
                 f"{i}. [{fb.feedback_type}] Target: "
                 f"{fb.target_section} — \"{fb.instruction}\""
             )
-        lines.append(
-            "\nRegenerate the report incorporating ALL feedback. "
-            "Keep everything else that was good."
-        )
         return "\n".join(lines)
 
     def _build_structured_input(self) -> tuple[str, str, str]:
@@ -202,13 +203,20 @@ class ReportSynthesizerAgent(BaseResearchAgent):
         for item in raw_opps:
             if not isinstance(item, dict):
                 continue
+            # Merge evidence_ids into evidence_summary for citation traceability
+            ev_summary = item.get("evidence_summary", "")
+            ev_ids = item.get("evidence_ids", [])
+            if ev_ids and ev_ids not in ([], None):
+                cited = ", ".join(str(eid) for eid in ev_ids)
+                if cited not in ev_summary:
+                    ev_summary = f"{ev_summary} (cited: {cited})"
             result.append(ReportOpportunity(
                 title=item.get("title", "Untitled"),
                 hypothesis_id=item.get("hypothesis_id", "unknown"),
                 narrative=item.get("narrative", ""),
                 tier=item.get("tier", "medium"),
                 confidence=float(item.get("confidence", 0.5)),
-                evidence_summary=item.get("evidence_summary", ""),
+                evidence_summary=ev_summary,
                 risks=item.get("risks", []),
                 conditions_for_success=item.get("conditions_for_success", []),
                 recommended_approach=item.get("recommended_approach", ""),
