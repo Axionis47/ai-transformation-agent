@@ -85,6 +85,7 @@ class BaseResearchAgent:
         self._evidence: list[EvidenceItem] = []
         self._insights: list[DerivedInsight] = []
         self._steps_taken: int = 0
+        self._prev_evidence_count: int = 0
         self._system_prompt: str = ""
 
         # Load system prompt
@@ -110,6 +111,7 @@ class BaseResearchAgent:
         try:
             for step in range(self.MAX_STEPS):
                 self._steps_taken = step + 1
+                self._prev_evidence_count = len(self._evidence)
 
                 thought = await self._think(context_briefing)
                 if thought.action == "STOP":

@@ -33,6 +33,7 @@ class IndustryAnalystAgent(BaseResearchAgent):
         agent_cfg = self._config.get("agents", {}).get("industry_analyst", {})
         self.MAX_STEPS = int(agent_cfg.get("max_steps", 6))
         self._past_queries: list[str] = []
+        self._current_dimension: str = "industry"
         self._assessment: dict[str, str | list[str]] = {
             "key_trends": [],
             "competitive_dynamics": "",
@@ -96,6 +97,14 @@ class IndustryAnalystAgent(BaseResearchAgent):
         return AgentThought(
             action=action, query=query, reasoning=reasoning
         )
+
+    # ------------------------------------------------------------------
+    # ReAct: OBSERVE — tag new evidence with industry dimension
+    # ------------------------------------------------------------------
+    def _observe(self, observation: str) -> None:
+        for ev in self._evidence[self._prev_evidence_count:]:
+            ev.dimension = "industry"
+            ev.produced_by = self._agent_id
 
     # ------------------------------------------------------------------
     # Result builder

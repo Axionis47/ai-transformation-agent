@@ -20,6 +20,14 @@ _DIMENSIONS = [
     "organizational_structure",
 ]
 
+_DIM_TO_TAG = {
+    "what_they_do": "operations",
+    "how_they_make_money": "revenue",
+    "size_and_scale": "scale",
+    "technology_landscape": "technology",
+    "organizational_structure": "organization",
+}
+
 
 class CompanyProfilerAgent(BaseResearchAgent):
     """Profiles a company across five dimensions using grounded search."""
@@ -33,6 +41,7 @@ class CompanyProfilerAgent(BaseResearchAgent):
         self.MAX_STEPS = int(agent_cfg.get("max_steps", 8))
         self._past_queries: list[str] = []
         self._assessment: dict[str, str] = {d: "unknown" for d in _DIMENSIONS}
+        self._current_dimension: str = "operations"
 
     # ------------------------------------------------------------------
     # ReAct: THINK
@@ -75,6 +84,7 @@ class CompanyProfilerAgent(BaseResearchAgent):
                 val = assessment.get(dim)
                 if val and val.lower() != "unknown":
                     self._assessment[dim] = val
+                    self._current_dimension = _DIM_TO_TAG.get(dim, "operations")
 
         if action == "GROUND" and query:
             if query in self._past_queries:
@@ -88,8 +98,12 @@ class CompanyProfilerAgent(BaseResearchAgent):
         )
 
     # ------------------------------------------------------------------
-    # ReAct: OBSERVE — no-op, base _act already extends self._evidence
+    # ReAct: OBSERVE — tag new evidence with current dimension
     # ------------------------------------------------------------------
+    def _observe(self, observation: str) -> None:
+        for ev in self._evidence[self._prev_evidence_count:]:
+            ev.dimension = self._current_dimension or "operations"
+            ev.produced_by = self._agent_id
 
     # ------------------------------------------------------------------
     # Result builder
