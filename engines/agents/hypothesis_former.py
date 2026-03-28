@@ -39,6 +39,13 @@ class HypothesisFormerAgent(BaseResearchAgent):
         insights = self._ctx.get_derived_insights() if self._ctx else []
         pain_points = self._ctx.get_pain_points() if self._ctx else []
 
+        # Pull focused evidence by dimension for structured input
+        pain_ev = self._ctx.query_evidence(dimension="pain_point", top_k=5) if self._ctx else []
+        tech_ev = self._ctx.query_evidence(dimension="technology", top_k=3) if self._ctx else []
+        if pain_ev or tech_ev:
+            ev_lines = [f"  - {e.title}: {e.snippet[:100]}" for e in pain_ev + tech_ev]
+            context += "\n\nFOCUSED EVIDENCE (pain+tech):\n" + "\n".join(ev_lines)
+
         structured_inputs = ""
         if insights:
             structured_inputs += (

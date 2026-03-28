@@ -54,6 +54,14 @@ class HypothesisTesterAgent(BaseResearchAgent):
         company = intake.company_name if intake else "unknown"
         industry = intake.industry if intake else "unknown"
 
+        # Pull evidence focused on the hypothesis's target process
+        focused = self._ctx.query_evidence(
+            process_area=self._hypothesis.target_process, top_k=10
+        ) if self._ctx else []
+        if focused:
+            ev_lines = [f"  - {e.title}: {e.snippet[:100]}" for e in focused]
+            context += "\n\nFOCUSED EVIDENCE (target process):\n" + "\n".join(ev_lines)
+
         prompt = self._system_prompt.format(
             hypothesis_statement=self._hypothesis.statement,
             hypothesis_category=self._hypothesis.category,

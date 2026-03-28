@@ -37,6 +37,13 @@ class PainPointInvestigatorAgent(BaseResearchAgent):
         company = intake.company_name if intake else "unknown"
         industry = intake.industry if intake else "unknown"
 
+        # Pull focused evidence from grounding phase
+        tech_ev = self._ctx.query_evidence(dimension="technology", top_k=5) if self._ctx else []
+        scale_ev = self._ctx.query_evidence(dimension="scale", top_k=3) if self._ctx else []
+        if tech_ev or scale_ev:
+            lines = [f"  - {e.title}: {e.snippet[:100]}" for e in tech_ev + scale_ev]
+            context += "\n\nFOCUSED EVIDENCE (tech+scale):\n" + "\n".join(lines)
+
         # Pull structured insights from grounding phase
         insights = self._ctx.get_derived_insights() if self._ctx else []
         insight_block = ""
