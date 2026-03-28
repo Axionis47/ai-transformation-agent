@@ -1,6 +1,6 @@
 # System State — AI Transformation Agent
 
-> Last updated: 2026-03-28 (sprints G-K: progressive evidence, user controls, feedback, frontend redesign)
+> Last updated: 2026-03-28 (sprints G-L: progressive evidence, user controls, feedback, frontend redesign, report synthesizer overhaul)
 > Read time: 5 minutes
 
 ---
@@ -132,8 +132,12 @@ Evidence is now tagged and filterable:
 - `evidence_annex` — filterable, source-linked evidence list
 - `agent_activity_summary` — what each agent did
 
+**Structured input (v2.0 prompt)**: ReportSynthesizer receives pre-filtered, pre-structured hypothesis blocks — not raw dump. Each validated hypothesis arrives with citable evidence IDs so every opportunity in the report traces to specific evidence. Rejected hypotheses are passed as one-line summaries (shows investigation depth without wasting tokens). Prompt uses structured placeholders (`{validated_hypothesis_blocks}`, `{rejected_summaries}`, `{evidence_appendix}`).
+
+**Evidence is citable**: each ReportOpportunity carries `evidence_ids` linking back to the evidence annex. Report consumers can trace any claim to its source evidence.
+
 **Feedback system** (3 types via `POST /v1/runs/{id}/report/refine`):
-- **edit** — re-runs ReportSynthesizer with feedback context, stays at REVIEW
+- **edit** — section-aware: passes previous report JSON and instructs LLM to change ONLY the target section, preserving all other sections unchanged
 - **deepen** — targeted re-test of specific hypotheses (by hypothesis_id), then re-generates report
 - **reinvestigate** — backtracks to DEEP_RESEARCH for full re-run
 
