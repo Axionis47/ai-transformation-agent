@@ -16,7 +16,15 @@ class PromotionResult:
 
     accepted: int = 0
     rejected: int = 0
+    accepted_items: list[EvidenceItem] = field(default_factory=list)
     rejection_reasons: list[str] = field(default_factory=list)
+
+
+PHASE_THRESHOLDS = {
+    "grounding": 0.3,
+    "deep_research": 0.4,
+    "hypothesis_testing": 0.5,
+}
 
 
 class PromotionGate:
@@ -24,7 +32,7 @@ class PromotionGate:
 
     Pipeline:
     1. Schema check: evidence_id and source_type must be present
-    2. Relevance threshold (configurable, default 0.0 = accept all)
+    2. Relevance threshold (phase-aware, scales with pipeline depth)
     3. Dedup via store.add() which handles score-based replacement
     4. Emit EVIDENCE_PROMOTED / EVIDENCE_REJECTED trace events
     """
@@ -38,10 +46,12 @@ class PromotionGate:
         run_id: str,
         candidates: list[EvidenceItem],
         source_label: str = "unknown",
+        phase: str = "grounding",
     ) -> PromotionResult:
         """Validate and promote a batch of evidence candidates."""
         result = PromotionResult()
         detector = ContradictionDetector()
+        threshold = PHASE_THRESHOLDS.get(phase, self._min_relevance)
 
         for item in candidates:
             # Step 1: Schema check
@@ -55,18 +65,18 @@ class PromotionGate:
                 })
                 continue
 
-            # Step 2: Relevance threshold
-            if item.relevance_score < self._min_relevance:
+            # Step 2: Phase-aware relevance threshold
+            if item.relevance_score < threshold:
                 reason = (
                     f"relevance {item.relevance_score:.3f} below threshold "
-                    f"{self._min_relevance:.3f} for {item.evidence_id}"
+                    f"{threshold:.3f} for {item.evidence_id}"
                 )
                 result.rejected += 1
                 result.rejection_reasons.append(reason)
                 emit(run_id, EventType.EVIDENCE_REJECTED, {
                     "evidence_id": item.evidence_id,
                     "relevance_score": item.relevance_score,
-                    "threshold": self._min_relevance,
+                    "threshold": threshold,
                     "reason": reason,
                     "source_label": source_label,
                 })
@@ -87,6 +97,7 @@ class PromotionGate:
             # Step 3: Dedup via store (handles score-based replacement)
             is_new = self._store.add(run_id, item)
             result.accepted += 1
+            result.accepted_items.append(item)
 
             emit(run_id, EventType.EVIDENCE_PROMOTED, {
                 "evidence_id": item.evidence_id,

@@ -26,11 +26,22 @@ from core.events import EventType
 log = logging.getLogger(__name__)
 
 
+_AGENT_TO_PHASE = {
+    "company_profiler": "grounding",
+    "industry_analyst": "grounding",
+    "pain_investigator": "deep_research",
+    "hypothesis_former": "deep_research",
+    "hypothesis_tester": "hypothesis_testing",
+    "report_synthesizer": "hypothesis_testing",
+}
+
+
 def promote_result(run_id: str, result: AgentResult) -> None:
     """Write agent output into run state via run_manager."""
     rm.add_agent_state(run_id, _result_to_state(result))
+    phase = _AGENT_TO_PHASE.get(result.agent_type, "grounding")
     if result.evidence_items:
-        rm.add_evidence(run_id, result.evidence_items, source_label=result.agent_type)
+        rm.add_evidence(run_id, result.evidence_items, source_label=result.agent_type, phase=phase)
     if result.derived_insights:
         get_synthesis_store().save_insights(run_id, result.derived_insights)
     if result.company_understanding:

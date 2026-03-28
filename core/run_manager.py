@@ -95,17 +95,23 @@ def transition(run_id: str, new_status: RunStatus) -> Run:
     return run
 
 
-def add_evidence(run_id: str, items: list[EvidenceItem], source_label: str = "unknown") -> Run:
+def add_evidence(
+    run_id: str,
+    items: list[EvidenceItem],
+    source_label: str = "unknown",
+    phase: str = "grounding",
+) -> Run:
     """Validate and promote evidence through the promotion gate.
 
     Only promoted (accepted) items are written to run.evidence.
     Canonical source is always EvidenceStore; run.evidence is for API compat.
+    Phase controls the relevance threshold (deeper phases are stricter).
     """
     from services.memory.store import get_evidence_store
     from services.memory.promotion import PromotionGate
     run = _require_run(run_id)
     gate = PromotionGate(store=get_evidence_store())
-    result = gate.promote_batch(run_id, items, source_label=source_label)
+    result = gate.promote_batch(run_id, items, source_label=source_label, phase=phase)
     run.evidence.extend(result.accepted_items)
     return run
 
