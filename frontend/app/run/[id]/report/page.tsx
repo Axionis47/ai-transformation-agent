@@ -24,12 +24,12 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
   )
 }
 
-function OpportunityCard({ opp, onFeedback }: { opp: ReportOpportunity; onFeedback: (fb: ReportFeedback) => void }) {
+function OpportunityCard({ opp, onFeedback, highlighted }: { opp: ReportOpportunity; onFeedback: (fb: ReportFeedback) => void; highlighted?: boolean }) {
   const [evidenceOpen, setEvidenceOpen] = useState(false)
   const tier = opp.tier.toLowerCase()
   const pct = Math.round(opp.confidence * 100)
   return (
-    <div className={`group bg-canvas-raised border border-edge-subtle rounded-md p-5 border-l-[3px] ${TIER_BORDER[tier] ?? 'border-l-edge'} print:break-inside-avoid print:bg-white print:border-gray-300`}>
+    <div className={`group bg-canvas-raised border border-edge-subtle rounded-md p-5 border-l-[3px] ${TIER_BORDER[tier] ?? 'border-l-edge'} print:break-inside-avoid print:bg-white print:border-gray-300 transition-all duration-500 ${highlighted ? 'ring-1 ring-mint/40 bg-mint/5' : ''}`}>
       <div className="flex items-center gap-3 mb-2">
         <Badge variant={TIER_VARIANT[tier] ?? 'muted'}>{tier.charAt(0).toUpperCase() + tier.slice(1)}</Badge>
         <span className="font-mono text-2xs text-ink tabular">{pct}%</span>
@@ -95,6 +95,7 @@ export default function ReportPage() {
   const [error, setError] = useState<string | null>(null)
   const [reviewAction, setReviewAction] = useState<string | null>(null)
   const [refining, setRefining] = useState(false)
+  const [lastEdited, setLastEdited] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     try {
@@ -123,10 +124,12 @@ export default function ReportPage() {
   }
 
   async function handleFeedback(feedback: ReportFeedback) {
-    setRefining(true); setError(null)
+    setRefining(true); setError(null); setLastEdited(null)
     try {
       await refineReportWithFeedback(runId, [feedback])
       await load()
+      setLastEdited(feedback.target_section)
+      setTimeout(() => setLastEdited(null), 3000)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Report refinement failed')
     } finally { setRefining(false) }
@@ -140,6 +143,7 @@ export default function ReportPage() {
   if (!report) return shell(<div className="text-center"><p className="text-ink-secondary text-sm">Report not yet generated.</p><Link href={`/run/${runId}`} className="text-mint text-2xs font-mono mt-2 inline-block hover:text-mint-bright">&larr; Back to run</Link></div>)
 
   const sorted = [...report.opportunities].sort((a, b) => b.confidence - a.confidence)
+  const hl = (section: string) => lastEdited === section ? 'ring-1 ring-mint/40 bg-mint/5 transition-all duration-500' : 'transition-all duration-500'
 
   return (
     <div className="min-h-screen bg-canvas print:bg-white">
@@ -170,7 +174,7 @@ export default function ReportPage() {
           <p className="text-xs text-indigo uppercase tracking-wider font-medium mb-2 print:text-black">Key Insight</p>
           <p className="text-lg font-semibold text-ink leading-snug print:text-black">{report.key_insight}</p>
         </section>
-        <section className="mb-8 group">
+        <section className={`mb-8 group rounded-md p-4 -mx-4 ${hl('executive_summary')}`}>
           <div className="flex items-center gap-3 mb-3">
             <p className="text-xs text-ink-secondary uppercase tracking-wider font-medium print:text-black">Executive Summary</p>
             <FeedbackButton targetSection="executive_summary" onSubmit={handleFeedback} />
@@ -179,7 +183,7 @@ export default function ReportPage() {
         </section>
         <section className="mb-8">
           <SectionHeader>Opportunities ({sorted.length})</SectionHeader>
-          <div className="space-y-4">{sorted.map((opp, i) => <OpportunityCard key={i} opp={opp} onFeedback={handleFeedback} />)}</div>
+          <div className="space-y-4">{sorted.map((opp, i) => <OpportunityCard key={i} opp={opp} onFeedback={handleFeedback} highlighted={lastEdited === `opportunity:${opp.hypothesis_id}`} />)}</div>
         </section>
         {report.reasoning_chain.length > 0 && (
           <section className="mb-8">
