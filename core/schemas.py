@@ -163,6 +163,8 @@ class EvidenceItem(BaseModel):
     retrieval_meta: dict = {}
     provenance: Optional[Provenance] = None
     produced_by: str = ""  # which agent produced this evidence
+    dimension: str = ""  # "technology" | "scale" | "revenue" | "operations" | "industry" | "pain_point" | "hypothesis_test"
+    process_area: str = ""  # "dispatch" | "billing" | "maintenance" | "tracking" | "" (if not process-specific)
 
 
 # --- Opportunity ---
