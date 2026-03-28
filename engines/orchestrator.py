@@ -33,7 +33,6 @@ from services.memory.synthesis_store import get_synthesis_store
 from services.trace import emit
 
 log = logging.getLogger(__name__)
-_LOW_CONFIDENCE = 0.5
 
 
 class Orchestrator:
@@ -44,7 +43,31 @@ class Orchestrator:
         self._grounder = grounder
         self._rag = rag_retriever
         self._tracker = HypothesisTracker()
-        self._synthesizer = PhaseSynthesizer(grounder, get_synthesis_store())
+        if grounder is not None:
+            self._synthesizer = PhaseSynthesizer(grounder, get_synthesis_store())
+
+        # --- User depth / confidence controls ---
+        reasoning = config.get("reasoning", {})
+        depth = int(reasoning.get("depth_budget", 5))
+        self._confidence_target = float(reasoning.get("confidence_threshold", 0.7))
+
+        scale = depth / 5.0
+        self._steps = {
+            "company_profiler": max(2, min(12, round(6 * scale))),
+            "industry_analyst": max(2, min(8, round(4 * scale))),
+            "pain_investigator": max(2, min(12, round(6 * scale))),
+            "hypothesis_former": max(2, min(8, round(4 * scale))),
+            "hypothesis_tester": max(2, min(8, round(4 * scale))),
+        }
+        self._max_hypotheses = max(2, min(10, round(5 * scale)))
+
+        self._validate_threshold = self._confidence_target
+        self._reject_threshold = self._confidence_target * 0.3
+
+        # Inject thresholds into config for helpers that receive config dict
+        self._config["_validate_threshold"] = self._validate_threshold
+        self._config["_reject_threshold"] = self._reject_threshold
+        self._config["_max_hypotheses"] = self._max_hypotheses
 
     async def run(self, run_id: str) -> Run:
         """Execute the full pipeline for a run."""
@@ -136,7 +159,7 @@ class Orchestrator:
 
         # Confidence-driven depth: retest low-confidence hypotheses
         if has_budget(run.budget_state, self._config):
-            low = self._tracker.get_low_confidence(_LOW_CONFIDENCE)
+            low = self._tracker.get_low_confidence(self._validate_threshold)
             if low:
                 emit(run_id, EventType.REASONING_LOOP_STARTED, {"phase": "confidence_depth"})
                 await test_hypotheses(run_id, low, run.budget_state, *args)
@@ -167,6 +190,7 @@ class Orchestrator:
     def _create_agent(
         self, cls: type, run: Run, scope: AgentScope, budget: BudgetState
     ) -> BaseResearchAgent:
+        agent_type = cls.AGENT_TYPE
         return cls(
             config=self._config,
             grounder=self._grounder,
@@ -174,4 +198,5 @@ class Orchestrator:
             context_provider=AgentContextProvider(run, scope),
             budget_state=budget,
             run_id=run.run_id,
+            max_steps=self._steps.get(agent_type),
         )
