@@ -120,6 +120,23 @@ class AgentContextProvider:
             return []
         return list(self._run.evidence)
 
+    def query_evidence(
+        self,
+        dimension: str | None = None,
+        process_area: str | None = None,
+        top_k: int = 10,
+    ) -> list[EvidenceItem]:
+        """Query evidence with optional dimension/process filters, sorted by relevance."""
+        if "evidence" not in self._access:
+            return []
+        items = list(self._run.evidence)
+        if dimension:
+            items = [e for e in items if e.dimension == dimension]
+        if process_area:
+            items = [e for e in items if e.process_area == process_area]
+        items.sort(key=lambda e: e.relevance_score, reverse=True)
+        return items[:top_k]
+
     def build_context_briefing(self) -> str:
         """Build a compact text briefing of everything this agent can see.
 
@@ -168,5 +185,12 @@ class AgentContextProvider:
         if insights:
             insight_lines = [f"  - {i.statement} [{i.confidence:.0%}]" for i in insights[:10]]
             parts.append("DERIVED INSIGHTS:\n" + "\n".join(insight_lines))
+
+        # Focused evidence summaries by dimension (top items only)
+        for dim_tag in ("technology", "operations", "scale", "pain_point"):
+            focused = self.query_evidence(dimension=dim_tag, top_k=3)
+            if focused:
+                lines = [f"  - {e.title}: {e.snippet[:120]}" for e in focused]
+                parts.append(f"EVIDENCE ({dim_tag}):\n" + "\n".join(lines))
 
         return "\n\n".join(parts) if parts else "(no prior context available)"
