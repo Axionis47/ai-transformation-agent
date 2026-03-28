@@ -3,9 +3,12 @@
 Unlike research agents, this runs ONE LLM call (no multi-step ReAct loop).
 It receives validated hypotheses and their full reasoning chains, then
 synthesizes everything into a coherent client-facing report.
+
+v2: structured input with citable evidence and section-aware feedback.
 """
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from core.events import EventType
@@ -14,6 +17,7 @@ from core.schemas import (
     AdaptiveReport,
     AgentResult,
     Hypothesis,
+    HypothesisStatus,
     ReportFeedback,
     ReportOpportunity,
 )
@@ -34,12 +38,14 @@ class ReportSynthesizerAgent(BaseResearchAgent):
         hypotheses: list[Hypothesis] | None = None,
         tracker: HypothesisTracker | None = None,
         feedback: list[ReportFeedback] | None = None,
+        previous_report: AdaptiveReport | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
         self._hypotheses = hypotheses or []
         self._tracker = tracker or HypothesisTracker()
         self._feedback = feedback or []
+        self._previous_report = previous_report
 
     async def run(self) -> AgentResult:
         """Single synthesis call — no ReAct loop."""
@@ -79,20 +85,16 @@ class ReportSynthesizerAgent(BaseResearchAgent):
         intake = self._ctx.get_intake() if self._ctx else None
         company = intake.company_name if intake else "unknown"
         industry = intake.industry if intake else "unknown"
-
-        hyp_summary = self._build_hypotheses_summary()
-        chains = self._build_reasoning_chains()
-        ev_count = sum(len(h.evidence_for) for h in self._hypotheses)
-
+        structured, rejected, insights = self._build_structured_input()
+        previous = ""
+        if self._feedback and self._previous_report:
+            previous = json.dumps(self._previous_report.model_dump(), indent=2, default=str)
         prompt = self._system_prompt.format(
-            company_name=company,
-            industry=industry,
+            company_name=company, industry=industry,
             context_briefing=context_briefing,
-            hypotheses_summary=hyp_summary,
-            reasoning_chains=chains,
-            evidence_count=ev_count,
+            structured_hypotheses=structured, rejected_summary=rejected,
+            key_insights=insights, previous_report=previous,
         )
-
         if self._feedback:
             prompt += self._build_feedback_section()
         return prompt
@@ -115,26 +117,65 @@ class ReportSynthesizerAgent(BaseResearchAgent):
         )
         return "\n".join(lines)
 
-    def _build_hypotheses_summary(self) -> str:
-        if not self._hypotheses:
-            return "(no hypotheses available)"
-        parts: list[str] = []
-        for h in self._hypotheses:
-            narrative = self._tracker.get_full_narrative(h.hypothesis_id)
-            parts.append(narrative)
-        return "\n\n".join(parts)
+    def _build_structured_input(self) -> tuple[str, str, str]:
+        """Returns (structured_hypotheses, rejected_summary, key_insights)."""
+        validated = [h for h in self._hypotheses
+                     if h.status in (HypothesisStatus.VALIDATED, HypothesisStatus.TESTING)]
+        rejected = [h for h in self._hypotheses if h.status == HypothesisStatus.REJECTED]
+        validated.sort(key=lambda h: h.confidence, reverse=True)
+        blocks = [self._format_hypothesis_block(i, h) for i, h in enumerate(validated, 1)]
+        structured = "\n\n".join(blocks) if blocks else "(No validated hypotheses)"
+        return structured, self._format_rejected(rejected), self._format_insights()
 
-    def _build_reasoning_chains(self) -> str:
-        if not self._hypotheses:
-            return "(no reasoning chains)"
-        lines: list[str] = []
-        for h in self._hypotheses:
-            for step in h.reasoning_chain:
-                lines.append(
-                    f"[{h.hypothesis_id}] {step.step_type}: "
-                    f"{step.description}"
-                )
-        return "\n".join(lines) if lines else "(no steps recorded)"
+    def _format_hypothesis_block(self, idx: int, h: Hypothesis) -> str:
+        """Format one validated/testing hypothesis as a structured block."""
+        ev_lines = self._gather_evidence_lines(h)
+        chain = [f"{s.step_type}: {s.description[:100]}" for s in h.reasoning_chain]
+        chain_text = " -> ".join(chain) if chain else "No chain recorded"
+        conds = ", ".join(h.conditions_for_success[:3]) if h.conditions_for_success else "None identified"
+        risks = ", ".join(h.risks[:3]) if h.risks else "None identified"
+        label = "VALIDATED" if h.status == HypothesisStatus.VALIDATED else "TESTING"
+        return (
+            f"OPPORTUNITY {idx} [{label}, {h.confidence:.0%} confidence]:\n"
+            f"  Statement: {h.statement}\n"
+            f"  Category: {h.category} | Process: {h.target_process}\n"
+            f"  Reasoning: {chain_text}\n"
+            f"  Evidence:\n" + "\n".join(ev_lines) + "\n"
+            f"  Conditions: {conds}\n"
+            f"  Risks: {risks}"
+        )
+
+    def _gather_evidence_lines(self, h: Hypothesis) -> list[str]:
+        """Query context provider for evidence relevant to a hypothesis."""
+        if not self._ctx:
+            return ["    - (no context provider)"]
+        items = self._ctx.query_evidence(process_area=h.target_process, top_k=5)
+        if not items:
+            items = self._ctx.query_evidence(dimension="hypothesis_test", top_k=5)
+        if not items:
+            return ["    - (no evidence available)"]
+        return [
+            f"    - [{ev.evidence_id[:12]}] \"{ev.snippet[:120]}\" "
+            f"({ev.source_type.value.replace('_', ' ').title()}, {ev.relevance_score:.2f})"
+            for ev in items
+        ]
+
+    def _format_rejected(self, rejected: list[Hypothesis]) -> str:
+        """One-line summaries of rejected hypotheses."""
+        if not rejected:
+            return "(None rejected)"
+        return "\n".join(
+            f"- \"{h.statement[:60]}\" — rejected: "
+            f"{h.reasoning_chain[-1].description[:80] if h.reasoning_chain else 'insufficient evidence'}"
+            for h in rejected
+        )
+
+    def _format_insights(self) -> str:
+        """Key insights from the synthesis store."""
+        insights = self._ctx.get_derived_insights() if self._ctx else []
+        if not insights:
+            return "(No derived insights)"
+        return "\n".join(f"- {ins.statement} [{ins.confidence:.0%}]" for ins in insights[:8])
 
     def _parse_report(self, raw: str) -> AdaptiveReport:
         parsed = extract_json(raw)
