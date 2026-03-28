@@ -126,6 +126,13 @@ export default function Header({ run }: HeaderProps) {
               <span className="tabular">{agentCount} agents</span>
             </>
           )}
+          <span>&middot;</span>
+          <a
+            href={`/run/${run.run_id}/trace`}
+            className="text-2xs font-mono text-ink-tertiary hover:text-ink transition-colors"
+          >
+            Trace
+          </a>
         </div>
       </div>
     </header>
