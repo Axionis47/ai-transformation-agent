@@ -161,8 +161,9 @@ class HypothesisFormerAgent(BaseResearchAgent):
 
     def _register_hypotheses(self) -> list[Hypothesis]:
         """Register raw LLM hypotheses with HypothesisTracker."""
+        max_h = int(self._config.get("_max_hypotheses", 7))
         evidence_ids = [e.evidence_id for e in self._evidence]
-        for raw in self._raw_hypotheses:
+        for raw in self._raw_hypotheses[:max_h]:
             if not isinstance(raw, dict) or not raw.get("statement"):
                 continue
             raw_evidence = raw.get("evidence_for", [])
