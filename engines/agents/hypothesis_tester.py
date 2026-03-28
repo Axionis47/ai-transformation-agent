@@ -41,6 +41,8 @@ class HypothesisTesterAgent(BaseResearchAgent):
             self._tracker._hypotheses[hypothesis.hypothesis_id] = hypothesis
         self._hypothesis.tested_by_agent = self._agent_id
         self._confidence = hypothesis.confidence
+        self._validate_threshold = float(self._config.get("_validate_threshold", 0.5))
+        self._reject_threshold = float(self._config.get("_reject_threshold", 0.2))
         self._past_queries: list[str] = []
         self._spawn_requests: list[SpawnRequest] = []
         self._test_count = 0
@@ -105,13 +107,13 @@ class HypothesisTesterAgent(BaseResearchAgent):
         if not isinstance(conditions, list):
             conditions = []
 
-        if self._confidence < 0.2:
+        if self._confidence < self._reject_threshold:
             self._tracker.reject(
                 self._hypothesis.hypothesis_id,
                 f"Confidence dropped to {self._confidence:.2f} after {self._test_count} tests",
             )
             self._early_stop = True
-            return AgentThought(action="STOP", reasoning="confidence below 0.2 — rejected")
+            return AgentThought(action="STOP", reasoning=f"confidence below {self._reject_threshold} — rejected")
 
         if recommendation == "validate_with_conditions" and conditions:
             self._tracker.validate_with_conditions(
@@ -125,13 +127,13 @@ class HypothesisTesterAgent(BaseResearchAgent):
                 reasoning=f"conditionally validated — requires: {', '.join(conditions)}",
             )
 
-        if recommendation == "validate" and self._confidence > 0.5 and self._test_count >= 3:
+        if recommendation == "validate" and self._confidence > self._validate_threshold and self._test_count >= 3:
             self._tracker.validate(
                 self._hypothesis.hypothesis_id,
                 f"Confidence held at {self._confidence:.2f} after {self._test_count} tests",
             )
             self._early_stop = True
-            return AgentThought(action="STOP", reasoning="confidence above 0.5 after 3+ tests — validated")
+            return AgentThought(action="STOP", reasoning=f"confidence above {self._validate_threshold} after 3+ tests — validated")
 
         # Duplicate query guard
         if action in ("GROUND", "RAG") and query:
