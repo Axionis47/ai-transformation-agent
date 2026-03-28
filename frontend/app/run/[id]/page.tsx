@@ -6,9 +6,10 @@ import Header from '@/components/shell/Header'
 import Sidebar from '@/components/shell/Sidebar'
 import PhaseProgress from '@/components/PhaseProgress'
 import RunPhaseContent from '@/components/RunPhaseContent'
+import InteractionModal from '@/components/InteractionModal'
 import Spinner from '@/components/ui/Spinner'
-import { getRun, getAgentStates, getHypotheses, submitIntake } from '@/lib/api'
-import type { Run, AgentState, Hypothesis, CompanyIntake, ReasoningConfig } from '@/lib/types'
+import { getRun, getAgentStates, getHypotheses, getInteractions, respondToInteraction, submitIntake } from '@/lib/api'
+import type { Run, AgentState, Hypothesis, UserInteractionPoint, CompanyIntake, ReasoningConfig } from '@/lib/types'
 
 const PHASES = ['INTAKE', 'GROUNDING', 'DEEP_RESEARCH', 'HYPOTHESIS_FORMATION', 'HYPOTHESIS_TESTING', 'SYNTHESIS', 'REVIEW', 'PUBLISHED']
 const ACTIVE_PHASES = ['grounding', 'deep_research', 'hypothesis_formation', 'hypothesis_testing', 'synthesis']
@@ -29,6 +30,7 @@ export default function RunPage() {
   const [agents, setAgents] = useState<AgentState[]>([])
   const [hypotheses, setHypotheses] = useState<Hypothesis[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [pendingInteraction, setPendingInteraction] = useState<UserInteractionPoint | null>(null)
   const [intakeLoading, setIntakeLoading] = useState(false)
   const [depth, setDepth] = useState(3)
   const [threshold, setThreshold] = useState(0.7)
@@ -57,6 +59,9 @@ export default function RunPage() {
         setRun(freshRun)
         if (AGENT_PHASES.includes(status)) setAgents(await getAgentStates(runId))
         if (HYPOTHESIS_PHASES.includes(status)) setHypotheses(await getHypotheses(runId))
+        const interactions = await getInteractions(runId)
+        const pending = interactions.find(i => i.requires_response && !i.response)
+        if (pending) setPendingInteraction(pending)
       } catch { /* polling errors are non-fatal */ }
     }
 
@@ -125,6 +130,17 @@ export default function RunPage() {
           />
         </main>
       </div>
+
+      {pendingInteraction && (
+        <InteractionModal
+          interaction={pendingInteraction}
+          onRespond={async (response) => {
+            await respondToInteraction(runId, pendingInteraction.interaction_id, response)
+            setPendingInteraction(null)
+          }}
+          onDismiss={() => setPendingInteraction(null)}
+        />
+      )}
     </div>
   )
 }
