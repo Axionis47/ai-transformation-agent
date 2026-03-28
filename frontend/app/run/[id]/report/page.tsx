@@ -3,13 +3,14 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { getRun, getReport, approveReport, requestDeeperInvestigation, refineReportWithFeedback } from '@/lib/api'
+import { getRun, getReport, getEvidence, approveReport, requestDeeperInvestigation, refineReportWithFeedback } from '@/lib/api'
 import ReasoningChain from '@/components/ReasoningChain'
 import ConfidenceNarrative from '@/components/ConfidenceNarrative'
+import EvidenceAnnex from '@/components/EvidenceAnnex'
 import FeedbackButton from '@/components/FeedbackButton'
 import Badge from '@/components/ui/Badge'
 import Spinner from '@/components/ui/Spinner'
-import type { Run, AdaptiveReport, ReportOpportunity, ReportFeedback } from '@/lib/types'
+import type { Run, AdaptiveReport, ReportOpportunity, ReportFeedback, EvidenceItem } from '@/lib/types'
 
 const TIER_BORDER: Record<string, string> = { easy: 'border-l-mint', medium: 'border-l-amber', hard: 'border-l-rose' }
 const TIER_VARIANT: Record<string, 'mint' | 'amber' | 'rose'> = { easy: 'mint', medium: 'amber', hard: 'rose' }
@@ -71,7 +72,12 @@ function OpportunityCard({ opp, onFeedback }: { opp: ReportOpportunity; onFeedba
             Evidence
           </button>
           {evidenceOpen && (
-            <p className="text-sm text-ink-secondary mt-2 border-l-2 border-edge-subtle pl-3 leading-relaxed">{opp.evidence_summary}</p>
+            <div className="mt-2 border-l-2 border-edge-subtle pl-3">
+              <p className="text-sm text-ink-secondary leading-relaxed">{opp.evidence_summary}</p>
+              <a href="#evidence-annex" className="text-2xs text-indigo hover:underline font-mono mt-1.5 inline-block">
+                View in Evidence Annex ↓
+              </a>
+            </div>
           )}
           <p className="hidden print:block text-sm text-black mt-2 border-l-2 border-gray-300 pl-3 leading-relaxed">{opp.evidence_summary}</p>
         </div>
@@ -85,14 +91,16 @@ export default function ReportPage() {
   const runId = params.id as string
   const [run, setRun] = useState<Run | null>(null)
   const [report, setReport] = useState<AdaptiveReport | null>(null)
+  const [evidence, setEvidence] = useState<EvidenceItem[]>([])
   const [error, setError] = useState<string | null>(null)
   const [reviewAction, setReviewAction] = useState<string | null>(null)
   const [refining, setRefining] = useState(false)
 
   const load = useCallback(async () => {
     try {
-      const [r, rpt] = await Promise.all([getRun(runId), getReport(runId)])
+      const [r, rpt, ev] = await Promise.all([getRun(runId), getReport(runId), getEvidence(runId).catch(() => [] as EvidenceItem[])])
       setRun(r)
+      setEvidence(ev)
       if (rpt && typeof rpt.key_insight === 'string' && Array.isArray(rpt.opportunities)) {
         setReport(rpt as unknown as AdaptiveReport)
       }
@@ -219,6 +227,9 @@ export default function ReportPage() {
           </div>
           <ConfidenceNarrative assessment={report.confidence_assessment} confidence={0} />
         </section>
+        {evidence.length > 0 && (
+          <EvidenceAnnex evidence={evidence} />
+        )}
       </main>
       <footer className="fixed bottom-0 left-0 right-0 bg-canvas-raised border-t border-edge-subtle px-6 py-3 flex items-center justify-end gap-3 z-20 print:hidden">
         <button onClick={handleApprove} disabled={!!reviewAction}
