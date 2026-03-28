@@ -134,6 +134,15 @@ class HypothesisTesterAgent(BaseResearchAgent):
         return AgentThought(action=action, query=query, reasoning=reasoning)
 
     # ------------------------------------------------------------------
+    # ReAct: OBSERVE — tag evidence with hypothesis dimension
+    # ------------------------------------------------------------------
+    def _observe(self, observation: str) -> None:
+        for ev in self._evidence[self._prev_evidence_count:]:
+            ev.dimension = "hypothesis_test"
+            ev.process_area = self._hypothesis.target_process
+            ev.produced_by = self._agent_id
+
+    # ------------------------------------------------------------------
     # ReAct: helpers
     # ------------------------------------------------------------------
     def _process_test_result(self, parsed: dict) -> None:

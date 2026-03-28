@@ -27,6 +27,7 @@ class PainPointInvestigatorAgent(BaseResearchAgent):
         self.MAX_STEPS = int(agent_cfg.get("max_steps", 8))
         self._past_queries: list[str] = []
         self._pain_points: list[dict] = []
+        self._current_process: str = ""
 
     # ------------------------------------------------------------------
     # ReAct: THINK
@@ -84,6 +85,9 @@ class PainPointInvestigatorAgent(BaseResearchAgent):
         pp_list = parsed.get("pain_points", [])
         if isinstance(pp_list, list) and pp_list:
             self._pain_points = pp_list
+            last_pp = pp_list[-1]
+            if isinstance(last_pp, dict):
+                self._current_process = last_pp.get("affected_process", "")
 
         if action in ("GROUND", "RAG") and query:
             if query in self._past_queries:
@@ -95,6 +99,15 @@ class PainPointInvestigatorAgent(BaseResearchAgent):
         return AgentThought(
             action=action, query=query, reasoning=reasoning
         )
+
+    # ------------------------------------------------------------------
+    # ReAct: OBSERVE — tag new evidence with pain dimension
+    # ------------------------------------------------------------------
+    def _observe(self, observation: str) -> None:
+        for ev in self._evidence[self._prev_evidence_count:]:
+            ev.dimension = "pain_point"
+            ev.process_area = self._current_process or ""
+            ev.produced_by = self._agent_id
 
     # ------------------------------------------------------------------
     # Result builder
