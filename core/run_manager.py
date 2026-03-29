@@ -26,8 +26,23 @@ from core.schemas import (
     UserInteractionPoint,
 )
 from services import trace
+from services.storage.memory_store import MemoryStore
+from services.storage.protocol import StorageProtocol
 
-_runs: dict[str, Run] = {}
+# Storage backend — swappable via init_storage()
+_store: StorageProtocol = MemoryStore()
+
+
+def init_storage(store: StorageProtocol) -> None:
+    """Swap the storage backend. Call at app startup."""
+    global _store
+    _store = store
+
+
+def get_storage() -> StorageProtocol:
+    """Get current storage backend (for direct access if needed)."""
+    return _store
+
 
 VALID_TRANSITIONS: dict[RunStatus, list[RunStatus]] = {
     # Legacy linear pipeline (still works with orchestration.mode=legacy)
@@ -47,6 +62,12 @@ VALID_TRANSITIONS: dict[RunStatus, list[RunStatus]] = {
 }
 
 
+def _persist(run: Run) -> Run:
+    """Save run to storage after every mutation."""
+    _store.save_run(run)
+    return run
+
+
 def create_run(
     company_name: str,
     industry: str,
@@ -64,15 +85,18 @@ def create_run(
         budgets=budgets,
         budget_state=BudgetState(),
     )
-    _runs[run_id] = run
 
     trace.emit(run_id, EventType.RUN_CREATED, {"company_name": company_name, "industry": industry})
     trace.emit(run_id, EventType.CONFIG_SNAPSHOT_SAVED, {"snapshot_keys": list(config_snapshot.keys())})
-    return run
+    return _persist(run)
 
 
 def get_run(run_id: str) -> Run | None:
-    return _runs.get(run_id)
+    return _store.get_run(run_id)
+
+
+def list_runs(limit: int = 50, offset: int = 0) -> list[Run]:
+    return _store.list_runs(limit=limit, offset=offset)
 
 
 def update_intake(run_id: str, intake: CompanyIntake) -> Run:
@@ -80,7 +104,7 @@ def update_intake(run_id: str, intake: CompanyIntake) -> Run:
     run.company_intake = intake
     run.status = RunStatus.INTAKE
     trace.emit(run_id, EventType.COMPANY_INTAKE_SAVED, {"company_name": intake.company_name})
-    return run
+    return _persist(run)
 
 
 def transition(run_id: str, new_status: RunStatus) -> Run:
@@ -92,7 +116,7 @@ def transition(run_id: str, new_status: RunStatus) -> Run:
             f"Allowed: {[s.value for s in allowed]}"
         )
     run.status = new_status
-    return run
+    return _persist(run)
 
 
 def add_evidence(
@@ -101,32 +125,24 @@ def add_evidence(
     source_label: str = "unknown",
     phase: str = "grounding",
 ) -> Run:
-    """Validate and promote evidence through the promotion gate.
-
-    Only promoted (accepted) items are written to run.evidence.
-    Canonical source is always EvidenceStore; run.evidence is for API compat.
-    Phase controls the relevance threshold (deeper phases are stricter).
-    """
     from services.memory.store import get_evidence_store
     from services.memory.promotion import PromotionGate
     run = _require_run(run_id)
     gate = PromotionGate(store=get_evidence_store())
     result = gate.promote_batch(run_id, items, source_label=source_label, phase=phase)
     run.evidence.extend(result.accepted_items)
-    return run
+    return _persist(run)
 
 
 def get_evidence(run_id: str) -> list[EvidenceItem]:
-    """Read evidence from the canonical store."""
     from services.memory.store import get_evidence_store
     return get_evidence_store().get_all(run_id)
 
 
 def update_reasoning_state(run_id: str, state: ReasoningState) -> Run:
-    """Store current reasoning loop state on run."""
     run = _require_run(run_id)
     run.reasoning_state = state
-    return run
+    return _persist(run)
 
 
 def update_working_memory(
@@ -134,16 +150,11 @@ def update_working_memory(
     fields: dict[str, FieldKnowledge],
     hypotheses: list[str] | None = None,
 ) -> Run:
-    """Persist synthesized field knowledge from working memory onto the run.
-
-    Called after reasoning loop completes so downstream agents can read
-    the team's synthesized understanding without re-deriving from raw evidence.
-    """
     run = _require_run(run_id)
     run.working_memory = fields
     if hypotheses is not None:
         run.hypotheses_legacy = hypotheses
-    return run
+    return _persist(run)
 
 
 # --- Multi-agent state updates ---
@@ -151,19 +162,19 @@ def update_working_memory(
 def update_company_understanding(run_id: str, understanding: CompanyUnderstanding) -> Run:
     run = _require_run(run_id)
     run.company_understanding = understanding
-    return run
+    return _persist(run)
 
 
 def update_industry_context(run_id: str, context: IndustryContext) -> Run:
     run = _require_run(run_id)
     run.industry_context = context
-    return run
+    return _persist(run)
 
 
 def add_pain_points(run_id: str, pain_points: list[PainPoint]) -> Run:
     run = _require_run(run_id)
     run.pain_points.extend(pain_points)
-    return run
+    return _persist(run)
 
 
 def add_hypotheses(run_id: str, hypotheses: list[Hypothesis]) -> Run:
@@ -171,7 +182,6 @@ def add_hypotheses(run_id: str, hypotheses: list[Hypothesis]) -> Run:
     existing_ids = {h.hypothesis_id for h in run.hypotheses}
     for h in hypotheses:
         if h.hypothesis_id in existing_ids:
-            # Update existing hypothesis in-place
             for i, eh in enumerate(run.hypotheses):
                 if eh.hypothesis_id == h.hypothesis_id:
                     run.hypotheses[i] = h
@@ -179,7 +189,7 @@ def add_hypotheses(run_id: str, hypotheses: list[Hypothesis]) -> Run:
         else:
             run.hypotheses.append(h)
             existing_ids.add(h.hypothesis_id)
-    return run
+    return _persist(run)
 
 
 def update_hypothesis(run_id: str, hypothesis_id: str, updates: dict) -> Run:
@@ -189,13 +199,13 @@ def update_hypothesis(run_id: str, hypothesis_id: str, updates: dict) -> Run:
             for k, v in updates.items():
                 setattr(h, k, v)
             break
-    return run
+    return _persist(run)
 
 
 def add_agent_state(run_id: str, agent_state: AgentState) -> Run:
     run = _require_run(run_id)
     run.agent_states.append(agent_state)
-    return run
+    return _persist(run)
 
 
 def update_agent_state(run_id: str, agent_id: str, updates: dict) -> Run:
@@ -205,48 +215,45 @@ def update_agent_state(run_id: str, agent_id: str, updates: dict) -> Run:
             for k, v in updates.items():
                 setattr(ag, k, v)
             break
-    return run
+    return _persist(run)
 
 
 def add_user_interaction(run_id: str, interaction: UserInteractionPoint) -> Run:
     run = _require_run(run_id)
     run.user_interactions.append(interaction)
-    return run
+    return _persist(run)
 
 
 def store_adaptive_report(run_id: str, report: AdaptiveReport) -> Run:
     run = _require_run(run_id)
     run.adaptive_report = report
-    return run
+    return _persist(run)
 
 
 def update_assumptions(run_id: str, assumptions: AssumptionsDraft) -> Run:
-    """Store assumptions draft on run."""
     run = _require_run(run_id)
     run.assumptions = assumptions
-    return run
+    return _persist(run)
 
 
 def store_opportunities(run_id: str, opportunities: list[Opportunity]) -> Run:
-    """Store synthesized opportunities on the run."""
     from services.memory.opp_store import get_opportunity_store
     run = _require_run(run_id)
     run.opportunities = opportunities
     get_opportunity_store().store(run_id, opportunities)
-    return run
+    return _persist(run)
 
 
 def store_report(run_id: str, report: dict) -> Run:
-    """Store composed report on the run."""
     from services.memory.report_store import get_report_store
     run = _require_run(run_id)
     run.report = report
     get_report_store().store(run_id, report)
-    return run
+    return _persist(run)
 
 
 def _require_run(run_id: str) -> Run:
-    run = _runs.get(run_id)
+    run = _store.get_run(run_id)
     if run is None:
         raise ValueError(f"Run not found: {run_id}")
     return run
