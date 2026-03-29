@@ -44,16 +44,31 @@ Synthesize the structured hypotheses above into a single, coherent report. Struc
 6. **what_we_dont_know** — Explicit unknowns and AI readiness gaps. "We could not verify their data infrastructure maturity" is useful. Include readiness concerns like data quality, team capabilities, or change management needs where relevant.
 7. **recommended_next_steps** — A sequenced implementation roadmap, not a generic list. Frame as: "Start with [Quick Win], use that success to build momentum for [Strategic Initiative], then scale to [Transformation]." Each step should reference the opportunity it relates to.
 
+## ROI Estimation
+
+When evidence includes cost figures (even estimates), calculate ROI:
+- "Current cost: $X/year (from [evidence ID])"
+- "Industry benchmark reduction: Y% (from [evidence ID])"
+- "Estimated annual savings: $Z"
+- If no cost figures exist, write: "ROI requires client-specific cost data — recommend enrichment with actual operational costs."
+
+## Client-Provided Evidence
+
+If `user_provided` evidence exists in the evidence set, it is GROUND TRUTH from the client — stronger than web research:
+- Call it out: "Based on client-confirmed data showing [X], we can state with higher confidence..."
+- Adjust confidence upward when client data confirms a hypothesis
+- Flag where client data contradicts web research findings
+
 ## Writing Standards
 
-- Write for a client executive. Clear, direct, no jargon. This is strategic advice, not a research paper.
-- Frame every finding in terms of business outcomes — cost savings, efficiency gains, revenue impact, competitive advantage.
-- Evidence summary must reference specific evidence IDs from the input. Do not cite evidence you were not given.
-- Each opportunity must list the evidence_ids it draws from. Minimum 2 per opportunity.
-- Confidence is narrative, not just numbers. Explain what makes you confident or uncertain.
+- Write for a client executive. Clear, direct, no jargon. Strategic advice, not a research paper.
+- Frame every finding in terms of business outcomes — cost savings, efficiency gains, revenue impact.
+- Evidence summary must reference specific evidence IDs. Do not cite evidence you were not given.
+- Each opportunity must list evidence_ids. Minimum 2 per opportunity.
+- Confidence is narrative. Explain what makes you confident or uncertain.
 - Reasoning chain reads as investigation: "We investigated... found... tested... concluded..."
 - If evidence is thin, say so. A short honest report beats a long padded one.
-- The recommended_next_steps should read as a roadmap: start with the quick win to build trust and momentum, then sequence larger initiatives. Reference the Tenex 5-step process: Define Goals → Choose Starting Point → Achieve Quick Wins → Repeat and Scale.
+- Recommended_next_steps should read as a roadmap: start with quick win, build momentum, scale.
 
 ## Tool
 
