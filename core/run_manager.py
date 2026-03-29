@@ -168,7 +168,17 @@ def add_pain_points(run_id: str, pain_points: list[PainPoint]) -> Run:
 
 def add_hypotheses(run_id: str, hypotheses: list[Hypothesis]) -> Run:
     run = _require_run(run_id)
-    run.hypotheses.extend(hypotheses)
+    existing_ids = {h.hypothesis_id for h in run.hypotheses}
+    for h in hypotheses:
+        if h.hypothesis_id in existing_ids:
+            # Update existing hypothesis in-place
+            for i, eh in enumerate(run.hypotheses):
+                if eh.hypothesis_id == h.hypothesis_id:
+                    run.hypotheses[i] = h
+                    break
+        else:
+            run.hypotheses.append(h)
+            existing_ids.add(h.hypothesis_id)
     return run
 
 

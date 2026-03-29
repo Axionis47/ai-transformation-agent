@@ -11,7 +11,7 @@ import asyncio
 import logging
 
 from core.events import EventType
-from core.schemas import AgentScope, BudgetState, Run, RunStatus
+from core.schemas import AgentScope, BudgetState, HypothesisStatus, Run, RunStatus
 from core import run_manager as rm
 from engines.agents.base import BaseResearchAgent
 from engines.agents.company_profiler import CompanyProfilerAgent
@@ -169,6 +169,22 @@ class Orchestrator:
         assert run is not None
         if run.spawn_requests and has_budget(run.budget_state, self._config):
             await handle_spawns(run_id, run.budget_state, *args)
+
+        # Finalize: force-validate/reject hypotheses still stuck in "testing"
+        for h in self._tracker.get_all():
+            if h.status == HypothesisStatus.TESTING:
+                if h.confidence >= self._validate_threshold:
+                    self._tracker.validate(h.hypothesis_id, f"Confidence {h.confidence:.0%} meets threshold after testing")
+                    emit(run_id, EventType.HYPOTHESIS_VALIDATED, {"hypothesis_id": h.hypothesis_id, "confidence": h.confidence})
+                elif h.confidence < self._reject_threshold:
+                    self._tracker.reject(h.hypothesis_id, f"Confidence {h.confidence:.0%} below rejection threshold")
+                    emit(run_id, EventType.HYPOTHESIS_REJECTED, {"hypothesis_id": h.hypothesis_id, "confidence": h.confidence})
+                else:
+                    # Between thresholds — validate with conditions
+                    self._tracker.validate_with_conditions(h.hypothesis_id, f"Moderate confidence {h.confidence:.0%}", ["Requires further validation"])
+                    emit(run_id, EventType.HYPOTHESIS_VALIDATED, {"hypothesis_id": h.hypothesis_id, "confidence": h.confidence})
+        # Sync finalized hypotheses to run state
+        rm.add_hypotheses(run_id, self._tracker.get_all())
 
     async def _run_report_phase(self, run_id: str) -> None:
         rm.transition(run_id, RunStatus.REPORT)
