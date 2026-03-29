@@ -282,6 +282,10 @@ export default function ReportPage() {
           </div>
         ) : (
           <>
+            <Link href={`/run/${runId}/enrich`}
+              className="bg-transparent border border-indigo text-indigo px-6 py-2.5 text-sm font-semibold rounded-md hover:bg-indigo/10 transition-colors inline-flex items-center gap-2">
+              Enrich Analysis
+            </Link>
             <button onClick={handleApprove} disabled={!!reviewAction}
               className="bg-mint text-ink-inverse px-6 py-2.5 text-sm font-semibold rounded-md disabled:opacity-40 hover:bg-mint-bright transition-colors flex items-center gap-2">
               {reviewAction === 'approving' ? <><Spinner size={14} />Approving...</> : 'Approve Report'}

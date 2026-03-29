@@ -224,10 +224,14 @@ export default function RunPhaseContent({
         )}
 
         {/* Call to action */}
-        <div className="mb-8">
+        <div className="mb-8 flex items-center gap-3">
           <Link href={`/run/${runId}/report`}
             className="inline-flex items-center gap-2 bg-mint text-ink-inverse px-6 py-3 text-sm font-semibold rounded-md hover:bg-mint-bright transition-colors">
             View Full Report
+          </Link>
+          <Link href={`/run/${runId}/enrich`}
+            className="inline-flex items-center gap-2 bg-transparent border border-indigo text-indigo px-6 py-3 text-sm font-semibold rounded-md hover:bg-indigo/10 transition-colors">
+            Enrich with Ground Truth
           </Link>
         </div>
 
