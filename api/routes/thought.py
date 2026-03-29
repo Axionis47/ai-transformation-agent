@@ -58,14 +58,28 @@ async def start_run(run_id: str) -> Run | AssumptionsDraft | ReasoningLoopResult
     if run is None:
         raise HTTPException(status_code=404, detail=f"Run not found: {run_id}")
 
-    # Multi-agent mode: skip assumptions, launch pipeline in background
+    # Multi-agent mode: skip assumptions, launch pipeline in background thread
     mode = run.config_snapshot.get("orchestration", {}).get("mode", "legacy")
     if mode == "multi_agent" and run.status == RunStatus.INTAKE:
         if run.company_intake is None:
             raise HTTPException(status_code=400, detail="Company intake missing")
         import asyncio
-        asyncio.ensure_future(_start_multi_agent(run_id, run))
-        return run  # return immediately, pipeline runs in background
+        import threading
+
+        def _run_pipeline():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                loop.run_until_complete(_start_multi_agent(run_id, run))
+            except Exception as e:
+                from services.trace import emit
+                from core.events import EventType
+                emit(run_id, EventType.STAGE_FAILED, {"error": str(e)})
+            finally:
+                loop.close()
+
+        threading.Thread(target=_run_pipeline, daemon=True).start()
+        return run  # return immediately, orchestrator handles transitions
 
     # Legacy mode: INTAKE → generate assumptions
     if run.status == RunStatus.INTAKE:
