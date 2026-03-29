@@ -17,12 +17,6 @@ const AGENT_PHASES = ['grounding', 'deep_research', 'hypothesis_formation', 'hyp
 const HYPOTHESIS_PHASES = ['hypothesis_formation', 'hypothesis_testing']
 const TERMINAL = ['review', 'published', 'failed']
 
-function completedPhases(status: string): string[] {
-  const s = status.toUpperCase()
-  const idx = PHASES.indexOf(s)
-  return idx > 0 ? PHASES.slice(0, idx) : []
-}
-
 export default function RunPage() {
   const params = useParams()
   const runId = params.id as string
@@ -32,9 +26,11 @@ export default function RunPage() {
   const [error, setError] = useState<string | null>(null)
   const [pendingInteraction, setPendingInteraction] = useState<UserInteractionPoint | null>(null)
   const [intakeLoading, setIntakeLoading] = useState(false)
-  const [depth, setDepth] = useState(3)
-  const [threshold, setThreshold] = useState(0.7)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Read depth/threshold from run config (not hardcoded)
+  const depth = (run?.config_snapshot?.reasoning as Record<string, number> | undefined)?.depth_budget ?? 5
+  const threshold = (run?.config_snapshot?.reasoning as Record<string, number> | undefined)?.confidence_threshold ?? 0.7
 
   const fetchRun = useCallback(async () => {
     try { setRun(await getRun(runId)) }
@@ -79,7 +75,7 @@ export default function RunPage() {
     }
   }, [run?.status, runId])
 
-  async function handleIntakeSubmit(data: CompanyIntake, config: ReasoningConfig) {
+  async function handleIntakeSubmit(data: CompanyIntake) {
     setIntakeLoading(true); setError(null)
     try {
       await submitIntake(runId, data)
@@ -89,7 +85,6 @@ export default function RunPage() {
     } finally { setIntakeLoading(false) }
   }
 
-  // Loading skeleton
   if (!run) return (
     <div className="min-h-screen bg-canvas flex items-center justify-center">
       {error ? <p className="text-rose text-sm">{error}</p> : <Spinner size={24} />}
@@ -98,17 +93,12 @@ export default function RunPage() {
 
   const status = run.status.toLowerCase()
   const isActive = ACTIVE_PHASES.includes(status)
-  const running = agents.filter(a => a.status === 'running').length
 
   return (
     <div className="min-h-screen bg-canvas">
-      <Header run={run} />
+      <Header run={run} agents={agents} />
       <div className="flex">
-        <Sidebar
-          currentPhase={run.status}
-          completedPhases={completedPhases(run.status)}
-          agentCounts={{ total: agents.length, running }}
-        />
+        <Sidebar run={run} agents={agents} />
         <main className="flex-1 min-w-0 p-6 lg:p-8">
           {error && (
             <div className="mb-6 bg-rose/10 border border-rose/30 rounded-md p-4">
@@ -126,7 +116,6 @@ export default function RunPage() {
             run={run} agents={agents} hypotheses={hypotheses}
             onIntakeSubmit={handleIntakeSubmit} intakeLoading={intakeLoading}
             depth={depth} threshold={threshold}
-            onDepthChange={setDepth} onThresholdChange={setThreshold}
           />
         </main>
       </div>
