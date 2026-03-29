@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import IntakeForm from '@/components/IntakeForm'
-import { createRun, submitIntake, getDefaults, checkHealth } from '@/lib/api'
+import { createRun, submitIntake, startRun, getDefaults, checkHealth } from '@/lib/api'
 import type { SystemDefaults } from '@/lib/api'
 import type { CompanyIntake, ReasoningConfig } from '@/lib/types'
 
@@ -45,6 +45,7 @@ export default function HomePage() {
     try {
       const run = await createRun(data.company_name, data.industry, config)
       await submitIntake(run.run_id, data)
+      startRun(run.run_id).catch(() => {}) // fire and forget — pipeline starts in background
       saveRecent(run.run_id, data.company_name, data.industry)
       router.push(`/run/${run.run_id}`)
     } catch (err) {

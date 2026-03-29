@@ -123,8 +123,19 @@ export default function RunPhaseContent({
   const status = run.status.toLowerCase()
   const runId = run.run_id
 
-  // INTAKE
+  // INTAKE — if intake already saved, show waiting state
   if (status === 'intake' || status === 'created') {
+    if (run.company_intake?.company_name) {
+      return (
+        <div className="max-w-3xl mx-auto text-center py-12">
+          <SectionTitle title="Starting Analysis" subtitle={`Analyzing ${run.company_intake.company_name}...`} />
+          <div className="flex items-center justify-center gap-3 mt-4">
+            <span className="w-2 h-2 rounded-full bg-mint animate-pulse" />
+            <span className="text-sm text-ink-secondary font-mono">Initializing multi-agent pipeline</span>
+          </div>
+        </div>
+      )
+    }
     return (
       <div className="max-w-3xl mx-auto">
         <SectionTitle title="Company Intake" subtitle="Provide company details to begin analysis." />
