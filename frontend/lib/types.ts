@@ -273,3 +273,35 @@ export interface ReportFeedback {
   target_section: string
   instruction: string
 }
+
+// --- Enrichment ---
+
+export type EnrichmentCategory =
+  | 'technology' | 'financials' | 'operations'
+  | 'pain_points' | 'constraints' | 'corrections'
+  | 'additional_context'
+
+export interface EnrichmentInput {
+  category: EnrichmentCategory
+  title: string
+  detail: string
+  affected_hypothesis_ids: string[]
+  confidence: number
+}
+
+export interface HypothesisDelta {
+  hypothesis_id: string
+  statement: string
+  confidence_before: number
+  confidence_after: number
+  status_before: string
+  status_after: string
+}
+
+export interface EnrichResponse {
+  run_id: string
+  evidence_added: number
+  hypotheses_affected: number
+  deltas: HypothesisDelta[]
+  message: string
+}

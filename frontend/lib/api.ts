@@ -225,3 +225,13 @@ export async function refineReportWithFeedback(
     body: JSON.stringify({ feedbacks }),
   })
 }
+
+export async function enrichRun(
+  runId: string,
+  inputs: import('./types').EnrichmentInput[],
+): Promise<import('./types').EnrichResponse> {
+  return apiFetch<import('./types').EnrichResponse>(`/runs/${runId}/enrich`, {
+    method: 'POST',
+    body: JSON.stringify({ inputs }),
+  })
+}
