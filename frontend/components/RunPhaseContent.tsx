@@ -214,37 +214,37 @@ export default function RunPhaseContent({
     )
   }
 
-  // SYNTHESIS / REPORT / REVIEW
-  if (status === 'synthesis' || status === 'report' || status === 'review') {
+  // SYNTHESIS / REPORT / REVIEW / PUBLISHED
+  if (['synthesis', 'report', 'review', 'published'].includes(status)) {
     return (
       <>
-        <SectionTitle title="Analysis Complete" />
-        <SummaryStats hypotheses={hypotheses} evidenceCount={run.evidence.length} />
-        <div className="mb-6">
-          <Link href={`/run/${runId}/report`}
-            className="inline-flex items-center gap-2 bg-mint text-ink-inverse px-6 py-3 text-sm font-semibold rounded-md hover:bg-mint-bright transition-colors">
-            View Report
-          </Link>
-        </div>
-        {hypotheses.length > 0 && <HypothesisList hypotheses={hypotheses} />}
-      </>
-    )
-  }
+        <SectionTitle title={status === 'published' ? 'Analysis Published' : 'Analysis Complete'} />
+        {status === 'published' && (
+          <div className="flex items-center gap-2 mb-6"><Badge variant="mint">Published</Badge></div>
+        )}
 
-  // PUBLISHED
-  if (status === 'published') {
-    return (
-      <>
-        <SectionTitle title="Analysis Published" />
-        <div className="flex items-center gap-2 mb-6"><Badge variant="mint">Published</Badge></div>
-        <SummaryStats hypotheses={hypotheses} evidenceCount={run.evidence.length} />
-        <div className="mb-6">
+        {/* Call to action */}
+        <div className="mb-8">
           <Link href={`/run/${runId}/report`}
             className="inline-flex items-center gap-2 bg-mint text-ink-inverse px-6 py-3 text-sm font-semibold rounded-md hover:bg-mint-bright transition-colors">
-            View Report
+            View Full Report
           </Link>
         </div>
-        {hypotheses.length > 0 && <HypothesisList hypotheses={hypotheses} />}
+
+        {/* Summary stats */}
+        <SummaryStats hypotheses={hypotheses} evidenceCount={run.evidence.length} />
+
+        {/* What the system learned */}
+        <CompanyUnderstandingPanel run={run} />
+        <IndustryContextPanel run={run} />
+        <PainPointsPanel run={run} />
+
+        {/* Hypotheses */}
+        {hypotheses.length > 0 && (
+          <div className="mt-6">
+            <HypothesisList hypotheses={hypotheses} />
+          </div>
+        )}
       </>
     )
   }
