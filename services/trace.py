@@ -35,5 +35,24 @@ def emit(run_id: str, event_type: EventType, payload: dict | None = None) -> Tra
 
 
 def get_events(run_id: str) -> list[TraceEvent]:
-    """Return all in-memory trace events for a run."""
+    """Return trace events — loads from JSONL if not in memory."""
+    if run_id not in _events:
+        _load_from_disk(run_id)
     return _events.get(run_id, [])
+
+
+def _load_from_disk(run_id: str) -> None:
+    """Reload trace events from JSONL file into memory."""
+    log_path = _LOGS_DIR / f"{run_id}.jsonl"
+    if not log_path.exists():
+        return
+    events = []
+    for line in log_path.read_text().strip().split("\n"):
+        if not line:
+            continue
+        try:
+            events.append(TraceEvent.model_validate_json(line))
+        except Exception:
+            pass
+    if events:
+        _events[run_id] = events
