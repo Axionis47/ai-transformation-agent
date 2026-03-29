@@ -14,6 +14,8 @@ import type { Run, AdaptiveReport, ReportOpportunity, ReportFeedback, EvidenceIt
 
 const TIER_BORDER: Record<string, string> = { easy: 'border-l-mint', medium: 'border-l-amber', hard: 'border-l-rose' }
 const TIER_VARIANT: Record<string, 'mint' | 'amber' | 'rose'> = { easy: 'mint', medium: 'amber', hard: 'rose' }
+const TIER_LABEL: Record<string, string> = { easy: 'Quick Win', medium: 'Strategic Initiative', hard: 'Transformation' }
+const TIER_TIMELINE: Record<string, string> = { easy: '4-6 weeks', medium: '2-3 months', hard: '6+ months' }
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
@@ -24,18 +26,24 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
   )
 }
 
-function OpportunityCard({ opp, onFeedback, highlighted }: { opp: ReportOpportunity; onFeedback: (fb: ReportFeedback) => void; highlighted?: boolean }) {
+function OpportunityCard({ opp, onFeedback, highlighted, isStartingPoint }: { opp: ReportOpportunity; onFeedback: (fb: ReportFeedback) => void; highlighted?: boolean; isStartingPoint?: boolean }) {
   const [evidenceOpen, setEvidenceOpen] = useState(false)
   const tier = opp.tier.toLowerCase()
   const pct = Math.round(opp.confidence * 100)
   return (
     <div className={`group bg-canvas-raised border border-edge-subtle rounded-md p-5 border-l-[3px] ${TIER_BORDER[tier] ?? 'border-l-edge'} print:break-inside-avoid print:bg-white print:border-gray-300 transition-all duration-500 ${highlighted ? 'ring-1 ring-mint/40 bg-mint/5' : ''}`}>
       <div className="flex items-center gap-3 mb-2">
-        <Badge variant={TIER_VARIANT[tier] ?? 'muted'}>{tier.charAt(0).toUpperCase() + tier.slice(1)}</Badge>
+        <Badge variant={TIER_VARIANT[tier] ?? 'muted'}>{TIER_LABEL[tier] ?? tier}</Badge>
+        <span className="font-mono text-2xs text-ink-tertiary">{TIER_TIMELINE[tier]}</span>
         <span className="font-mono text-2xs text-ink tabular">{pct}%</span>
         <div className="flex-1" />
         <FeedbackButton targetSection={`opportunity:${opp.hypothesis_id}`} onSubmit={onFeedback} />
       </div>
+      {isStartingPoint && (
+        <div className="mb-2 inline-flex items-center gap-1.5 bg-mint/15 text-mint text-2xs font-semibold px-2.5 py-1 rounded-full">
+          <span className="w-1.5 h-1.5 bg-mint rounded-full" />Recommended Starting Point
+        </div>
+      )}
       <h3 className="text-lg font-semibold text-ink print:text-black">{opp.title}</h3>
       <p className="text-sm text-ink-secondary leading-relaxed mt-2 max-w-prose print:text-black">{opp.narrative}</p>
       {opp.conditions_for_success.length > 0 && (
@@ -183,7 +191,7 @@ export default function ReportPage() {
         </section>
         <section className="mb-8">
           <SectionHeader>Opportunities ({sorted.length})</SectionHeader>
-          <div className="space-y-4">{sorted.map((opp, i) => <OpportunityCard key={i} opp={opp} onFeedback={handleFeedback} highlighted={lastEdited === `opportunity:${opp.hypothesis_id}`} />)}</div>
+          <div className="space-y-4">{sorted.map((opp, i) => <OpportunityCard key={i} opp={opp} onFeedback={handleFeedback} highlighted={lastEdited === `opportunity:${opp.hypothesis_id}`} isStartingPoint={i === 0} />)}</div>
         </section>
         {report.reasoning_chain.length > 0 && (
           <section className="mb-8">
@@ -194,7 +202,7 @@ export default function ReportPage() {
         {report.what_we_dont_know.length > 0 && (
           <section className="mb-8 bg-amber/10 border border-amber/20 rounded-md p-5 group print:bg-white print:border-gray-300">
             <div className="flex items-center gap-3 mb-3">
-              <p className="text-xs text-amber uppercase tracking-wider font-medium print:text-black">What We Don&apos;t Know</p>
+              <p className="text-xs text-amber uppercase tracking-wider font-medium print:text-black">Open Questions &amp; Readiness Gaps</p>
               <FeedbackButton targetSection="unknowns" onSubmit={handleFeedback} />
             </div>
             <ul className="space-y-1.5">
@@ -209,7 +217,7 @@ export default function ReportPage() {
         {report.recommended_next_steps.length > 0 && (
           <section className="mb-8 group">
             <div className="flex items-center gap-3 mb-4">
-              <p className="text-xs text-ink-secondary uppercase tracking-wider font-medium print:text-black">Recommended Next Steps</p>
+              <p className="text-xs text-ink-secondary uppercase tracking-wider font-medium print:text-black">Implementation Roadmap</p>
               <div className="flex-1 border-t border-edge-subtle print:border-gray-300" />
               <FeedbackButton targetSection="next_steps" onSubmit={handleFeedback} />
             </div>
