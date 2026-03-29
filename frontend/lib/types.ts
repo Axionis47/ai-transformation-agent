@@ -109,6 +109,39 @@ export interface Run {
   feedback_history: ReportFeedback[]
 }
 
+export interface UIAction {
+  id: string
+  label: string
+  endpoint: string
+  method: string
+  enabled: boolean
+  confirm: boolean
+}
+
+export interface EditableField {
+  path: string
+  label: string
+  field_type: string
+  default?: string
+  constraints: Record<string, unknown>
+}
+
+export interface BudgetView {
+  rag_queries_remaining: number
+  external_search_queries_remaining: number
+  total_cost_estimate: string
+}
+
+export interface UIHints {
+  stage_title: string
+  stage_description: string
+  progress: { stage: string; status: string }[]
+  actions: UIAction[]
+  editable_fields: EditableField[]
+  budget_view: BudgetView
+  agent_message?: string
+}
+
 // --- Multi-agent hypothesis system ---
 
 export type HypothesisStatus =
