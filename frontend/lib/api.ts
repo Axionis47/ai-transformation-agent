@@ -14,6 +14,28 @@ import type {
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
+export interface SystemDefaults {
+  rag_budget: number
+  search_budget: number
+  search_max_calls: number
+  reasoning_model: string
+  synthesis_model: string
+  pipeline_stages: string[]
+}
+
+export async function getDefaults(): Promise<SystemDefaults> {
+  const res = await fetch(`${BASE}/v1/defaults`)
+  if (!res.ok) throw new Error('Failed to fetch defaults')
+  return res.json()
+}
+
+export async function checkHealth(): Promise<boolean> {
+  try {
+    const res = await fetch(`${BASE}/health`)
+    return res.ok
+  } catch { return false }
+}
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}/v1${path}`, {
     headers: { 'Content-Type': 'application/json' },

@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import IntakeForm from '@/components/IntakeForm'
-import { createRun, submitIntake } from '@/lib/api'
+import { createRun, submitIntake, getDefaults, checkHealth } from '@/lib/api'
+import type { SystemDefaults } from '@/lib/api'
 import type { CompanyIntake, ReasoningConfig } from '@/lib/types'
 
 interface RecentRun {
@@ -20,12 +21,16 @@ export default function HomePage() {
   const [recents, setRecents] = useState<RecentRun[]>([])
   const [depth, setDepth] = useState(5)
   const [threshold, setThreshold] = useState(0.7)
+  const [defaults, setDefaults] = useState<SystemDefaults | null>(null)
+  const [backendOnline, setBackendOnline] = useState<boolean | null>(null)
 
   useEffect(() => {
     try {
       const stored = JSON.parse(localStorage.getItem('recent_runs') || '[]')
       setRecents(stored.slice(0, 8))
     } catch { /* ignore */ }
+    getDefaults().then(setDefaults).catch(() => {})
+    checkHealth().then(setBackendOnline)
   }, [])
 
   function saveRecent(id: string, company: string, industry: string) {
@@ -48,6 +53,8 @@ export default function HomePage() {
     }
   }
 
+  const stages = defaults?.pipeline_stages ?? []
+
   return (
     <div className="min-h-screen bg-canvas flex flex-col">
       {/* ── Top Bar ── */}
@@ -58,83 +65,22 @@ export default function HomePage() {
             AI Opportunity Mapper
           </span>
         </div>
-        <div className="w-px h-4 bg-edge mx-4" />
-        <span className="text-2xs text-ink-tertiary font-mono">v1.0</span>
         <div className="flex-1" />
-        <span className="text-2xs text-ink-tertiary font-mono tabular">
-          {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-        </span>
-        <div className="w-px h-4 bg-edge mx-4" />
         <div className="flex items-center gap-1.5">
-          <div className="w-1.5 h-1.5 rounded-full bg-mint animate-pulse-slow" />
-          <span className="text-2xs text-ink-tertiary font-mono">READY</span>
+          <div className={`w-1.5 h-1.5 rounded-full ${backendOnline === true ? 'bg-mint animate-pulse-slow' : backendOnline === false ? 'bg-rose' : 'bg-amber'}`} />
+          <span className="text-2xs text-ink-tertiary font-mono">
+            {backendOnline === true ? 'ONLINE' : backendOnline === false ? 'OFFLINE' : 'CHECKING'}
+          </span>
         </div>
       </header>
 
       <div className="flex flex-1 min-h-0">
-        {/* ── Left Rail ── */}
-        <nav className="w-48 bg-canvas-raised border-r border-edge-subtle shrink-0 flex flex-col py-4 hidden lg:flex">
-          <div className="px-4 mb-5">
-            <p className="text-2xs text-ink-tertiary uppercase tracking-wider font-medium mb-3">Workspace</p>
-            <div className="space-y-0.5">
-              {[
-                { label: 'New Analysis', active: true },
-                { label: 'Recent Runs', active: false },
-              ].map(item => (
-                <button key={item.label}
-                  className={`w-full text-left px-2.5 py-1.5 text-sm rounded transition-colors ${
-                    item.active
-                      ? 'bg-canvas-overlay text-ink border-l-2 border-mint -ml-px pl-2'
-                      : 'text-ink-tertiary hover:text-ink-secondary hover:bg-canvas-overlay/50'
-                  }`}>
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="px-4 mb-5">
-            <p className="text-2xs text-ink-tertiary uppercase tracking-wider font-medium mb-3">Pipeline</p>
-            <div className="space-y-0.5">
-              {['Assumptions', 'Evidence', 'Opportunities', 'Reports'].map(label => (
-                <button key={label}
-                  className="w-full text-left px-2.5 py-1.5 text-sm text-ink-tertiary rounded transition-colors hover:text-ink-secondary hover:bg-canvas-overlay/50 cursor-default opacity-40">
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Recent runs in rail */}
-          {recents.length > 0 && (
-            <div className="px-4 mt-auto">
-              <p className="text-2xs text-ink-tertiary uppercase tracking-wider font-medium mb-2">History</p>
-              <div className="space-y-0.5">
-                {recents.slice(0, 5).map(r => (
-                  <a key={r.id} href={`/run/${r.id}`}
-                    className="block px-2.5 py-1.5 text-2xs text-ink-tertiary hover:text-mint transition-colors truncate rounded hover:bg-canvas-overlay/50">
-                    {r.company} <span className="text-ink-tertiary/50 font-mono">· {r.industry}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-        </nav>
-
         {/* ── Main Workspace ── */}
         <main className="flex-1 min-w-0 overflow-y-auto">
           <div className="max-w-6xl mx-auto p-6 lg:p-8">
-            {/* Breadcrumb */}
-            <div className="flex items-center gap-2 mb-6">
-              <span className="text-2xs text-ink-tertiary font-mono uppercase tracking-wider">Workspace</span>
-              <span className="text-2xs text-ink-tertiary">/</span>
-              <span className="text-2xs text-mint font-mono uppercase tracking-wider">New Analysis</span>
-            </div>
-
-            {/* Page Title */}
             <div className="mb-8">
-              <h1 className="text-xl font-semibold text-ink mb-1">New Analysis Run</h1>
-              <p className="text-sm text-ink-secondary">Configure target company and reasoning parameters to begin evidence-backed opportunity discovery.</p>
+              <h1 className="text-xl font-semibold text-ink mb-1">New Analysis</h1>
+              <p className="text-sm text-ink-secondary">Enter a company to begin multi-agent AI opportunity research.</p>
             </div>
 
             {error && (
@@ -143,7 +89,6 @@ export default function HomePage() {
               </div>
             )}
 
-            {/* Two-column workspace */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
               {/* Left: Form (2 cols) */}
               <div className="xl:col-span-2">
@@ -157,56 +102,66 @@ export default function HomePage() {
                 />
               </div>
 
-              {/* Right: Context Panel */}
+              {/* Right: Context Panels */}
               <div className="space-y-4">
-                {/* Run Configuration Summary */}
+                {/* Run Configuration — live values */}
                 <div className="border border-edge-subtle rounded bg-canvas-raised">
                   <div className="px-4 py-2.5 border-b border-edge-subtle">
                     <p className="text-xs text-ink-secondary uppercase tracking-wider font-medium">Run Configuration</p>
                   </div>
                   <div className="p-4 space-y-3">
                     <ConfigRow label="Reasoning Depth" value={`${depth} / 10`} />
-                    <ConfigRow label="Stop Threshold" value={`≥${(threshold * 100).toFixed(0)}%`} />
-                    <ConfigRow label="RAG Budget" value="15 queries" />
-                    <ConfigRow label="Search Budget" value="10 queries" />
-                    <ConfigRow label="Model" value="Gemini 2.5" />
+                    <ConfigRow label="Confidence Target" value={`${(threshold * 100).toFixed(0)}%`} />
+                    {defaults && (
+                      <>
+                        <ConfigRow label="Search Budget" value={`${defaults.search_budget} queries`} />
+                        <ConfigRow label="RAG Budget" value={`${defaults.rag_budget} queries`} />
+                        <ConfigRow label="Research Model" value={defaults.reasoning_model} />
+                        <ConfigRow label="Synthesis Model" value={defaults.synthesis_model} />
+                      </>
+                    )}
                   </div>
                 </div>
 
-                {/* Execution Estimate */}
-                <div className="border border-edge-subtle rounded bg-canvas-raised">
-                  <div className="px-4 py-2.5 border-b border-edge-subtle">
-                    <p className="text-xs text-ink-secondary uppercase tracking-wider font-medium">Execution Estimate</p>
+                {/* Pipeline — from backend */}
+                {stages.length > 0 && (
+                  <div className="border border-edge-subtle rounded bg-canvas-raised">
+                    <div className="px-4 py-2.5 border-b border-edge-subtle">
+                      <p className="text-xs text-ink-secondary uppercase tracking-wider font-medium">Pipeline ({stages.length} stages)</p>
+                    </div>
+                    <div className="p-4">
+                      <div className="space-y-1.5">
+                        {stages.map((stage, i) => (
+                          <div key={stage} className="flex items-center gap-2.5">
+                            <span className="text-2xs text-ink-tertiary font-mono w-4 text-right">{i + 1}</span>
+                            <div className="w-1.5 h-1.5 rounded-full bg-edge" />
+                            <span className="text-sm text-ink-secondary">{stage}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-4 space-y-3">
-                    <ConfigRow label="Pipeline" value="5 stages" />
-                    <ConfigRow label="Reasoning Loops" value={`up to ${depth}`} />
-                    <ConfigRow label="Evidence Sources" value="KB + Web" />
-                    <ConfigRow label="Output" value="3-tier report" />
-                  </div>
-                </div>
+                )}
 
-                {/* System Status */}
+                {/* System Status — real health check */}
                 <div className="border border-edge-subtle rounded bg-canvas-raised">
                   <div className="px-4 py-2.5 border-b border-edge-subtle">
-                    <p className="text-xs text-ink-secondary uppercase tracking-wider font-medium">System Status</p>
+                    <p className="text-xs text-ink-secondary uppercase tracking-wider font-medium">System</p>
                   </div>
                   <div className="p-4 space-y-2.5">
-                    <StatusRow label="Grounder" status="online" />
-                    <StatusRow label="RAG Store" status="online" />
-                    <StatusRow label="Reasoning Engine" status="standby" />
-                    <StatusRow label="Pitch Synthesis" status="standby" />
+                    <StatusRow label="Backend API" status={backendOnline === true ? 'online' : backendOnline === false ? 'offline' : 'checking'} />
+                    <StatusRow label="Orchestration" status={defaults ? 'ready' : 'loading'} />
                   </div>
                 </div>
 
-                {/* Recent Analyses (mobile/tablet fallback) */}
+                {/* Recent runs */}
                 {recents.length > 0 && (
-                  <div className="border border-edge-subtle rounded bg-canvas-raised lg:hidden">
+                  <div className="border border-edge-subtle rounded bg-canvas-raised">
                     <div className="px-4 py-2.5 border-b border-edge-subtle">
-                      <p className="text-2xs text-ink-tertiary uppercase tracking-wider font-medium">Recent Analyses</p>
+                      <p className="text-xs text-ink-secondary uppercase tracking-wider font-medium">Recent Analyses</p>
                     </div>
                     <div className="divide-y divide-edge-subtle">
-                      {recents.map(r => (
+                      {recents.slice(0, 5).map(r => (
                         <a key={r.id} href={`/run/${r.id}`}
                           className="flex items-center justify-between px-4 py-2.5 hover:bg-canvas-overlay transition-colors">
                           <div className="flex items-center gap-2.5">
@@ -224,17 +179,6 @@ export default function HomePage() {
           </div>
         </main>
       </div>
-
-      {/* ── Bottom Status Bar ── */}
-      <footer className="h-7 bg-canvas-raised border-t border-edge-subtle flex items-center px-5 shrink-0">
-        <span className="text-2xs text-ink-tertiary font-mono">AI Opportunity Mapper</span>
-        <div className="flex-1" />
-        <div className="flex items-center gap-4">
-          <span className="text-2xs text-ink-tertiary font-mono">RAG: 15 avail</span>
-          <span className="text-2xs text-ink-tertiary font-mono">SEARCH: 10 avail</span>
-          <span className="text-2xs text-ink-tertiary font-mono">DEPTH: {depth}</span>
-        </div>
-      </footer>
     </div>
   )
 }
@@ -248,8 +192,8 @@ function ConfigRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-function StatusRow({ label, status }: { label: string; status: 'online' | 'standby' | 'offline' }) {
-  const color = status === 'online' ? 'bg-mint' : status === 'standby' ? 'bg-amber' : 'bg-rose'
+function StatusRow({ label, status }: { label: string; status: 'online' | 'ready' | 'offline' | 'loading' | 'checking' }) {
+  const color = (status === 'online' || status === 'ready') ? 'bg-mint' : status === 'checking' || status === 'loading' ? 'bg-amber' : 'bg-rose'
   return (
     <div className="flex items-center justify-between">
       <span className="text-xs text-ink-secondary">{label}</span>
