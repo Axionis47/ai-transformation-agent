@@ -9,7 +9,11 @@ from pydantic import BaseModel
 from core import run_manager
 from core.schemas import (
     AgentState,
+    EnrichRequest,
+    EnrichResponse,
     Hypothesis,
+    HypothesisDelta,
+    HypothesisStatus,
     ReportRefineRequest,
     Run,
     RunStatus,
@@ -229,12 +233,95 @@ async def refine_report(run_id: str, body: ReportRefineRequest) -> Run:
     return run_manager.get_run(run_id)
 
 
+@router.post("/runs/{run_id}/enrich", response_model=EnrichResponse)
+async def enrich_run(run_id: str, body: EnrichRequest) -> EnrichResponse:
+    """Inject analyst-provided evidence, re-test affected hypotheses, regenerate report."""
+    from core.events import EventType
+    from engines.enrichment import prepare_enrichment
+    from engines.hypothesis_tracker import HypothesisTracker
+    from engines.orchestrator_helpers import generate_report, test_hypotheses
+    from services.trace import emit
+
+    run = run_manager.get_run(run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail=f"Run not found: {run_id}")
+    if run.status not in (RunStatus.REVIEW, RunStatus.PUBLISHED):
+        raise HTTPException(status_code=409, detail=f"Cannot enrich from status: {run.status.value}")
+
+    emit(run_id, EventType.ENRICHMENT_SUBMITTED, {"input_count": len(body.inputs)})
+
+    enrichment = prepare_enrichment(run, body.inputs)
+    run_manager.add_evidence(run_id, enrichment.evidence_items, source_label="enrichment", phase="enrichment")
+
+    # Re-test affected hypotheses
+    tracker = HypothesisTracker()
+    for h in run.hypotheses:
+        tracker._hypotheses[h.hypothesis_id] = h
+    targets = [h for h in run.hypotheses if h.hypothesis_id in enrichment.affected_hypothesis_ids]
+
+    if targets:
+        config = run.config_snapshot
+        grounder = _get_grounder(config)
+        rag = _get_rag(config)
+        await test_hypotheses(run_id, targets, run.budget_state, tracker, config, grounder, rag)
+
+        # Force-finalize and sync back
+        validate_thresh = float(config.get("reasoning", {}).get("confidence_threshold", 0.7))
+        reject_thresh = validate_thresh * 0.3
+        for h in tracker.get_all():
+            if h.status == HypothesisStatus.TESTING:
+                if h.confidence >= validate_thresh:
+                    tracker.validate(h.hypothesis_id, f"Enrichment: confidence {h.confidence:.0%}")
+                elif h.confidence < reject_thresh:
+                    tracker.reject(h.hypothesis_id, f"Enrichment: confidence {h.confidence:.0%}")
+        run_manager.add_hypotheses(run_id, tracker.get_all())
+
+        # Regenerate report
+        run = run_manager.get_run(run_id)
+        assert run is not None
+        result = await generate_report(run_id, run, tracker, config, grounder, rag)
+        if result and result.adaptive_report:
+            run_manager.store_adaptive_report(run_id, result.adaptive_report)
+
+    # Build deltas
+    run = run_manager.get_run(run_id)
+    assert run is not None
+    deltas = []
+    for hid, old_conf in enrichment.pre_enrichment_confidence.items():
+        h = next((h for h in run.hypotheses if h.hypothesis_id == hid), None)
+        if h:
+            deltas.append(HypothesisDelta(
+                hypothesis_id=hid, statement=h.statement[:80],
+                confidence_before=old_conf, confidence_after=h.confidence,
+                status_before=enrichment.pre_enrichment_status.get(hid, "unknown"),
+                status_after=h.status.value if hasattr(h.status, 'value') else str(h.status),
+            ))
+
+    emit(run_id, EventType.ENRICHMENT_COMPLETED, {"evidence_added": len(enrichment.evidence_items), "deltas": len(deltas)})
+
+    return EnrichResponse(
+        run_id=run_id, evidence_added=len(enrichment.evidence_items),
+        hypotheses_affected=len(enrichment.affected_hypothesis_ids),
+        deltas=deltas, message=f"Enrichment complete: {len(deltas)} hypotheses re-evaluated",
+    )
+
+
 def _get_grounder(config: dict) -> object:
     """Obtain a grounder instance for report re-synthesis."""
     from api.routes.grounding import _build_client
     from services.grounder.grounder import Grounder
     client = _build_client(config)
     return Grounder(client=client, config=config)
+
+
+def _get_rag(config: dict) -> object:
+    """Obtain RAG retriever for re-testing."""
+    from services.rag.retrieval import RAGRetriever
+    from services.rag.store import get_rag_store
+    from services.rag.ingest import ensure_loaded
+    store = get_rag_store()
+    ensure_loaded(store)
+    return RAGRetriever(store=store, config=config)
 
 
 def _get_rag() -> object:

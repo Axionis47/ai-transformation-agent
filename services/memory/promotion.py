@@ -24,6 +24,7 @@ PHASE_THRESHOLDS = {
     "grounding": 0.3,
     "deep_research": 0.4,
     "hypothesis_testing": 0.5,
+    "enrichment": 0.3,
 }
 
 
