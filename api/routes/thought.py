@@ -53,7 +53,7 @@ def _make_engine(config: dict) -> ThoughtEngine:
 
 
 @router.post("/runs/{run_id}/start")
-async def start_run(run_id: str) -> AssumptionsDraft | ReasoningLoopResult:
+async def start_run(run_id: str) -> Run | AssumptionsDraft | ReasoningLoopResult:
     run = run_manager.get_run(run_id)
     if run is None:
         raise HTTPException(status_code=404, detail=f"Run not found: {run_id}")
