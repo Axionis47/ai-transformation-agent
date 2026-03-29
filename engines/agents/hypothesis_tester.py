@@ -67,6 +67,17 @@ class HypothesisTesterAgent(BaseResearchAgent):
             ev_lines = [f"  - {e.title}: {e.snippet[:100]}" for e in focused]
             context += "\n\nFOCUSED EVIDENCE (target process):\n" + "\n".join(ev_lines)
 
+        # Pull confirmed findings from prior phases so tester doesn't re-research them
+        insights = self._ctx.get_derived_insights() if self._ctx else []
+        if insights:
+            context += "\n\nCONFIRMED FINDINGS (do NOT re-search, build on these):\n"
+            context += "\n".join(f"  - {i.statement} [{i.confidence:.0%}]" for i in insights[:8])
+
+        pain_points = self._ctx.get_pain_points() if self._ctx else []
+        if pain_points:
+            context += "\n\nKNOWN PAIN POINTS:\n"
+            context += "\n".join(f"  - [{p.severity.upper()}] {p.description}" for p in pain_points[:5])
+
         prompt = self._system_prompt.format(
             hypothesis_statement=self._hypothesis.statement,
             hypothesis_category=self._hypothesis.category,
