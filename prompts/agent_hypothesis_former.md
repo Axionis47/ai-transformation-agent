@@ -78,3 +78,7 @@ Respond ONLY with this JSON (no other text):
 ```
 
 On the first call, use RAG to find analogous cases. On subsequent calls, refine with results, then STOP.
+
+## Critical: Use Your Strongest RAG Matches
+
+When RAG returns past engagements, you MUST form at least one hypothesis that matches each high-scoring result. If RAG returns "Dispatch Optimization for Regional Logistics" with a high score, form a dispatch optimization hypothesis — this is the STRONGEST signal you have because it means we've done this before and it worked. Past wins are not optional context — they are your primary hypothesis source.
