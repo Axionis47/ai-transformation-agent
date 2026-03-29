@@ -204,6 +204,46 @@ class ReportRefineRequest(BaseModel):
     feedbacks: list[ReportFeedback]
 
 
+# --- Enrichment ---
+class EnrichmentCategory(str, Enum):
+    TECHNOLOGY = "technology"
+    FINANCIALS = "financials"
+    OPERATIONS = "operations"
+    PAIN_POINTS = "pain_points"
+    CONSTRAINTS = "constraints"
+    CORRECTIONS = "corrections"
+    ADDITIONAL_CONTEXT = "additional_context"
+
+
+class EnrichmentInput(BaseModel):
+    category: EnrichmentCategory
+    title: str
+    detail: str
+    affected_hypothesis_ids: list[str] = []
+    confidence: float = 0.9
+
+
+class EnrichRequest(BaseModel):
+    inputs: list[EnrichmentInput]
+
+
+class HypothesisDelta(BaseModel):
+    hypothesis_id: str
+    statement: str
+    confidence_before: float
+    confidence_after: float
+    status_before: str
+    status_after: str
+
+
+class EnrichResponse(BaseModel):
+    run_id: str
+    evidence_added: int
+    hypotheses_affected: int
+    deltas: list[HypothesisDelta]
+    message: str
+
+
 # --- Refinement ---
 class AssumptionCorrection(BaseModel):
     field: str
