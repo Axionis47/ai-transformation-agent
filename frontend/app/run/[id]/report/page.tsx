@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getRun, getReport, getEvidence, approveReport, requestDeeperInvestigation, refineReportWithFeedback } from '@/lib/api'
 import ReasoningChain from '@/components/ReasoningChain'
@@ -96,8 +96,10 @@ function OpportunityCard({ opp, onFeedback, highlighted, isStartingPoint }: { op
 
 export default function ReportPage() {
   const params = useParams()
+  const router = useRouter()
   const runId = params.id as string
   const [run, setRun] = useState<Run | null>(null)
+  const [approved, setApproved] = useState(false)
   const [report, setReport] = useState<AdaptiveReport | null>(null)
   const [evidence, setEvidence] = useState<EvidenceItem[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -120,15 +122,22 @@ export default function ReportPage() {
 
   async function handleApprove() {
     setReviewAction('approving'); setError(null)
-    try { await approveReport(runId); await load() }
-    catch (err) { setError(err instanceof Error ? err.message : 'Approval failed') }
+    try {
+      await approveReport(runId)
+      setApproved(true)
+      await load()
+    } catch (err) { setError(err instanceof Error ? err.message : 'Approval failed') }
     finally { setReviewAction(null) }
   }
   async function handleInvestigate() {
     setReviewAction('investigating'); setError(null)
-    try { await requestDeeperInvestigation(runId); await load() }
-    catch (err) { setError(err instanceof Error ? err.message : 'Investigation request failed') }
-    finally { setReviewAction(null) }
+    try {
+      await requestDeeperInvestigation(runId)
+      router.push(`/run/${runId}`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Investigation request failed')
+      setReviewAction(null)
+    }
   }
 
   async function handleFeedback(feedback: ReportFeedback) {
@@ -237,21 +246,32 @@ export default function ReportPage() {
             <div className="flex-1 border-t border-edge-subtle print:border-gray-300" />
             <FeedbackButton targetSection="confidence" onSubmit={handleFeedback} />
           </div>
-          <ConfidenceNarrative assessment={report.confidence_assessment} confidence={0} />
+          <ConfidenceNarrative assessment={report.confidence_assessment} confidence={sorted.length > 0 ? sorted.reduce((sum, o) => sum + o.confidence, 0) / sorted.length : 0} />
         </section>
         {evidence.length > 0 && (
           <EvidenceAnnex evidence={evidence} />
         )}
       </main>
       <footer className="fixed bottom-0 left-0 right-0 bg-canvas-raised border-t border-edge-subtle px-6 py-3 flex items-center justify-end gap-3 z-20 print:hidden">
-        <button onClick={handleApprove} disabled={!!reviewAction}
-          className="bg-mint text-ink-inverse px-6 py-2.5 text-sm font-semibold rounded-md disabled:opacity-40 hover:bg-mint-bright transition-colors flex items-center gap-2">
-          {reviewAction === 'approving' ? <><Spinner size={14} />Approving...</> : 'Approve Report'}
-        </button>
-        <button onClick={handleInvestigate} disabled={!!reviewAction}
-          className="bg-transparent border border-amber text-amber px-6 py-2.5 text-sm font-semibold rounded-md disabled:opacity-40 hover:bg-amber/10 transition-colors flex items-center gap-2">
-          {reviewAction === 'investigating' ? <><Spinner size={14} />Requesting...</> : 'Investigate Deeper'}
-        </button>
+        {approved ? (
+          <div className="flex items-center gap-3">
+            <Badge variant="mint">Report Approved</Badge>
+            <Link href={`/run/${runId}`} className="text-sm text-mint font-mono hover:text-mint-bright transition-colors">
+              Back to Run
+            </Link>
+          </div>
+        ) : (
+          <>
+            <button onClick={handleApprove} disabled={!!reviewAction}
+              className="bg-mint text-ink-inverse px-6 py-2.5 text-sm font-semibold rounded-md disabled:opacity-40 hover:bg-mint-bright transition-colors flex items-center gap-2">
+              {reviewAction === 'approving' ? <><Spinner size={14} />Approving...</> : 'Approve Report'}
+            </button>
+            <button onClick={handleInvestigate} disabled={!!reviewAction}
+              className="bg-transparent border border-amber text-amber px-6 py-2.5 text-sm font-semibold rounded-md disabled:opacity-40 hover:bg-amber/10 transition-colors flex items-center gap-2">
+              {reviewAction === 'investigating' ? <><Spinner size={14} />Requesting...</> : 'Investigate Deeper'}
+            </button>
+          </>
+        )}
       </footer>
     </div>
   )
