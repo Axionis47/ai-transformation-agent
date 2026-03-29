@@ -184,6 +184,10 @@ def get_report(run_id: str) -> dict:
     run = run_manager.get_run(run_id)
     if run is None:
         raise HTTPException(status_code=404, detail=f"Run not found: {run_id}")
+    # Multi-agent: report lives on the run object
+    if run.adaptive_report is not None:
+        return run.adaptive_report.model_dump()
+    # Legacy fallback
     return get_report_store().get(run_id)
 
 
