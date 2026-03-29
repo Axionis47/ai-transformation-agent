@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -8,7 +10,28 @@ from api.routes.pitch import router as pitch_router
 from api.routes.rag import router as rag_router
 from api.routes.thought import router as thought_router
 
+log = logging.getLogger(__name__)
+
 app = FastAPI(title="AI Opportunity Mapper", version="0.1.0")
+
+
+@app.on_event("startup")
+def _init_storage() -> None:
+    """Initialize storage backend from config at startup."""
+    from core.config import load_config
+    from core import run_manager
+
+    cfg = load_config()
+    backend = cfg.get("storage", {}).get("backend", "memory")
+
+    if backend == "firestore":
+        from services.storage.firestore_store import FirestoreStore
+        project_id = cfg.get("gcp", {}).get("project_id")
+        store = FirestoreStore(project_id=project_id)
+        run_manager.init_storage(store)
+        log.info("Storage: Firestore (project=%s)", project_id)
+    else:
+        log.info("Storage: in-memory")
 
 app.add_middleware(
     CORSMiddleware,

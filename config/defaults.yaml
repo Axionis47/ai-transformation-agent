@@ -37,6 +37,10 @@ models:
 orchestration:
   mode: "multi_agent"                  # "legacy" | "multi_agent"
 
+# Storage
+storage:
+  backend: "memory"                   # "memory" | "firestore"
+
 # GCP
 gcp:
   project_id: "plotpointe"
