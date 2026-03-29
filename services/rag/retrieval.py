@@ -46,12 +46,15 @@ class RAGRetriever:
             )
             return RAGQueryResult(results=[], query=query_text, budget_exhausted=True)
 
-        # 2. Raw semantic search
-        raw = self._store.query(query_text, top_k=self._top_k)
+        # 2. Raw semantic search — fetch extra to allow dedup
+        raw = self._store.query(query_text, top_k=self._top_k * 3)
 
         # 3. Score filter
         before_count = len(raw)
         filtered = [r for r in raw if r["score"] >= self._min_score]
+
+        # 3b. Deduplicate by engagement — keep best chunk per engagement
+        filtered = self._dedup_by_engagement(filtered)
         filtered_count = before_count - len(filtered)
         emit(
             run_id,
@@ -68,16 +71,25 @@ class RAGRetriever:
         # 4. Normalise into EvidenceItems
         evidence_items: list[EvidenceItem] = []
         for i, r in enumerate(filtered):
+            meta = r["metadata"]
+            engagement_id = meta.get("engagement_id", r["id"])
+            chunk_type = meta.get("chunk_type", "unknown")
+            source_ref = r["id"]  # e.g. "eng-007::preconditions"
             evidence_items.append(
                 EvidenceItem(
                     evidence_id=str(uuid.uuid4()),
                     run_id=run_id,
                     source_type=EvidenceSource.WINS_KB,
-                    source_ref=r["metadata"].get("engagement_id", r["id"]),
-                    title=r["metadata"].get("title", r["id"]),
+                    source_ref=source_ref,
+                    title=meta.get("title", r["id"]),
                     snippet=r["text"][:500],
                     relevance_score=round(r["score"], 4),
-                    retrieval_meta={"query": query_text, "rank": i},
+                    retrieval_meta={
+                        "query": query_text,
+                        "rank": i,
+                        "chunk_type": chunk_type,
+                        "engagement_id": engagement_id,
+                    },
                     provenance=Provenance(
                         source_type="raw",
                         source_evidence_ids=[],
@@ -106,3 +118,13 @@ class RAGRetriever:
             budget_exhausted=False,
             filtered_count=filtered_count,
         )
+
+    def _dedup_by_engagement(self, results: list[dict]) -> list[dict]:
+        """Keep best-scoring chunk per engagement for diversity."""
+        seen: dict[str, dict] = {}
+        for r in results:
+            eng_id = r.get("metadata", {}).get("engagement_id", r["id"])
+            if eng_id not in seen or r["score"] > seen[eng_id]["score"]:
+                seen[eng_id] = r
+        deduped = sorted(seen.values(), key=lambda r: r["score"], reverse=True)
+        return deduped[: self._top_k]
