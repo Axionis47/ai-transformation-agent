@@ -29,3 +29,24 @@ app.include_router(agents_router, prefix="/v1")
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
+
+
+@app.get("/v1/defaults")
+def get_defaults() -> dict:
+    """Return default config for the home page — no hardcoded frontend values."""
+    from core.config import load_config
+    cfg = load_config()
+    budgets = cfg.get("budgets", {})
+    models = cfg.get("models", {})
+    return {
+        "rag_budget": budgets.get("rag_query_budget", 15),
+        "search_budget": budgets.get("external_search_query_budget", 25),
+        "search_max_calls": budgets.get("external_search_max_calls", 8),
+        "reasoning_model": models.get("reasoning_model", "gemini-2.5-flash"),
+        "synthesis_model": models.get("synthesis_model", "gemini-2.5-pro"),
+        "pipeline_stages": [
+            "Intake", "Grounding", "Deep Research",
+            "Hypothesis Formation", "Hypothesis Testing",
+            "Synthesis", "Review",
+        ],
+    }
