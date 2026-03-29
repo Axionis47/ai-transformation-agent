@@ -1,14 +1,11 @@
 import type {
   AgentState,
-  AssumptionsDraft,
   CompanyIntake,
   EvidenceItem,
   Hypothesis,
-  Opportunity,
   ReasoningConfig,
   ReportFeedback,
   Run,
-  UIHints,
   UserInteractionPoint,
 } from './types'
 
@@ -56,43 +53,6 @@ export async function submitIntake(
   })
 }
 
-export async function getUIHints(runId: string): Promise<UIHints> {
-  return apiFetch<UIHints>(`/runs/${runId}/ui`)
-}
-
-export async function startRun(runId: string): Promise<unknown> {
-  return apiFetch<unknown>(`/runs/${runId}/start`, { method: 'POST' })
-}
-
-export async function confirmAssumptions(
-  runId: string,
-  body?: AssumptionsDraft,
-): Promise<Run> {
-  return apiFetch<Run>(`/runs/${runId}/assumptions/confirm`, {
-    method: 'POST',
-    body: body ? JSON.stringify(body) : undefined,
-  })
-}
-
-export async function answerQuestion(
-  runId: string,
-  questionId: string,
-  answer: string,
-): Promise<unknown> {
-  return apiFetch<unknown>(`/runs/${runId}/answer`, {
-    method: 'POST',
-    body: JSON.stringify({ question_id: questionId, answer_text: answer }),
-  })
-}
-
-export async function synthesize(runId: string): Promise<unknown> {
-  return apiFetch<unknown>(`/runs/${runId}/synthesize`, { method: 'POST' })
-}
-
-export async function publish(runId: string): Promise<Run> {
-  return apiFetch<Run>(`/runs/${runId}/publish`, { method: 'POST' })
-}
-
 export async function getEvidence(runId: string): Promise<EvidenceItem[]> {
   return apiFetch<EvidenceItem[]>(`/runs/${runId}/evidence`)
 }
@@ -101,26 +61,8 @@ export async function getReport(runId: string): Promise<Record<string, unknown>>
   return apiFetch<Record<string, unknown>>(`/runs/${runId}/report`)
 }
 
-export async function getOpportunities(runId: string): Promise<Opportunity[]> {
-  return apiFetch<Opportunity[]>(`/runs/${runId}/opportunities`)
-}
-
 export async function getTrace(runId: string): Promise<Record<string, unknown>[]> {
   return apiFetch<Record<string, unknown>[]>(`/runs/${runId}/trace`)
-}
-
-export async function refineReport(
-  runId: string,
-  body: {
-    corrections?: { field: string; new_value: string; reason?: string }[]
-    removed_opportunity_ids?: string[]
-    additional_context?: string
-  },
-): Promise<Record<string, unknown>> {
-  return apiFetch<Record<string, unknown>>(`/runs/${runId}/refine`, {
-    method: 'POST',
-    body: JSON.stringify(body),
-  })
 }
 
 // --- Multi-agent endpoints ---
@@ -137,15 +79,6 @@ export async function getHypotheses(runId: string): Promise<Hypothesis[]> {
     `/runs/${runId}/hypotheses`,
   )
   return res.hypotheses
-}
-
-export async function getHypothesis(
-  runId: string,
-  hypothesisId: string,
-): Promise<Hypothesis> {
-  return apiFetch<Hypothesis>(
-    `/runs/${runId}/hypotheses/${hypothesisId}`,
-  )
 }
 
 export async function getInteractions(
