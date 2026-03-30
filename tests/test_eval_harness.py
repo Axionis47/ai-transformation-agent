@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from evals.company_bundles import get_bundles
 from evals.eval_runner import EvalResult
 from evals.metrics import compute_metrics, format_report
@@ -38,6 +40,7 @@ def test_bundles_have_required_fields():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.requires_gcp
 def test_single_eval_run():
     """run_single on the first bundle produces a successful EvalResult with evidence_count > 0."""
     from evals.eval_runner import run_single

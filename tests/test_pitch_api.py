@@ -67,6 +67,7 @@ def _create_reasoning_complete_run(rid: str) -> None:
     run_manager.add_evidence(rid, [ev])
 
 
+@pytest.mark.requires_gcp
 def test_synthesize_from_reasoning():
     rid = _run_id()
     _create_reasoning_complete_run(rid)
@@ -85,6 +86,7 @@ def test_synthesize_wrong_status():
     assert r.status_code == 409
 
 
+@pytest.mark.requires_gcp
 def test_synthesize_incomplete_reasoning():
     rid = _run_id()
     client.put(f"/v1/runs/{rid}/company-intake", json={"company_name": "Acme Corp", "industry": "logistics"})
@@ -97,6 +99,7 @@ def test_synthesize_incomplete_reasoning():
         assert r.status_code == 400
 
 
+@pytest.mark.requires_gcp
 def test_publish_from_report():
     rid = _run_id()
     _create_reasoning_complete_run(rid)
@@ -113,6 +116,7 @@ def test_publish_wrong_status():
     assert r.status_code == 409
 
 
+@pytest.mark.requires_gcp
 def test_get_evidence():
     rid = _run_id()
     _create_reasoning_complete_run(rid)
@@ -121,6 +125,7 @@ def test_get_evidence():
     assert isinstance(r.json(), list)
 
 
+@pytest.mark.requires_gcp
 def test_get_report():
     rid = _run_id()
     _create_reasoning_complete_run(rid)
@@ -131,6 +136,7 @@ def test_get_report():
     assert "operator_brief" in body
 
 
+@pytest.mark.requires_gcp
 def test_get_opportunities():
     rid = _run_id()
     _create_reasoning_complete_run(rid)

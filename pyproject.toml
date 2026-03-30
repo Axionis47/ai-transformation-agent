@@ -1,0 +1,4 @@
+[tool.pytest.ini_options]
+markers = [
+    "requires_gcp: test requires GCP credentials (Gemini API)",
+]

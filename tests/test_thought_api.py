@@ -39,6 +39,7 @@ def _confirmed(rid: str):
     client.post(f"/v1/runs/{rid}/assumptions/confirm")
 
 
+@pytest.mark.requires_gcp
 def test_start_from_intake_returns_assumptions():
     rid = _run_id()
     _intake(rid)
@@ -52,6 +53,7 @@ def test_start_wrong_status_returns_409():
     assert client.post(f"/v1/runs/{_run_id()}/start").status_code == 409
 
 
+@pytest.mark.requires_gcp
 def test_confirm_assumptions_transitions():
     rid = _run_id()
     _intake(rid)
@@ -60,6 +62,7 @@ def test_confirm_assumptions_transitions():
     assert r.status_code == 200 and r.json()["status"] == "assumptions_confirmed"
 
 
+@pytest.mark.requires_gcp
 def test_start_from_confirmed_returns_reasoning():
     rid = _run_id()
     _confirmed(rid)
@@ -69,6 +72,7 @@ def test_start_from_confirmed_returns_reasoning():
     assert "completed" in d and "evidence_items" in d
 
 
+@pytest.mark.requires_gcp
 def test_answer_continues_reasoning():
     rid = _run_id()
     _confirmed(rid)
@@ -80,6 +84,7 @@ def test_answer_continues_reasoning():
         assert r.status_code == 200
 
 
+@pytest.mark.requires_gcp
 def test_answer_no_pending_returns_400():
     rid = _run_id()
     _confirmed(rid)
@@ -94,6 +99,7 @@ def test_unknown_run_returns_404():
     assert client.post("/v1/runs/no-such-run/start").status_code == 404
 
 
+@pytest.mark.requires_gcp
 def test_budget_updated_through_flow():
     rid = _run_id()
     _confirmed(rid)
