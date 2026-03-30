@@ -1,27 +1,27 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleLogin(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
     if (!email.trim() || !password.trim()) {
-      setError('Please enter both email and password')
-      return
+      setError("Please enter both email and password");
+      return;
     }
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     // TODO: Wire to Firebase Auth
     // For now, simulate auth and redirect
-    await new Promise(r => setTimeout(r, 400))
-    router.push('/')
+    await new Promise((r) => setTimeout(r, 400));
+    router.push("/");
   }
 
   return (
@@ -29,12 +29,15 @@ export default function LoginPage() {
       {/* Left: Branding panel */}
       <div className="hidden lg:flex lg:w-[45%] bg-canvas flex-col justify-between p-12">
         <div>
-          <h1 className="text-3xl font-semibold text-white tracking-tight">AI Opportunity Mapper</h1>
+          <h1 className="text-3xl font-semibold text-white tracking-tight">
+            AI Opportunity Mapper
+          </h1>
           <p className="text-sm text-white/40 mt-1 font-mono">Evidence-backed AI discovery</p>
         </div>
         <div className="space-y-6">
           <p className="text-lg text-white/80 leading-relaxed max-w-md">
-            Multi-agent research. Hypothesis-driven analysis. Every recommendation traced to its source.
+            Multi-agent research. Hypothesis-driven analysis. Every recommendation traced to its
+            source.
           </p>
           <div className="flex items-center gap-6 text-white/30 text-2xs font-mono uppercase tracking-wider">
             <span>Research</span>
@@ -52,7 +55,9 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           {/* Mobile branding */}
           <div className="lg:hidden mb-10">
-            <h1 className="text-2xl font-semibold text-ink tracking-tight">AI Opportunity Mapper</h1>
+            <h1 className="text-2xl font-semibold text-ink tracking-tight">
+              AI Opportunity Mapper
+            </h1>
             <p className="text-sm text-ink-tertiary mt-1 font-mono">Evidence-backed AI discovery</p>
           </div>
 
@@ -75,7 +80,7 @@ export default function LoginPage() {
               <input
                 type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="analyst@company.com"
                 className="w-full bg-canvas-raised border border-edge-subtle rounded-md px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-tertiary/50 focus:outline-none focus:border-mint focus:ring-1 focus:ring-mint/30 transition-colors"
                 autoComplete="email"
@@ -90,7 +95,7 @@ export default function LoginPage() {
               <input
                 type="password"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 className="w-full bg-canvas-raised border border-edge-subtle rounded-md px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-tertiary/50 focus:outline-none focus:border-mint focus:ring-1 focus:ring-mint/30 transition-colors"
                 autoComplete="current-password"
@@ -102,7 +107,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full bg-mint text-ink-inverse py-2.5 text-sm font-semibold rounded-md disabled:opacity-40 hover:bg-mint-bright transition-colors mt-2"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
 
@@ -112,5 +117,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

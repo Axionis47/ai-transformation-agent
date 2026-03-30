@@ -1,7 +1,7 @@
-import type { EvidenceItem } from '@/lib/types'
+import type { EvidenceItem } from "@/lib/types";
 
 interface EvidenceBlockProps {
-  evidence: EvidenceItem
+  evidence: EvidenceItem;
 }
 
 export default function EvidenceBlock({ evidence }: EvidenceBlockProps) {
@@ -10,7 +10,7 @@ export default function EvidenceBlock({ evidence }: EvidenceBlockProps) {
       <div className="flex justify-between items-center mb-1">
         <span
           className="font-mono uppercase text-text-muted"
-          style={{ fontSize: '11px', letterSpacing: '0.08em' }}
+          style={{ fontSize: "11px", letterSpacing: "0.08em" }}
         >
           {evidence.source_type}
         </span>
@@ -20,40 +20,37 @@ export default function EvidenceBlock({ evidence }: EvidenceBlockProps) {
             target="_blank"
             rel="noopener noreferrer"
             className="font-mono text-accent cursor-pointer"
-            style={{ fontSize: '10px' }}
+            style={{ fontSize: "10px" }}
           >
             {evidence.uri.slice(0, 40)}
           </a>
         )}
       </div>
-      <p
-        className="text-text-primary mb-1"
-        style={{ fontSize: '14px', fontWeight: 500 }}
-      >
+      <p className="text-text-primary mb-1" style={{ fontSize: "14px", fontWeight: 500 }}>
         {evidence.title}
       </p>
       <p
         className="font-mono text-text-muted italic mb-2"
         style={{
-          fontSize: '13px',
-          display: '-webkit-box',
+          fontSize: "13px",
+          display: "-webkit-box",
           WebkitLineClamp: 3,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
         }}
       >
         &ldquo;{evidence.snippet}&rdquo;
       </p>
       <div className="flex gap-4">
-        <span className="font-mono text-text-muted" style={{ fontSize: '12px' }}>
+        <span className="font-mono text-text-muted" style={{ fontSize: "12px" }}>
           relevance: {evidence.relevance_score.toFixed(2)}
         </span>
         {evidence.confidence_score != null && (
-          <span className="font-mono text-text-muted" style={{ fontSize: '12px' }}>
+          <span className="font-mono text-text-muted" style={{ fontSize: "12px" }}>
             confidence: {evidence.confidence_score.toFixed(2)}
           </span>
         )}
       </div>
     </div>
-  )
+  );
 }

@@ -1,24 +1,28 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Badge from '@/components/ui/Badge'
-import type { UserInteractionPoint } from '@/lib/types'
+import { useState } from "react";
+import Badge from "@/components/ui/Badge";
+import type { UserInteractionPoint } from "@/lib/types";
 
 interface InteractionModalProps {
-  interaction: UserInteractionPoint
-  onRespond: (response: string) => void
-  onDismiss: () => void
+  interaction: UserInteractionPoint;
+  onRespond: (response: string) => void;
+  onDismiss: () => void;
 }
 
-const TYPE_VARIANT: Record<string, 'mint' | 'amber' | 'rose'> = {
-  interesting_finding: 'mint',
-  confirmation: 'amber',
-  ambiguity: 'rose',
-}
+const TYPE_VARIANT: Record<string, "mint" | "amber" | "rose"> = {
+  interesting_finding: "mint",
+  confirmation: "amber",
+  ambiguity: "rose",
+};
 
-export default function InteractionModal({ interaction, onRespond, onDismiss }: InteractionModalProps) {
-  const [response, setResponse] = useState('')
-  const variant = TYPE_VARIANT[interaction.interaction_type] ?? 'mint'
+export default function InteractionModal({
+  interaction,
+  onRespond,
+  onDismiss,
+}: InteractionModalProps) {
+  const [response, setResponse] = useState("");
+  const variant = TYPE_VARIANT[interaction.interaction_type] ?? "mint";
 
   return (
     <div className="fixed inset-0 bg-canvas/80 backdrop-blur-sm z-40 flex justify-center">
@@ -34,9 +38,7 @@ export default function InteractionModal({ interaction, onRespond, onDismiss }: 
           <span className="text-2xs font-mono text-ink-tertiary">
             From: {interaction.agent_source}
           </span>
-          <Badge variant={variant}>
-            {interaction.interaction_type.replace(/_/g, ' ')}
-          </Badge>
+          <Badge variant={variant}>{interaction.interaction_type.replace(/_/g, " ")}</Badge>
         </div>
 
         <textarea
@@ -63,5 +65,5 @@ export default function InteractionModal({ interaction, onRespond, onDismiss }: 
         </div>
       </div>
     </div>
-  )
+  );
 }

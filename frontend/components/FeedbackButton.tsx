@@ -1,31 +1,31 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import type { ReportFeedback } from '@/lib/types'
+import { useState } from "react";
+import type { ReportFeedback } from "@/lib/types";
 
 interface FeedbackButtonProps {
-  targetSection: string
-  onSubmit: (feedback: ReportFeedback) => void
+  targetSection: string;
+  onSubmit: (feedback: ReportFeedback) => void;
 }
 
 export default function FeedbackButton({ targetSection, onSubmit }: FeedbackButtonProps) {
-  const [open, setOpen] = useState(false)
-  const [instruction, setInstruction] = useState('')
+  const [open, setOpen] = useState(false);
+  const [instruction, setInstruction] = useState("");
 
   function handleSubmit() {
-    if (!instruction.trim()) return
+    if (!instruction.trim()) return;
     onSubmit({
-      feedback_type: 'edit',
+      feedback_type: "edit",
       target_section: targetSection,
       instruction: instruction.trim(),
-    })
-    setInstruction('')
-    setOpen(false)
+    });
+    setInstruction("");
+    setOpen(false);
   }
 
   function handleCancel() {
-    setInstruction('')
-    setOpen(false)
+    setInstruction("");
+    setOpen(false);
   }
 
   if (!open) {
@@ -38,7 +38,7 @@ export default function FeedbackButton({ targetSection, onSubmit }: FeedbackButt
         <span className="text-xs leading-none">&#9998;</span>
         Edit
       </button>
-    )
+    );
   }
 
   return (
@@ -70,5 +70,5 @@ export default function FeedbackButton({ targetSection, onSubmit }: FeedbackButt
         </button>
       </div>
     </div>
-  )
+  );
 }
