@@ -17,7 +17,12 @@ def clear_state():
 
 
 def _run_id() -> str:
-    return client.post("/v1/runs", json={"company_name": "Acme Logistics", "industry": "logistics"}).json()["run_id"]
+    """Create a run in legacy mode so assumptions/reasoning flow works."""
+    run = run_manager.create_run(
+        "Acme Logistics", "logistics",
+        config_overrides={"orchestration.mode": "legacy"},
+    )
+    return run.run_id
 
 
 def _intake(rid: str):

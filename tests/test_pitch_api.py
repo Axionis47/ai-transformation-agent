@@ -29,8 +29,12 @@ def clear_state():
 
 
 def _run_id() -> str:
-    r = client.post("/v1/runs", json={"company_name": "Acme Corp", "industry": "logistics"})
-    return r.json()["run_id"]
+    """Create a run in legacy mode so assumptions/reasoning/synthesis flow works."""
+    run = run_manager.create_run(
+        "Acme Corp", "logistics",
+        config_overrides={"orchestration.mode": "legacy"},
+    )
+    return run.run_id
 
 
 def _create_reasoning_complete_run(rid: str) -> None:

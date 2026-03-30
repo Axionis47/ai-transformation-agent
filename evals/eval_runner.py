@@ -82,10 +82,12 @@ def run_single(bundle: CompanyBundle) -> EvalResult:
     """Run the full pipeline for one company bundle and return metrics."""
     start = time.time()
 
-    resp = _client.post("/v1/runs", json={"company_name": bundle.company_name, "industry": bundle.industry})
-    if resp.status_code != 201:
-        return _fail(bundle, f"create_run failed: {resp.status_code}", time.time() - start)
-    run_id: str = resp.json()["run_id"]
+    # Eval harness uses legacy assumptions→reasoning→synthesis flow
+    run = run_manager.create_run(
+        bundle.company_name, bundle.industry,
+        config_overrides={"orchestration.mode": "legacy"},
+    )
+    run_id = run.run_id
 
     resp = _client.put(f"/v1/runs/{run_id}/company-intake", json={
         "company_name": bundle.company_name, "industry": bundle.industry,

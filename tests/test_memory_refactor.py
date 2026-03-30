@@ -78,7 +78,8 @@ def test_promotion_accepts_valid_evidence():
     assert result.accepted == 1 and result.rejected == 0
 
 def test_promotion_rejects_below_threshold():
-    result = PromotionGate(EvidenceStore(), min_relevance=0.5).promote_batch("r1", [_ev("e1", rel=0.3)])
+    result = PromotionGate(EvidenceStore(), min_relevance=0.5).promote_batch(
+        "r1", [_ev("e1", rel=0.3)], phase="custom")
     assert result.rejected == 1 and result.accepted == 0 and len(result.rejection_reasons) > 0
 
 def test_promotion_deduplicates_by_source():
