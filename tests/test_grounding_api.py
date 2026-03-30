@@ -10,15 +10,16 @@ from api.app import app
 from core import run_manager
 from core.schemas import EvidenceSource
 from services.grounder.fake_client import FakeGeminiClient
+from services.storage.memory_store import MemoryStore
 
 client = TestClient(app)
 
 
 @pytest.fixture(autouse=True)
 def clear_run_store():
-    run_manager._runs.clear()
+    run_manager.init_storage(MemoryStore())
     yield
-    run_manager._runs.clear()
+    run_manager.init_storage(MemoryStore())
 
 
 def _create_run() -> dict:

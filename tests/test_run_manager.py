@@ -3,16 +3,17 @@ import pytest
 
 from core import run_manager
 from core.schemas import BudgetState, CompanyIntake, RunStatus
+from services.storage.memory_store import MemoryStore
 
 
 @pytest.fixture(autouse=True)
 def clear_run_store():
     """Reset in-memory run store before each test to prevent cross-test pollution."""
-    run_manager._runs.clear()
+    run_manager.init_storage(MemoryStore())
     from services.memory.store import get_evidence_store
     get_evidence_store()._items.clear()
     yield
-    run_manager._runs.clear()
+    run_manager.init_storage(MemoryStore())
     get_evidence_store()._items.clear()
 
 

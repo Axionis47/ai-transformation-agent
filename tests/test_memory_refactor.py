@@ -5,18 +5,19 @@ from core.schemas import EvidenceItem, EvidenceSource, Opportunity, OpportunityT
 from services.memory.store import EvidenceStore, get_evidence_store
 from services.memory.opp_store import get_opportunity_store
 from services.memory.report_store import get_report_store
+from services.storage.memory_store import MemoryStore
 from services import trace
 
 
 @pytest.fixture(autouse=True)
 def clear_state():
-    run_manager._runs.clear()
+    run_manager.init_storage(MemoryStore())
     get_evidence_store()._items.clear()
     get_opportunity_store()._items.clear()
     get_report_store()._items.clear()
     trace._events.clear()
     yield
-    run_manager._runs.clear()
+    run_manager.init_storage(MemoryStore())
     get_evidence_store()._items.clear()
     get_opportunity_store()._items.clear()
     get_report_store()._items.clear()

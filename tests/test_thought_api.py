@@ -4,15 +4,16 @@ import pytest
 from fastapi.testclient import TestClient
 from api.app import app
 from core import run_manager
+from services.storage.memory_store import MemoryStore
 
 client = TestClient(app)
 
 
 @pytest.fixture(autouse=True)
 def clear_state():
-    run_manager._runs.clear()
+    run_manager.init_storage(MemoryStore())
     yield
-    run_manager._runs.clear()
+    run_manager.init_storage(MemoryStore())
 
 
 def _run_id() -> str:

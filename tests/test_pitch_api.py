@@ -7,13 +7,14 @@ from fastapi.testclient import TestClient
 from api.app import app
 from core import run_manager
 from core.schemas import EvidenceItem, EvidenceSource, ReasoningState
+from services.storage.memory_store import MemoryStore
 
 client = TestClient(app)
 
 
 @pytest.fixture(autouse=True)
 def clear_state():
-    run_manager._runs.clear()
+    run_manager.init_storage(MemoryStore())
     from services.memory.store import get_evidence_store
     from services.memory.opp_store import get_opportunity_store
     from services.memory.report_store import get_report_store
@@ -21,7 +22,7 @@ def clear_state():
     get_opportunity_store()._items.clear()
     get_report_store()._items.clear()
     yield
-    run_manager._runs.clear()
+    run_manager.init_storage(MemoryStore())
     get_evidence_store()._items.clear()
     get_opportunity_store()._items.clear()
     get_report_store()._items.clear()
