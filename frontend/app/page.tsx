@@ -90,9 +90,9 @@ export default function HomePage() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-              {/* Left: Form (2 cols) */}
-              <div className="xl:col-span-2">
+            <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+              {/* Left: Form (3/5) */}
+              <div className="xl:col-span-3">
                 <IntakeForm
                   onSubmit={handleSubmit}
                   loading={loading}
@@ -103,8 +103,8 @@ export default function HomePage() {
                 />
               </div>
 
-              {/* Right: Context Panels */}
-              <div className="space-y-4">
+              {/* Right: Context Panels (2/5) */}
+              <div className="xl:col-span-2 space-y-4">
                 {/* Run Configuration — live values */}
                 <div className="border border-edge-subtle rounded-md bg-canvas-raised">
                   <div className="px-4 py-2.5 border-b border-edge-subtle">

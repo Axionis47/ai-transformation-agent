@@ -283,16 +283,16 @@ export default function ReportPage() {
         ) : (
           <>
             <Link href={`/run/${runId}/enrich`}
-              className="bg-transparent border border-indigo text-indigo px-6 py-2.5 text-sm font-semibold rounded-md hover:bg-indigo/10 transition-colors inline-flex items-center gap-2">
+              className="text-indigo text-2xs font-mono hover:text-indigo/80 transition-colors inline-flex items-center gap-1.5">
               Enrich Analysis
             </Link>
+            <button onClick={handleInvestigate} disabled={!!reviewAction}
+              className="bg-transparent border border-edge text-ink-secondary px-4 py-2 text-sm rounded-md disabled:opacity-40 hover:border-amber hover:text-amber transition-colors flex items-center gap-2">
+              {reviewAction === 'investigating' ? <><Spinner size={14} />Requesting...</> : 'Investigate Deeper'}
+            </button>
             <button onClick={handleApprove} disabled={!!reviewAction}
               className="bg-mint text-ink-inverse px-6 py-2.5 text-sm font-semibold rounded-md disabled:opacity-40 hover:bg-mint-bright transition-colors flex items-center gap-2">
               {reviewAction === 'approving' ? <><Spinner size={14} />Approving...</> : 'Approve Report'}
-            </button>
-            <button onClick={handleInvestigate} disabled={!!reviewAction}
-              className="bg-transparent border border-amber text-amber px-6 py-2.5 text-sm font-semibold rounded-md disabled:opacity-40 hover:bg-amber/10 transition-colors flex items-center gap-2">
-              {reviewAction === 'investigating' ? <><Spinner size={14} />Requesting...</> : 'Investigate Deeper'}
             </button>
           </>
         )}

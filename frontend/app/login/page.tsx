@@ -27,7 +27,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-canvas flex">
       {/* Left: Branding panel */}
-      <div className="hidden lg:flex lg:w-[45%] bg-[#0a0a0a] flex-col justify-between p-12">
+      <div className="hidden lg:flex lg:w-[45%] bg-canvas flex-col justify-between p-12">
         <div>
           <h1 className="text-3xl font-semibold text-white tracking-tight">AI Opportunity Mapper</h1>
           <p className="text-sm text-white/40 mt-1 font-mono">Evidence-backed AI discovery</p>
