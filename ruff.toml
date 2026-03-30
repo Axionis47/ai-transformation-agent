@@ -1,0 +1,18 @@
+target-version = "py311"
+line-length = 120
+
+[lint]
+select = ["E", "F", "I"]
+ignore = [
+    "E402",  # module-import-not-at-top — intentional lazy imports to avoid circular deps
+    "E501",  # line-too-long — ruff format handles wrapping; check-time flag is noisy
+    "E702",  # multiple-statements-on-one-line — used in compact test helpers
+    "E741",  # ambiguous-variable-name — single-letter vars acceptable in short scopes
+]
+
+[lint.per-file-ignores]
+"tests/*" = ["F401"]  # unused imports in test files (re-exports, fixtures)
+"__init__.py" = ["F401"]  # unused imports in package init files
+
+[format]
+quote-style = "double"
