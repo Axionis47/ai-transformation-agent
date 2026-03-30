@@ -107,10 +107,10 @@ class HypothesisFormerAgent(BaseResearchAgent):
 
         if action == "RAG" and query:
             if query in self._past_queries:
-                return AgentThought(
-                    action="STOP", reasoning="duplicate query — stopping"
-                )
-            self._past_queries.append(query)
+                # Duplicate query — don't search again, but still capture hypotheses
+                action = "STOP"
+            else:
+                self._past_queries.append(query)
 
         if action not in ("RAG", "STOP"):
             action = "STOP"
