@@ -170,9 +170,9 @@ class Orchestrator:
         if run.spawn_requests and has_budget(run.budget_state, self._config):
             await handle_spawns(run_id, run.budget_state, *args)
 
-        # Finalize: force-validate/reject hypotheses still stuck in "testing"
+        # Finalize: force-validate/reject hypotheses stuck in "testing" or "forming"
         for h in self._tracker.get_all():
-            if h.status == HypothesisStatus.TESTING:
+            if h.status in (HypothesisStatus.TESTING, HypothesisStatus.FORMING):
                 if h.confidence >= self._validate_threshold:
                     self._tracker.validate(h.hypothesis_id, f"Confidence {h.confidence:.0%} meets threshold after testing")
                     emit(run_id, EventType.HYPOTHESIS_VALIDATED, {"hypothesis_id": h.hypothesis_id, "confidence": h.confidence})
