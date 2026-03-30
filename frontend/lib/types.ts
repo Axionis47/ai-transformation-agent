@@ -56,6 +56,8 @@ export interface EvidenceItem {
   relevance_score: number;
   confidence_score?: number;
   retrieval_meta: Record<string, unknown>;
+  dimension?: string;
+  process_area?: string;
 }
 
 export interface ReasoningState {
@@ -107,6 +109,9 @@ export interface Run {
   opportunities: Opportunity[];
   report: Record<string, unknown>;
   feedback_history: ReportFeedback[];
+  company_understanding?: CompanyUnderstanding;
+  industry_context?: IndustryContext;
+  pain_points?: PainPoint[];
 }
 
 export interface UIAction {

@@ -100,17 +100,16 @@ export default function EvidenceAnnex({ evidence, highlightId }: Props) {
                 <div className="mt-2 max-w-xs">
                   <ScoreBar value={ev.relevance_score} label="Relevance" color="mint" />
                 </div>
-                {((ev as Record<string, unknown>).dimension ||
-                  (ev as Record<string, unknown>).process_area) && (
+                {(ev.dimension || ev.process_area) && (
                   <div className="flex gap-2 mt-2">
-                    {(ev as Record<string, unknown>).dimension && (
+                    {ev.dimension && (
                       <span className="text-2xs font-mono text-ink-tertiary bg-canvas-overlay px-2 py-0.5 rounded">
-                        {String((ev as Record<string, unknown>).dimension)}
+                        {ev.dimension}
                       </span>
                     )}
-                    {(ev as Record<string, unknown>).process_area && (
+                    {ev.process_area && (
                       <span className="text-2xs font-mono text-ink-tertiary bg-canvas-overlay px-2 py-0.5 rounded">
-                        {String((ev as Record<string, unknown>).process_area)}
+                        {ev.process_area}
                       </span>
                     )}
                   </div>

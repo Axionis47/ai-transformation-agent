@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import type { Run, AgentState, Hypothesis, CompanyIntake } from "@/lib/types";
+import type {
+  Run,
+  AgentState,
+  Hypothesis,
+  CompanyIntake,
+  CompanyUnderstanding,
+  IndustryContext,
+  PainPoint,
+} from "@/lib/types";
 import AgentActivityPanel from "@/components/AgentActivityPanel";
 import HypothesisList from "@/components/HypothesisList";
 import IntakeForm from "@/components/IntakeForm";
@@ -60,9 +68,7 @@ function SummaryStats({
 }
 
 function CompanyUnderstandingPanel({ run }: { run: Run }) {
-  const cu = (run as Record<string, unknown>).company_understanding as
-    | Record<string, unknown>
-    | undefined;
+  const cu: CompanyUnderstanding | undefined = run.company_understanding;
   if (!cu || !cu.what_they_do) return null;
   return (
     <div className="mt-6 bg-canvas-raised border border-edge-subtle rounded-md p-5">
@@ -73,25 +79,25 @@ function CompanyUnderstandingPanel({ run }: { run: Run }) {
         {cu.what_they_do && (
           <p>
             <span className="text-ink-tertiary font-mono text-2xs mr-2">DOES</span>
-            {cu.what_they_do as string}
+            {cu.what_they_do}
           </p>
         )}
         {cu.how_they_make_money && (
           <p>
             <span className="text-ink-tertiary font-mono text-2xs mr-2">REVENUE</span>
-            {cu.how_they_make_money as string}
+            {cu.how_they_make_money}
           </p>
         )}
         {cu.size_and_scale && (
           <p>
             <span className="text-ink-tertiary font-mono text-2xs mr-2">SCALE</span>
-            {cu.size_and_scale as string}
+            {cu.size_and_scale}
           </p>
         )}
         {cu.technology_landscape && (
           <p>
             <span className="text-ink-tertiary font-mono text-2xs mr-2">TECH</span>
-            {cu.technology_landscape as string}
+            {cu.technology_landscape}
           </p>
         )}
       </div>
@@ -100,11 +106,9 @@ function CompanyUnderstandingPanel({ run }: { run: Run }) {
 }
 
 function IndustryContextPanel({ run }: { run: Run }) {
-  const ic = (run as Record<string, unknown>).industry_context as
-    | Record<string, unknown>
-    | undefined;
+  const ic: IndustryContext | undefined = run.industry_context;
   if (!ic || !ic.industry) return null;
-  const trends = (ic.key_trends as string[] | undefined) ?? [];
+  const trends = ic.key_trends ?? [];
   return (
     <div className="mt-4 bg-canvas-raised border border-edge-subtle rounded-md p-5">
       <p className="text-xs text-indigo uppercase tracking-wider font-medium mb-3">
@@ -114,13 +118,13 @@ function IndustryContextPanel({ run }: { run: Run }) {
         {ic.ai_adoption_level && (
           <p>
             <span className="text-ink-tertiary font-mono text-2xs mr-2">AI ADOPTION</span>
-            {ic.ai_adoption_level as string}
+            {ic.ai_adoption_level}
           </p>
         )}
         {ic.competitive_dynamics && (
           <p>
             <span className="text-ink-tertiary font-mono text-2xs mr-2">COMPETITION</span>
-            {ic.competitive_dynamics as string}
+            {ic.competitive_dynamics}
           </p>
         )}
         {trends.length > 0 && (
@@ -144,9 +148,7 @@ function IndustryContextPanel({ run }: { run: Run }) {
 }
 
 function PainPointsPanel({ run }: { run: Run }) {
-  const pps = (run as Record<string, unknown>).pain_points as
-    | Array<Record<string, unknown>>
-    | undefined;
+  const pps: PainPoint[] | undefined = run.pain_points;
   if (!pps || pps.length === 0) return null;
   return (
     <div className="mt-6 bg-canvas-raised border border-edge-subtle rounded-md p-5">
@@ -166,10 +168,10 @@ function PainPointsPanel({ run }: { run: Run }) {
               }`}
             />
             <div>
-              <p className="text-sm text-ink">{pp.description as string}</p>
+              <p className="text-sm text-ink">{pp.description}</p>
               <p className="text-2xs text-ink-tertiary font-mono mt-0.5">
-                {pp.affected_process as string}
-                {pp.severity && <> &middot; {(pp.severity as string).toUpperCase()}</>}
+                {pp.affected_process}
+                {pp.severity && <> &middot; {pp.severity.toUpperCase()}</>}
               </p>
             </div>
           </div>
