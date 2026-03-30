@@ -84,6 +84,11 @@ class HypothesisFormerAgent(BaseResearchAgent):
         if self._evidence:
             prompt += f"\n\nRAG evidence collected: {len(self._evidence)} items."
 
+        # Force STOP on last step — must output hypotheses
+        is_last_step = self._steps_taken >= self.MAX_STEPS - 1
+        if is_last_step:
+            prompt += "\n\n**THIS IS YOUR LAST STEP. You MUST output action=STOP with your hypotheses array NOW. Do not request another RAG query.**"
+
         raw = self._grounder.reason(prompt, self._run_id)
         if not raw:
             return AgentThought(action="STOP", reasoning="LLM returned empty")
@@ -113,6 +118,10 @@ class HypothesisFormerAgent(BaseResearchAgent):
                 self._past_queries.append(query)
 
         if action not in ("RAG", "STOP"):
+            action = "STOP"
+
+        # Force STOP on last step even if LLM wants more RAG
+        if is_last_step and action == "RAG":
             action = "STOP"
 
         return AgentThought(
