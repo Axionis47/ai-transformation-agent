@@ -9,7 +9,8 @@ __pycache__/
 venv/
 node_modules/
 .next/
-frontend/
+frontend/node_modules/
+frontend/.next/
 tests/
 evals/
 team/
