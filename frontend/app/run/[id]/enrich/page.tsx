@@ -46,7 +46,7 @@ export default function EnrichPage() {
 
   return (
     <div className="min-h-screen bg-canvas">
-      <header className="h-11 bg-canvas-raised border-b border-edge-subtle flex items-center px-5 sticky top-0 z-20">
+      <header className="h-12 bg-canvas-raised border-b border-edge-subtle flex items-center px-6 sticky top-0 z-20">
         <Link href={`/run/${runId}/report`} className="text-2xs text-ink-tertiary hover:text-ink transition-colors font-mono">&larr; Back to Report</Link>
         <div className="w-px h-4 bg-edge mx-4" />
         <span className="text-2xs font-mono text-ink-tertiary uppercase tracking-[0.15em]">Enrich Analysis</span>

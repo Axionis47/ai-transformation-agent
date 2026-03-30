@@ -152,7 +152,7 @@ export default function TracePage() {
 
   return (
     <div className="min-h-screen bg-canvas">
-      <header className="h-11 bg-canvas-raised border-b border-edge-subtle flex items-center px-5 shrink-0 sticky top-0 z-20">
+      <header className="h-12 bg-canvas-raised border-b border-edge-subtle flex items-center px-6 shrink-0 sticky top-0 z-20">
         <Link href={`/run/${runId}`} className="text-2xs text-ink-tertiary hover:text-ink transition-colors font-mono">&larr; Analysis</Link>
         <div className="w-px h-4 bg-edge mx-4" />
         <span className="text-2xs font-mono text-ink-tertiary uppercase tracking-[0.15em]">Trace</span>
@@ -162,7 +162,7 @@ export default function TracePage() {
 
       <div className="flex">
         {/* Left: Agent Activity + Budget */}
-        <aside className="w-72 bg-canvas-raised border-r border-edge-subtle shrink-0 sticky top-11 h-[calc(100vh-44px)] overflow-y-auto hidden lg:block">
+        <aside className="w-72 bg-canvas-raised border-r border-edge-subtle shrink-0 sticky top-12 h-[calc(100vh-48px)] overflow-y-auto hidden lg:block">
           <div className="p-4">
             <p className="text-xs text-ink-secondary uppercase tracking-wider font-medium mb-4">Agents</p>
             {agents.length > 0 ? (
@@ -173,7 +173,7 @@ export default function TracePage() {
                   const isCompleted = agent.status === 'completed'
                   const isFailed = agent.status === 'failed'
                   return (
-                    <div key={agent.agent_id} className="border border-edge-subtle rounded p-3">
+                    <div key={agent.agent_id} className="border border-edge-subtle rounded-md p-3">
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="text-2xs text-ink-secondary uppercase tracking-wider font-medium">{label}</span>
                         <Badge variant={isCompleted ? 'mint' : isFailed ? 'rose' : isRunning ? 'amber' : 'muted'}>
@@ -270,7 +270,7 @@ export default function TracePage() {
                     </div>
 
                     {isExpanded && (
-                      <div className="mt-2 ml-[76px] bg-canvas-raised border border-edge-subtle rounded p-3">
+                      <div className="mt-2 ml-[76px] bg-canvas-raised border border-edge-subtle rounded-md p-3">
                         <pre className="text-2xs text-ink-secondary font-mono whitespace-pre-wrap break-words leading-relaxed">
                           {JSON.stringify(p, null, 2).slice(0, 2000)}
                         </pre>

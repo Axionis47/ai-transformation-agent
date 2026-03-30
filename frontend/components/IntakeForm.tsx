@@ -38,7 +38,7 @@ export default function IntakeForm({ onSubmit, loading, depth, threshold, onDept
   return (
     <form onSubmit={handleSubmit} className="space-y-0">
       {/* ── Section 1: Company Profile ── */}
-      <div className="border border-edge-subtle rounded bg-canvas-raised">
+      <div className="border border-edge-subtle rounded-md bg-canvas-raised">
         <div className="px-4 py-2.5 border-b border-edge-subtle flex items-center justify-between">
           <p className={sectionLabel}>Company Profile</p>
           <span className="text-2xs text-ink-secondary font-mono">01</span>
@@ -76,7 +76,7 @@ export default function IntakeForm({ onSubmit, loading, depth, threshold, onDept
       </div>
 
       {/* ── Section 2: Analysis Parameters ── */}
-      <div className="border border-edge-subtle rounded bg-canvas-raised mt-4">
+      <div className="border border-edge-subtle rounded-md bg-canvas-raised mt-4">
         <div className="px-4 py-2.5 border-b border-edge-subtle flex items-center justify-between">
           <p className={sectionLabel}>Analysis Parameters</p>
           <span className="text-2xs text-ink-secondary font-mono">02</span>
@@ -119,7 +119,7 @@ export default function IntakeForm({ onSubmit, loading, depth, threshold, onDept
       </div>
 
       {/* ── Section 3: Execute ── */}
-      <div className="border border-edge-subtle rounded bg-canvas-raised mt-4">
+      <div className="border border-edge-subtle rounded-md bg-canvas-raised mt-4">
         <div className="px-4 py-2.5 border-b border-edge-subtle flex items-center justify-between">
           <p className={sectionLabel}>Execution</p>
           <span className="text-2xs text-ink-secondary font-mono">03</span>

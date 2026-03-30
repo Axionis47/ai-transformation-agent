@@ -99,7 +99,7 @@ export default function RunPage() {
       <Header run={run} agents={agents} />
       <div className="flex">
         <Sidebar run={run} agents={agents} />
-        <main className="flex-1 min-w-0 p-6 lg:p-8">
+        <main className="flex-1 min-w-0 p-6 lg:p-8 max-w-5xl">
           {error && (
             <div className="mb-6 bg-rose/10 border border-rose/30 rounded-md p-4">
               <p className="text-sm text-rose">{error}</p>

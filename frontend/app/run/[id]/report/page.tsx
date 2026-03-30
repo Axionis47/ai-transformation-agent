@@ -180,7 +180,7 @@ export default function ReportPage() {
   return (
     <div className="min-h-screen bg-canvas print:bg-white">
       {/* Sticky header */}
-      <header className="h-11 bg-canvas-raised border-b border-edge-subtle flex items-center px-5 sticky top-0 z-20 print:hidden">
+      <header className="h-12 bg-canvas-raised border-b border-edge-subtle flex items-center px-6 sticky top-0 z-20 print:hidden">
         <Link href={`/run/${runId}`} className="text-2xs text-ink-tertiary hover:text-ink transition-colors font-mono">&larr; Back to Run</Link>
         <div className="w-px h-4 bg-edge mx-4" />
         <span className="text-2xs font-mono text-ink-tertiary uppercase tracking-[0.15em]">Analysis Report</span>
@@ -193,7 +193,7 @@ export default function ReportPage() {
         </button>
       </header>
 
-      <main className="max-w-4xl mx-auto px-6 py-8 pb-24 print:p-0 print:max-w-none">
+      <main className="max-w-4xl mx-auto px-6 py-8 pb-16 print:p-0 print:max-w-none">
         {error && <div className="bg-rose/10 border border-rose/20 rounded-md p-3 mb-6"><p className="text-sm text-rose font-mono">{error}</p></div>}
         {refining && (
           <div className="bg-mint/10 border border-mint/20 rounded-md p-3 mb-6 flex items-center gap-3">
@@ -202,12 +202,12 @@ export default function ReportPage() {
         )}
 
         {/* 1. KEY INSIGHT — the headline */}
-        <section className="mb-10">
+        <section className="mb-8">
           <p className="text-lg font-semibold text-ink leading-snug print:text-black">{report.key_insight}</p>
         </section>
 
         {/* 2. EXECUTIVE SUMMARY — the context */}
-        <section className={`mb-10 group rounded-md p-5 -mx-5 ${hl('executive_summary')}`}>
+        <section className={`mb-8 group rounded-md p-5 -mx-5 ${hl('executive_summary')}`}>
           <div className="flex items-center gap-3 mb-3">
             <SectionHeader action={<FeedbackButton targetSection="executive_summary" onSubmit={handleFeedback} />}>Executive Summary</SectionHeader>
           </div>
@@ -215,7 +215,7 @@ export default function ReportPage() {
         </section>
 
         {/* 3. OPPORTUNITIES — the recommendations (interactive) */}
-        <section className="mb-10">
+        <section className="mb-8">
           <SectionHeader>Opportunities ({sorted.length})</SectionHeader>
           <div className="space-y-3">
             {sorted.map((opp, i) => (
@@ -228,7 +228,7 @@ export default function ReportPage() {
 
         {/* 4. IMPLEMENTATION ROADMAP — sequenced next steps */}
         {report.recommended_next_steps.length > 0 && (
-          <section className={`mb-10 group rounded-md p-5 -mx-5 ${hl('next_steps')}`}>
+          <section className={`mb-8 group rounded-md p-5 -mx-5 ${hl('next_steps')}`}>
             <SectionHeader action={<FeedbackButton targetSection="next_steps" onSubmit={handleFeedback} />}>Implementation Roadmap</SectionHeader>
             <ol className="space-y-3">
               {report.recommended_next_steps.map((step, i) => (
@@ -243,21 +243,21 @@ export default function ReportPage() {
 
         {/* 5. HOW WE REACHED THESE CONCLUSIONS — reasoning chain */}
         {report.reasoning_chain.length > 0 && (
-          <section className="mb-10">
+          <section className="mb-8">
             <SectionHeader>How We Reached These Conclusions</SectionHeader>
             <ReasoningChain steps={report.reasoning_chain} />
           </section>
         )}
 
         {/* 6. CONFIDENCE ASSESSMENT */}
-        <section className={`mb-10 group rounded-md p-5 -mx-5 ${hl('confidence')}`}>
+        <section className={`mb-8 group rounded-md p-5 -mx-5 ${hl('confidence')}`}>
           <SectionHeader action={<FeedbackButton targetSection="confidence" onSubmit={handleFeedback} />}>Confidence Assessment</SectionHeader>
           <ConfidenceNarrative assessment={report.confidence_assessment} confidence={avgConfidence} />
         </section>
 
         {/* 7. OPEN QUESTIONS — honesty about gaps */}
         {report.what_we_dont_know.length > 0 && (
-          <section className={`mb-10 bg-amber/5 border border-amber/15 rounded-md p-5 group print:bg-white print:border-gray-300 ${hl('unknowns')}`}>
+          <section className={`mb-8 bg-amber/5 border border-amber/15 rounded-md p-5 group print:bg-white print:border-gray-300 ${hl('unknowns')}`}>
             <SectionHeader action={<FeedbackButton targetSection="unknowns" onSubmit={handleFeedback} />}>Open Questions &amp; Readiness Gaps</SectionHeader>
             <ul className="space-y-2">
               {report.what_we_dont_know.map((item, i) => (

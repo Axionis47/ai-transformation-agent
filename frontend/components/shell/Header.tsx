@@ -37,7 +37,7 @@ export default function Header({ run, agents = [] }: HeaderProps) {
   const runningAgents = agents.filter(a => a.status === 'running').length
 
   return (
-    <header className="h-14 bg-canvas-raised border-b border-edge-subtle sticky top-0 z-30 flex items-center px-6 gap-5">
+    <header className="h-12 bg-canvas-raised border-b border-edge-subtle sticky top-0 z-30 flex items-center px-6 gap-5">
       <Link href="/" className="text-ink-tertiary hover:text-ink transition-colors text-sm shrink-0">
         &larr; Back
       </Link>

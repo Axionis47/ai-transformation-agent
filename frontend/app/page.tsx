@@ -59,7 +59,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-canvas flex flex-col">
       {/* ── Top Bar ── */}
-      <header className="h-11 bg-canvas-raised border-b border-edge-subtle flex items-center px-5 shrink-0">
+      <header className="h-12 bg-canvas-raised border-b border-edge-subtle flex items-center px-6 shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="w-1.5 h-1.5 rounded-full bg-mint" />
           <span className="text-2xs font-mono text-ink-tertiary uppercase tracking-[0.15em]">
@@ -106,7 +106,7 @@ export default function HomePage() {
               {/* Right: Context Panels */}
               <div className="space-y-4">
                 {/* Run Configuration — live values */}
-                <div className="border border-edge-subtle rounded bg-canvas-raised">
+                <div className="border border-edge-subtle rounded-md bg-canvas-raised">
                   <div className="px-4 py-2.5 border-b border-edge-subtle">
                     <p className="text-xs text-ink-secondary uppercase tracking-wider font-medium">Run Configuration</p>
                   </div>
@@ -126,7 +126,7 @@ export default function HomePage() {
 
                 {/* Pipeline — from backend */}
                 {stages.length > 0 && (
-                  <div className="border border-edge-subtle rounded bg-canvas-raised">
+                  <div className="border border-edge-subtle rounded-md bg-canvas-raised">
                     <div className="px-4 py-2.5 border-b border-edge-subtle">
                       <p className="text-xs text-ink-secondary uppercase tracking-wider font-medium">Pipeline ({stages.length} stages)</p>
                     </div>
@@ -145,7 +145,7 @@ export default function HomePage() {
                 )}
 
                 {/* System Status — real health check */}
-                <div className="border border-edge-subtle rounded bg-canvas-raised">
+                <div className="border border-edge-subtle rounded-md bg-canvas-raised">
                   <div className="px-4 py-2.5 border-b border-edge-subtle">
                     <p className="text-xs text-ink-secondary uppercase tracking-wider font-medium">System</p>
                   </div>
@@ -157,7 +157,7 @@ export default function HomePage() {
 
                 {/* Recent runs */}
                 {recents.length > 0 && (
-                  <div className="border border-edge-subtle rounded bg-canvas-raised">
+                  <div className="border border-edge-subtle rounded-md bg-canvas-raised">
                     <div className="px-4 py-2.5 border-b border-edge-subtle">
                       <p className="text-xs text-ink-secondary uppercase tracking-wider font-medium">Recent Analyses</p>
                     </div>

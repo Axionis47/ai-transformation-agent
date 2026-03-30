@@ -64,7 +64,7 @@ export default function Sidebar({ run, agents = [] }: SidebarProps) {
   const ragTotal = run.budgets.rag_query_budget
 
   return (
-    <aside className="w-56 bg-canvas shrink-0 sticky top-14 h-[calc(100vh-56px)] overflow-y-auto hidden md:block">
+    <aside className="w-56 bg-canvas shrink-0 sticky top-12 h-[calc(100vh-48px)] overflow-y-auto hidden md:block">
       <nav className="px-5 pt-6 pb-4">
         <p className="text-2xs text-ink-tertiary uppercase tracking-wider mb-4 font-medium">Phases</p>
         <div className="relative">
