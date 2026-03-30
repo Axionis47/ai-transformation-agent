@@ -34,7 +34,6 @@ COPY data/ data/
 # Next.js standalone output
 COPY --from=frontend-build /frontend/.next/standalone /app/frontend
 COPY --from=frontend-build /frontend/.next/static /app/frontend/.next/static
-COPY --from=frontend-build /frontend/public /app/frontend/public
 
 # Startup script — runs API + frontend
 COPY start.sh .
