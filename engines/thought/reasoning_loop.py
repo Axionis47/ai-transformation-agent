@@ -3,22 +3,23 @@
 Each iteration: THINK (LLM reasons about state) -> ACT (execute chosen tool) -> OBSERVE (accumulate results).
 The LLM decides what to research and formulates specific queries. No keyword matching.
 """
+
 from __future__ import annotations
 
 import uuid
 from pathlib import Path
 
 from core.events import EventType
+from core.json_parser import extract_json
 from core.schemas import (
     AssumptionsDraft,
     BudgetState,
     CompanyIntake,
     EvidenceItem,
+    EvidenceSource,
     ReasoningLoopResult,
     UserQuestion,
 )
-from core.json_parser import extract_json
-from core.schemas import EvidenceSource
 from engines.thought import assumptions as assumptions_mod
 from engines.thought import mid
 from engines.thought.evidence_acc import EvidenceAccumulator
@@ -71,7 +72,9 @@ def _check_escalation(
     # Priority 1: Contradictions need human resolution
     if contradictions:
         reason = "contradictory_evidence"
-        fields = list({c.get("field", "") for c in contradictions if isinstance(c, dict) and c.get("field")}) or all_gaps
+        fields = (
+            list({c.get("field", "") for c in contradictions if isinstance(c, dict) and c.get("field")}) or all_gaps
+        )
     # Priority 2: Critical fields below minimum after all loops
     elif critical_gaps:
         reason = "critical_field_gaps"
@@ -126,8 +129,12 @@ def _check_escalation(
 
 
 def _synthesize_field(
-    grounder: object, run_id: str, intake: CompanyIntake,
-    field: str, old_synthesis: str, new_evidence: str,
+    grounder: object,
+    run_id: str,
+    intake: CompanyIntake,
+    field: str,
+    old_synthesis: str,
+    new_evidence: str,
 ) -> str:
     """Synthesize new evidence into a field summary using LLM."""
     template = _load_prompt("field_synthesis")
@@ -164,8 +171,13 @@ def _crossref_engagement(
     prompt = prompt.replace("{eng_solution}", engagement.get("solution_shape", ""))
     prompt = prompt.replace("{eng_impact}", str(engagement.get("measured_impact", {})))
     prompt = prompt.replace("{discovery_insight}", engagement.get("discovery_insight", "Not available."))
-    prompt = prompt.replace("{lessons_learned}", "\n".join(f"- {l}" for l in engagement.get("lessons_learned", [])) or "None")
-    prompt = prompt.replace("{implementation_friction}", "\n".join(f"- {f}" for f in engagement.get("implementation_friction", [])) or "None")
+    prompt = prompt.replace(
+        "{lessons_learned}", "\n".join(f"- {l}" for l in engagement.get("lessons_learned", [])) or "None"
+    )
+    prompt = prompt.replace(
+        "{implementation_friction}",
+        "\n".join(f"- {f}" for f in engagement.get("implementation_friction", [])) or "None",
+    )
     prompt = prompt.replace("{baseline_metrics}", str(engagement.get("baseline_metrics", {})))
     prompt = prompt.replace("{conditions_list}", "\n".join(f"- {c}" for c in conditions) or "None")
     prompt = prompt.replace("{anti_patterns_list}", "\n".join(f"- {a}" for a in anti_patterns) or "None")
@@ -221,10 +233,14 @@ class ThoughtEngine:
                 intake.company_name,
                 intake.industry,
             )
-        emit(run_id, EventType.ASSUMPTIONS_DRAFT_CREATED, {
-            "fields_count": len(draft.assumptions),
-            "open_questions_count": len(draft.open_questions),
-        })
+        emit(
+            run_id,
+            EventType.ASSUMPTIONS_DRAFT_CREATED,
+            {
+                "fields_count": len(draft.assumptions),
+                "open_questions_count": len(draft.open_questions),
+            },
+        )
         return draft
 
     def run_loop(
@@ -237,6 +253,7 @@ class ThoughtEngine:
         start_loop: int = 0,
     ) -> ReasoningLoopResult:
         from engines.thought.working_memory import WorkingMemory
+
         acc = EvidenceAccumulator(existing_evidence)
         wmem = WorkingMemory()
         stop_reason: str | None = None
@@ -252,24 +269,34 @@ class ThoughtEngine:
         for loop_idx in range(start_loop, self._depth_budget):
             # Detect phase from current coverage
             from engines.thought.mid import detect_phase
+
             phase = detect_phase(
-                {f: 0.0 for f in mid.REQUIRED_FIELDS} if acc.count() == 0
+                {f: 0.0 for f in mid.REQUIRED_FIELDS}
+                if acc.count() == 0
                 else mid._estimate_field_coverage(acc.get_all()),
                 loop_idx=loop_idx,
             )
             if phase["name"] != current_phase:
                 current_phase = phase["name"]
-                emit(run_id, EventType.MID_GAP_DETECTED, {
-                    "phase_transition": current_phase,
-                    "loop": loop_idx,
-                })
+                emit(
+                    run_id,
+                    EventType.MID_GAP_DETECTED,
+                    {
+                        "phase_transition": current_phase,
+                        "loop": loop_idx,
+                    },
+                )
 
-            emit(run_id, EventType.REASONING_LOOP_STARTED, {
-                "loop": loop_idx,
-                "phase": current_phase,
-                "depth_budget": self._depth_budget,
-                "evidence_count": acc.count(),
-            })
+            emit(
+                run_id,
+                EventType.REASONING_LOOP_STARTED,
+                {
+                    "loop": loop_idx,
+                    "phase": current_phase,
+                    "depth_budget": self._depth_budget,
+                    "evidence_count": acc.count(),
+                },
+            )
 
             # THINK: LLM assesses state and decides next action (with prior reasoning)
             # Pass structured briefing to LLM instead of raw evidence dump
@@ -289,9 +316,14 @@ class ThoughtEngine:
             confidence_history.append(confidence)
             if loop_contradictions:
                 all_contradictions.extend(loop_contradictions)
-                emit(run_id, EventType.CONTRADICTION_DETECTED, {
-                    "loop": loop_idx, "count": len(loop_contradictions),
-                })
+                emit(
+                    run_id,
+                    EventType.CONTRADICTION_DETECTED,
+                    {
+                        "loop": loop_idx,
+                        "count": len(loop_contradictions),
+                    },
+                )
 
             # Stagnation detection
             _reasoning_cfg = self._config.get("reasoning", {})
@@ -300,41 +332,66 @@ class ThoughtEngine:
             if len(confidence_history) >= stag_n:
                 recent = confidence_history[-stag_n:]
                 if max(recent) - min(recent) < stag_delta:
-                    emit(run_id, EventType.CONFIDENCE_STAGNATION, {
-                        "loop": loop_idx, "recent_values": recent,
-                    })
+                    emit(
+                        run_id,
+                        EventType.CONFIDENCE_STAGNATION,
+                        {
+                            "loop": loop_idx,
+                            "recent_values": recent,
+                        },
+                    )
 
             if confidence >= self._threshold:
                 # Override: don't stop if critical fields are undercovered
                 min_fc = float(self._config.get("reasoning", {}).get("min_field_coverage", 0.3))
                 critical_gaps = [f for f, s in coverage.items() if s < min_fc]
                 if critical_gaps:
-                    emit(run_id, EventType.MID_GAP_DETECTED, {
-                        "override": "min_field_coverage",
-                        "fields": critical_gaps,
-                        "confidence": confidence,
-                    })
+                    emit(
+                        run_id,
+                        EventType.MID_GAP_DETECTED,
+                        {
+                            "override": "min_field_coverage",
+                            "fields": critical_gaps,
+                            "confidence": confidence,
+                        },
+                    )
                 else:
                     stop_reason = "confidence_met"
-                    emit(run_id, EventType.REASONING_LOOP_COMPLETED, {
-                        "loop": loop_idx, "action_taken": "stop_confidence",
-                        "new_evidence_count": 0,
-                    })
+                    emit(
+                        run_id,
+                        EventType.REASONING_LOOP_COMPLETED,
+                        {
+                            "loop": loop_idx,
+                            "action_taken": "stop_confidence",
+                            "new_evidence_count": 0,
+                        },
+                    )
                     break
 
             if gap is None:
                 stop_reason = "all_fields_covered"
-                emit(run_id, EventType.REASONING_LOOP_COMPLETED, {
-                    "loop": loop_idx, "action_taken": "stop_llm_decided",
-                    "new_evidence_count": 0,
-                })
+                emit(
+                    run_id,
+                    EventType.REASONING_LOOP_COMPLETED,
+                    {
+                        "loop": loop_idx,
+                        "action_taken": "stop_llm_decided",
+                        "new_evidence_count": 0,
+                    },
+                )
                 break
 
-            emit(run_id, EventType.MID_GAP_DETECTED, {
-                "field": gap.field, "coverage": gap.coverage, "action": gap.action,
-                "thinking": gap.thinking[:300],
-                "query": gap.query[:200],
-            })
+            emit(
+                run_id,
+                EventType.MID_GAP_DETECTED,
+                {
+                    "field": gap.field,
+                    "coverage": gap.coverage,
+                    "action": gap.action,
+                    "thinking": gap.thinking[:300],
+                    "query": gap.query[:200],
+                },
+            )
 
             # ACT: Execute the LLM's chosen action with its formulated query
             new_count = 0
@@ -349,30 +406,40 @@ class ThoughtEngine:
                 result = self._rag.query(query, run_id, budget_state)  # type: ignore[attr-defined]
                 if not result.budget_exhausted:
                     # Cross-reference WINS_KB engagements against the company
-                    company_summary = "\n".join(
-                        f"{a.field}: {a.value}" for a in assumptions.assumptions
-                    ) if assumptions.assumptions else intake.company_name
+                    company_summary = (
+                        "\n".join(f"{a.field}: {a.value}" for a in assumptions.assumptions)
+                        if assumptions.assumptions
+                        else intake.company_name
+                    )
                     for ev in result.results:
                         if ev.source_type == EvidenceSource.WINS_KB and ev.source_ref:
                             eng = self._engagements.get(ev.source_ref)
                             if eng:
                                 crossref = _crossref_engagement(
-                                    eng, company_summary, intake, self._grounder, run_id,
+                                    eng,
+                                    company_summary,
+                                    intake,
+                                    self._grounder,
+                                    run_id,
                                 )
                                 # Attach cross-reference to evidence metadata
                                 ev.retrieval_meta["crossref"] = crossref
-                                emit(run_id, EventType.RAG_RESULTS_FILTERED, {
-                                    "engagement_id": ev.source_ref,
-                                    "relevance": crossref.get("relevance", ""),
-                                    "conditions_met": sum(
-                                        1 for c in crossref.get("conditions_check", [])
-                                        if c.get("status") == "MET"
-                                    ),
-                                    "anti_patterns_triggered": sum(
-                                        1 for a in crossref.get("anti_pattern_check", [])
-                                        if a.get("status") == "TRIGGERED"
-                                    ),
-                                })
+                                emit(
+                                    run_id,
+                                    EventType.RAG_RESULTS_FILTERED,
+                                    {
+                                        "engagement_id": ev.source_ref,
+                                        "relevance": crossref.get("relevance", ""),
+                                        "conditions_met": sum(
+                                            1 for c in crossref.get("conditions_check", []) if c.get("status") == "MET"
+                                        ),
+                                        "anti_patterns_triggered": sum(
+                                            1
+                                            for a in crossref.get("anti_pattern_check", [])
+                                            if a.get("status") == "TRIGGERED"
+                                        ),
+                                    },
+                                )
                     new_count = acc.add_many(result.results)
             else:
                 # ASK_USER: use the LLM's formulated question
@@ -384,11 +451,15 @@ class ThoughtEngine:
                     question_text=question_text,
                     context=gap.thinking[:200] if gap.thinking else None,
                 )
-                emit(run_id, EventType.USER_QUESTION_ASKED, {
-                    "question_id": pending_question.question_id,
-                    "field": pending_question.field,
-                    "question_text": pending_question.question_text,
-                })
+                emit(
+                    run_id,
+                    EventType.USER_QUESTION_ASKED,
+                    {
+                        "question_id": pending_question.question_id,
+                        "field": pending_question.field,
+                        "question_text": pending_question.question_text,
+                    },
+                )
                 coverage, confidence = mid.assess_coverage(acc.get_all(), self._config)
                 return ReasoningLoopResult(
                     completed=False,
@@ -414,42 +485,61 @@ class ThoughtEngine:
                     ev_text = "\n".join(f"- {e.title}: {e.snippet[:200]}" for e in items)
                     old_synthesis = wmem.get_field(field).synthesis
                     synthesis = _synthesize_field(
-                        self._grounder, run_id, intake, field, old_synthesis, ev_text,
+                        self._grounder,
+                        run_id,
+                        intake,
+                        field,
+                        old_synthesis,
+                        ev_text,
                     )
                     if synthesis:
                         wmem.update_field(field, synthesis, ev_ids, coverage.get(field, 0.0), loop_idx)
 
                 # Emit working memory snapshot for observability
-                emit(run_id, EventType.WORKING_MEMORY_UPDATED, {
-                    "loop": loop_idx,
-                    "phase": current_phase,
-                    "fields": {
-                        f: {"synthesis": fk.synthesis[:200], "confidence": fk.confidence,
-                            "evidence_count": len(fk.evidence_ids), "last_updated": fk.last_updated_loop}
-                        for f, fk in wmem.get_all_fields().items() if fk.synthesis
+                emit(
+                    run_id,
+                    EventType.WORKING_MEMORY_UPDATED,
+                    {
+                        "loop": loop_idx,
+                        "phase": current_phase,
+                        "fields": {
+                            f: {
+                                "synthesis": fk.synthesis[:200],
+                                "confidence": fk.confidence,
+                                "evidence_count": len(fk.evidence_ids),
+                                "last_updated": fk.last_updated_loop,
+                            }
+                            for f, fk in wmem.get_all_fields().items()
+                            if fk.synthesis
+                        },
+                        "briefing_length": len(wmem.build_briefing()),
                     },
-                    "briefing_length": len(wmem.build_briefing()),
-                })
+                )
 
             # OBSERVE: Prune at loop boundary
             if acc.count() > _LOOP_MAX_EVIDENCE:
                 pruned, _ = prune_by_relevance(
-                    acc.get_all(), _LOOP_MIN_RELEVANCE, _LOOP_MAX_EVIDENCE,
+                    acc.get_all(),
+                    _LOOP_MIN_RELEVANCE,
+                    _LOOP_MAX_EVIDENCE,
                 )
                 acc = EvidenceAccumulator(pruned)
 
             # Record reasoning for next loop's context
             if gap.thinking:
-                reasoning_chain.append(
-                    f"Investigated {gap.field} via {gap.action}: {gap.thinking[:300]}"
-                )
+                reasoning_chain.append(f"Investigated {gap.field} via {gap.action}: {gap.thinking[:300]}")
 
-            emit(run_id, EventType.REASONING_LOOP_COMPLETED, {
-                "loop": loop_idx, "action_taken": gap.action,
-                "new_evidence_count": new_count,
-                "evidence_after_prune": acc.count(),
-                "thinking": gap.thinking[:200],
-            })
+            emit(
+                run_id,
+                EventType.REASONING_LOOP_COMPLETED,
+                {
+                    "loop": loop_idx,
+                    "action_taken": gap.action,
+                    "new_evidence_count": new_count,
+                    "evidence_after_prune": acc.count(),
+                    "thinking": gap.thinking[:200],
+                },
+            )
 
         if stop_reason is None:
             stop_reason = "depth_budget_exhausted"
@@ -460,9 +550,17 @@ class ThoughtEngine:
         esc_reason, esc_fields, esc_question = None, [], None
         if stop_reason == "depth_budget_exhausted":
             esc_reason, esc_fields, esc_question = _check_escalation(
-                coverage, confidence, self._threshold, self._config,
-                confidence_history, all_contradictions, budget_state, run_id,
-                grounder=self._grounder, intake=intake, briefing=wmem.build_briefing(),
+                coverage,
+                confidence,
+                self._threshold,
+                self._config,
+                confidence_history,
+                all_contradictions,
+                budget_state,
+                run_id,
+                grounder=self._grounder,
+                intake=intake,
+                briefing=wmem.build_briefing(),
             )
         if esc_question:
             return ReasoningLoopResult(

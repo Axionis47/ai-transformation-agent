@@ -1,7 +1,6 @@
 """Agent state, hypothesis, and interaction endpoints for multi-agent runs."""
-from __future__ import annotations
 
-from typing import Optional
+from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -24,6 +23,7 @@ router = APIRouter()
 
 
 # --- Response models ---
+
 
 class AgentListResponse(BaseModel):
     agents: list[AgentState]
@@ -54,6 +54,7 @@ class ReviewResponse(BaseModel):
 
 # --- Helpers ---
 
+
 def _get_run_or_404(run_id: str):
     run = run_manager.get_run(run_id)
     if run is None:
@@ -62,6 +63,7 @@ def _get_run_or_404(run_id: str):
 
 
 # --- Endpoints ---
+
 
 @router.get("/runs/{run_id}/agents", response_model=AgentListResponse)
 def list_agents(run_id: str) -> AgentListResponse:
@@ -91,7 +93,9 @@ def list_interactions(run_id: str) -> InteractionListResponse:
     pending = sum(1 for i in interactions if i.response is None and i.requires_response)
     resolved = sum(1 for i in interactions if i.response is not None)
     return InteractionListResponse(
-        interactions=interactions, pending=pending, resolved=resolved,
+        interactions=interactions,
+        pending=pending,
+        resolved=resolved,
     )
 
 
@@ -129,7 +133,8 @@ def request_investigation(run_id: str) -> ReviewResponse:
         )
     run_manager.transition(run_id, RunStatus.HYPOTHESIS_TESTING)
     return ReviewResponse(
-        run_id=run_id, status="hypothesis_testing",
+        run_id=run_id,
+        status="hypothesis_testing",
         message="Returning to hypothesis testing for deeper investigation",
     )
 
@@ -164,8 +169,8 @@ async def refine_report(run_id: str, body: ReportRefineRequest) -> Run:
 
     # Handle "deepen" — targeted re-test of specific hypotheses, then re-generate report
     if deepens:
-        from engines.orchestrator_helpers import generate_report, test_hypotheses
         from engines.hypothesis_tracker import HypothesisTracker
+        from engines.orchestrator_helpers import generate_report, test_hypotheses
 
         tracker = HypothesisTracker()
         for h in run.hypotheses:
@@ -186,8 +191,13 @@ async def refine_report(run_id: str, body: ReportRefineRequest) -> Run:
 
         # Re-test only the targeted hypotheses
         await test_hypotheses(
-            run_id, targets, run.budget_state, tracker,
-            run.config_snapshot, grounder, rag,
+            run_id,
+            targets,
+            run.budget_state,
+            tracker,
+            run.config_snapshot,
+            grounder,
+            rag,
         )
 
         # Sync updated hypotheses back to run
@@ -202,8 +212,12 @@ async def refine_report(run_id: str, body: ReportRefineRequest) -> Run:
 
         # Re-generate report with deepen feedback context
         result = await generate_report(
-            run_id, run, tracker,
-            run.config_snapshot, grounder, rag,
+            run_id,
+            run,
+            tracker,
+            run.config_snapshot,
+            grounder,
+            rag,
             feedback=deepens,
         )
         if result and result.adaptive_report:
@@ -213,15 +227,17 @@ async def refine_report(run_id: str, body: ReportRefineRequest) -> Run:
 
     # Handle "edit" — regenerate report in-place, stay at REVIEW
     if edits:
-        from engines.orchestrator_helpers import generate_report
         from engines.hypothesis_tracker import HypothesisTracker
+        from engines.orchestrator_helpers import generate_report
 
         tracker = HypothesisTracker()
         for h in run.hypotheses:
             tracker._hypotheses[h.hypothesis_id] = h
 
         result = await generate_report(
-            run_id, run, tracker,
+            run_id,
+            run,
+            tracker,
             run.config_snapshot,
             _get_grounder(run.config_snapshot),
             None,  # rag not needed for edit-only re-synthesis
@@ -290,19 +306,29 @@ async def enrich_run(run_id: str, body: EnrichRequest) -> EnrichResponse:
     for hid, old_conf in enrichment.pre_enrichment_confidence.items():
         h = next((h for h in run.hypotheses if h.hypothesis_id == hid), None)
         if h:
-            deltas.append(HypothesisDelta(
-                hypothesis_id=hid, statement=h.statement[:80],
-                confidence_before=old_conf, confidence_after=h.confidence,
-                status_before=enrichment.pre_enrichment_status.get(hid, "unknown"),
-                status_after=h.status.value if hasattr(h.status, 'value') else str(h.status),
-            ))
+            deltas.append(
+                HypothesisDelta(
+                    hypothesis_id=hid,
+                    statement=h.statement[:80],
+                    confidence_before=old_conf,
+                    confidence_after=h.confidence,
+                    status_before=enrichment.pre_enrichment_status.get(hid, "unknown"),
+                    status_after=h.status.value if hasattr(h.status, "value") else str(h.status),
+                )
+            )
 
-    emit(run_id, EventType.ENRICHMENT_COMPLETED, {"evidence_added": len(enrichment.evidence_items), "deltas": len(deltas)})
+    emit(
+        run_id,
+        EventType.ENRICHMENT_COMPLETED,
+        {"evidence_added": len(enrichment.evidence_items), "deltas": len(deltas)},
+    )
 
     return EnrichResponse(
-        run_id=run_id, evidence_added=len(enrichment.evidence_items),
+        run_id=run_id,
+        evidence_added=len(enrichment.evidence_items),
         hypotheses_affected=len(enrichment.affected_hypothesis_ids),
-        deltas=deltas, message=f"Enrichment complete: {len(deltas)} hypotheses re-evaluated",
+        deltas=deltas,
+        message=f"Enrichment complete: {len(deltas)} hypotheses re-evaluated",
     )
 
 
@@ -310,15 +336,17 @@ def _get_grounder(config: dict) -> object:
     """Obtain a grounder instance for report re-synthesis."""
     from api.routes.grounding import _build_client
     from services.grounder.grounder import Grounder
+
     client = _build_client(config)
     return Grounder(client=client, config=config)
 
 
 def _get_rag(config: dict) -> object:
     """Obtain RAG retriever for re-testing."""
+    from services.rag.ingest import ensure_loaded
     from services.rag.retrieval import RAGRetriever
     from services.rag.store import get_rag_store
-    from services.rag.ingest import ensure_loaded
+
     store = get_rag_store()
     ensure_loaded(store)
     return RAGRetriever(store=store, config=config)
@@ -326,9 +354,10 @@ def _get_rag(config: dict) -> object:
 
 def _get_rag() -> object:
     """Obtain a RAG retriever for targeted hypothesis re-testing."""
-    from services.rag.store import get_rag_store
     from services.rag.ingest import ensure_loaded
     from services.rag.retrieval import RAGRetriever
+    from services.rag.store import get_rag_store
+
     store = get_rag_store()
     ensure_loaded(store)
     return RAGRetriever(store=store, config={})

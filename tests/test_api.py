@@ -1,4 +1,5 @@
 """Tests for api/app.py — endpoint integration using FastAPI TestClient."""
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -14,6 +15,7 @@ def clear_run_store():
     """Isolate in-memory state between tests."""
     run_manager.init_storage(MemoryStore())
     from services.memory.store import get_evidence_store
+
     get_evidence_store()._items.clear()
     yield
     run_manager.init_storage(MemoryStore())
@@ -28,6 +30,7 @@ def _create_run(company_name: str = "Acme Corp", industry: str = "logistics") ->
 
 # --- Health ---
 
+
 def test_health_returns_ok():
     resp = client.get("/health")
     assert resp.status_code == 200
@@ -35,6 +38,7 @@ def test_health_returns_ok():
 
 
 # --- POST /v1/runs ---
+
 
 def test_create_run_returns_201():
     resp = client.post("/v1/runs", json={"company_name": "Acme", "industry": "logistics"})
@@ -66,6 +70,7 @@ def test_create_run_has_config_snapshot():
 
 # --- GET /v1/runs/{id} ---
 
+
 def test_get_run_returns_run():
     created = _create_run()
     run_id = created["run_id"]
@@ -80,6 +85,7 @@ def test_get_run_nonexistent_returns_404():
 
 
 # --- PUT /v1/runs/{id}/company-intake ---
+
 
 def test_update_intake_returns_intake_status():
     created = _create_run()
@@ -110,6 +116,7 @@ def test_update_intake_stores_company_data():
 
 
 # --- GET /v1/runs/{id}/ui ---
+
 
 def test_get_ui_returns_ui_hints():
     created = _create_run()
@@ -144,6 +151,7 @@ def test_get_ui_nonexistent_returns_404():
 
 
 # --- GET /v1/runs/{id}/trace ---
+
 
 def test_get_trace_returns_list():
     created = _create_run()

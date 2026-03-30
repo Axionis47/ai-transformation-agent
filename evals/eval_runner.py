@@ -1,4 +1,5 @@
 """Eval runner: executes the full pipeline for each company bundle."""
+
 from __future__ import annotations
 
 import time
@@ -56,10 +57,7 @@ def _auto_answer(run_id: str, bundle: CompanyBundle, result: dict, limit: int = 
         pq = result.get("pending_question")
         if not pq:
             break
-        answer_text = (
-            f"Approximately typical for {bundle.industry} companies "
-            f"of size {bundle.employee_count_band}"
-        )
+        answer_text = f"Approximately typical for {bundle.industry} companies of size {bundle.employee_count_band}"
         resp = _client.post(
             f"/v1/runs/{run_id}/answer",
             json={"question_id": pq["question_id"], "answer_text": answer_text},
@@ -84,15 +82,21 @@ def run_single(bundle: CompanyBundle) -> EvalResult:
 
     # Eval harness uses legacy assumptions→reasoning→synthesis flow
     run = run_manager.create_run(
-        bundle.company_name, bundle.industry,
+        bundle.company_name,
+        bundle.industry,
         config_overrides={"orchestration.mode": "legacy"},
     )
     run_id = run.run_id
 
-    resp = _client.put(f"/v1/runs/{run_id}/company-intake", json={
-        "company_name": bundle.company_name, "industry": bundle.industry,
-        "employee_count_band": bundle.employee_count_band, "notes": bundle.notes,
-    })
+    resp = _client.put(
+        f"/v1/runs/{run_id}/company-intake",
+        json={
+            "company_name": bundle.company_name,
+            "industry": bundle.industry,
+            "employee_count_band": bundle.employee_count_band,
+            "notes": bundle.notes,
+        },
+    )
     if resp.status_code != 200:
         return _fail(bundle, f"intake failed: {resp.status_code}", time.time() - start)
 
@@ -107,7 +111,7 @@ def run_single(bundle: CompanyBundle) -> EvalResult:
     resp = _client.post(f"/v1/runs/{run_id}/start")
     if resp.status_code != 200:
         return _fail(bundle, f"start (reasoning) failed: {resp.status_code}", time.time() - start)
-    result = _auto_answer(run_id, bundle, resp.json())
+    _auto_answer(run_id, bundle, resp.json())
     _force_reasoning_complete(run_id)
 
     resp = _client.post(f"/v1/runs/{run_id}/synthesize")
@@ -133,16 +137,20 @@ def run_single(bundle: CompanyBundle) -> EvalResult:
     budget_ok = len(blocked_events) == 0
     rs = run_resp.get("reasoning_state") or {}
     return EvalResult(
-        company_name=bundle.company_name, industry=bundle.industry,
-        success=True, error=None,
+        company_name=bundle.company_name,
+        industry=bundle.industry,
+        success=True,
+        error=None,
         evidence_count=len(run_resp.get("evidence", [])),
-        opportunity_count=len(opportunities), tier_distribution=tier_dist,
+        opportunity_count=len(opportunities),
+        tier_distribution=tier_dist,
         field_coverage=rs.get("field_coverage", {}),
         overall_confidence=rs.get("overall_confidence", 0.0),
         budget_adherence=budget_ok,
         rag_queries_used=budget_state.get("rag_queries_used", 0),
         search_queries_used=budget_state.get("external_search_queries_used", 0),
-        trace_event_count=len(trace_resp), latency_seconds=round(latency, 2),
+        trace_event_count=len(trace_resp),
+        latency_seconds=round(latency, 2),
     )
 
 

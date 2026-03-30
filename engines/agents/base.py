@@ -7,10 +7,10 @@ Every agent:
 4. Traces every step for observability
 5. Respects budget limits on every tool call
 """
+
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -24,7 +24,6 @@ from core.schemas import (
 )
 from engines.context_provider import AgentContextProvider
 from services.trace import emit
-
 
 _PROMPT_DIR = Path(__file__).parent.parent.parent / "prompts"
 
@@ -100,11 +99,15 @@ class BaseResearchAgent:
 
     async def run(self) -> AgentResult:
         """Execute the agent's ReAct loop."""
-        emit(self._run_id, EventType.AGENT_SPAWNED, {
-            "agent_id": self._agent_id,
-            "agent_type": self.AGENT_TYPE,
-            "max_steps": self.MAX_STEPS,
-        })
+        emit(
+            self._run_id,
+            EventType.AGENT_SPAWNED,
+            {
+                "agent_id": self._agent_id,
+                "agent_type": self.AGENT_TYPE,
+                "max_steps": self.MAX_STEPS,
+            },
+        )
 
         context_briefing = ""
         if self._ctx:
@@ -128,19 +131,27 @@ class BaseResearchAgent:
                 context_briefing = self._update_context(context_briefing)
 
         except Exception as e:
-            emit(self._run_id, EventType.AGENT_FAILED, {
-                "agent_id": self._agent_id,
-                "error": str(e),
-                "steps_completed": self._steps_taken,
-            })
+            emit(
+                self._run_id,
+                EventType.AGENT_FAILED,
+                {
+                    "agent_id": self._agent_id,
+                    "error": str(e),
+                    "steps_completed": self._steps_taken,
+                },
+            )
             return self._build_result(error=str(e))
 
-        emit(self._run_id, EventType.AGENT_COMPLETED, {
-            "agent_id": self._agent_id,
-            "steps": self._steps_taken,
-            "evidence_count": len(self._evidence),
-            "insights_count": len(self._insights),
-        })
+        emit(
+            self._run_id,
+            EventType.AGENT_COMPLETED,
+            {
+                "agent_id": self._agent_id,
+                "steps": self._steps_taken,
+                "evidence_count": len(self._evidence),
+                "insights_count": len(self._insights),
+            },
+        )
         return self._build_result()
 
     async def _think(self, context: str) -> AgentThought:
@@ -151,9 +162,7 @@ class BaseResearchAgent:
         """Execute the chosen tool. Returns observation string."""
         if thought.action == "GROUND" and self._grounder:
             self._budget.total_tool_calls_used += 1
-            result = self._grounder.ground(
-                thought.query, self._run_id, self._budget
-            )
+            result = self._grounder.ground(thought.query, self._run_id, self._budget)
             if result.budget_exhausted:
                 return f"BUDGET EXHAUSTED: {result.coverage_gap}"
             self._evidence.extend(result.evidence_items)
@@ -161,9 +170,7 @@ class BaseResearchAgent:
 
         if thought.action == "RAG" and self._rag:
             self._budget.total_tool_calls_used += 1
-            rag_result = self._rag.query(
-                thought.query, self._run_id, self._budget
-            )
+            rag_result = self._rag.query(thought.query, self._run_id, self._budget)
             if rag_result.budget_exhausted:
                 return "RAG BUDGET EXHAUSTED"
             self._evidence.extend(rag_result.results)
@@ -203,17 +210,19 @@ class BaseResearchAgent:
             f"{len(self._insights)} insights"
         )
 
-    def _emit_step(
-        self, step: int, thought: AgentThought, observation: str
-    ) -> None:
-        emit(self._run_id, EventType.AGENT_COMPLETED, {
-            "agent_id": self._agent_id,
-            "step": step,
-            "action": thought.action,
-            "query": thought.query[:200] if thought.query else "",
-            "reasoning": thought.reasoning[:200] if thought.reasoning else "",
-            "observation_preview": str(observation)[:200],
-        })
+    def _emit_step(self, step: int, thought: AgentThought, observation: str) -> None:
+        emit(
+            self._run_id,
+            EventType.AGENT_COMPLETED,
+            {
+                "agent_id": self._agent_id,
+                "step": step,
+                "action": thought.action,
+                "query": thought.query[:200] if thought.query else "",
+                "reasoning": thought.reasoning[:200] if thought.reasoning else "",
+                "observation_preview": str(observation)[:200],
+            },
+        )
 
     def get_agent_state(self) -> AgentState:
         """Snapshot of current agent state for run tracking."""

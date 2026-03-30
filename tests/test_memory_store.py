@@ -1,12 +1,17 @@
 """Tests for services/memory/store.py — EvidenceStore."""
-from services.memory.store import EvidenceStore
+
 from core.schemas import EvidenceItem, EvidenceSource
+from services.memory.store import EvidenceStore
 
 
 def _item(eid: str, run_id: str = "r1", score: float = 0.5, source_ref: str = "") -> EvidenceItem:
     return EvidenceItem(
-        evidence_id=eid, run_id=run_id, source_type=EvidenceSource.WINS_KB,
-        source_ref=source_ref or eid, title=f"Title {eid}", snippet=f"Snippet {eid}",
+        evidence_id=eid,
+        run_id=run_id,
+        source_type=EvidenceSource.WINS_KB,
+        source_ref=source_ref or eid,
+        title=f"Title {eid}",
+        snippet=f"Snippet {eid}",
         relevance_score=score,
     )
 
@@ -62,8 +67,13 @@ def test_get_filtered_by_source_type():
     store = EvidenceStore()
     e1 = _item("e1")
     e2 = EvidenceItem(
-        evidence_id="e2", run_id="r1", source_type=EvidenceSource.GOOGLE_SEARCH,
-        source_ref="e2", title="T", snippet="S", relevance_score=0.8,
+        evidence_id="e2",
+        run_id="r1",
+        source_type=EvidenceSource.GOOGLE_SEARCH,
+        source_ref="e2",
+        title="T",
+        snippet="S",
+        relevance_score=0.8,
     )
     store.add("r1", e1)
     store.add("r1", e2)

@@ -8,7 +8,6 @@ from fastapi import APIRouter, HTTPException
 from core import run_manager
 from core.events import EventType
 from core.schemas import (
-    Assumption,
     AssumptionsDraft,
     BudgetState,
     EvidenceItem,
@@ -19,10 +18,10 @@ from core.schemas import (
     RunStatus,
 )
 from engines.pitch.engine import PitchEngine
-from services.memory.router import ContextRouter
-from services.memory.store import get_evidence_store
 from services.memory.opp_store import get_opportunity_store
 from services.memory.report_store import get_report_store
+from services.memory.router import ContextRouter
+from services.memory.store import get_evidence_store
 from services.trace import emit
 
 _router = ContextRouter()
@@ -59,8 +58,9 @@ def synthesize(run_id: str) -> dict:
     lookup = _load_engagement_lookup()
 
     # Build grounder for LLM-based opportunity evaluation
-    from services.grounder.grounder import Grounder
     from api.routes.grounding import _build_client
+    from services.grounder.grounder import Grounder
+
     client = _build_client(run.config_snapshot)
     grounder = Grounder(client=client, config=run.config_snapshot)
 
@@ -73,9 +73,7 @@ def synthesize(run_id: str) -> dict:
     pitch_ctx = _router.recall_for_pitch(
         run_id, get_evidence_store().get_all(run_id), assumptions, intake, field_coverage
     )
-    opportunities = engine.synthesize(
-        run_id, pitch_ctx.evidence, assumptions, intake, field_coverage
-    )
+    opportunities = engine.synthesize(run_id, pitch_ctx.evidence, assumptions, intake, field_coverage)
     run_manager.store_opportunities(run_id, opportunities)
     run_manager.transition(run_id, RunStatus.SYNTHESIS)
 
@@ -85,7 +83,12 @@ def synthesize(run_id: str) -> dict:
         run_id, opportunities, get_evidence_store().get_all(run_id), intake, state, budget_state
     )
     report = engine.compose_report(
-        run_id, opportunities, report_ctx.linked_evidence, state, intake, budget_state,
+        run_id,
+        opportunities,
+        report_ctx.linked_evidence,
+        state,
+        intake,
+        budget_state,
         assumptions=run.assumptions,
     )
     run_manager.store_report(run_id, report)
@@ -120,7 +123,7 @@ def refine_report(run_id: str, body: RefineRequest) -> dict:
     if run is None:
         raise HTTPException(status_code=404, detail=f"Run not found: {run_id}")
     if run.status not in (RunStatus.REPORT, RunStatus.PUBLISHED):
-        raise HTTPException(status_code=409, detail=f"Run must be in REPORT or PUBLISHED status")
+        raise HTTPException(status_code=409, detail="Run must be in REPORT or PUBLISHED status")
 
     changes: dict = {"corrected": [], "removed": []}
 
@@ -145,13 +148,18 @@ def refine_report(run_id: str, body: RefineRequest) -> dict:
 
     # Add user context as evidence
     if body.additional_context:
-        from core.schemas import EvidenceSource
         import uuid
+
+        from core.schemas import EvidenceSource
+
         ev = EvidenceItem(
-            evidence_id=str(uuid.uuid4()), run_id=run_id,
-            source_type=EvidenceSource.USER_PROVIDED, source_ref="user_refinement",
+            evidence_id=str(uuid.uuid4()),
+            run_id=run_id,
+            source_type=EvidenceSource.USER_PROVIDED,
+            source_ref="user_refinement",
             title="User-provided context during refinement",
-            snippet=body.additional_context, relevance_score=0.9,
+            snippet=body.additional_context,
+            relevance_score=0.9,
         )
         run_manager.add_evidence(run_id, ev)
 
@@ -163,6 +171,7 @@ def refine_report(run_id: str, body: RefineRequest) -> dict:
     evidence = get_evidence_store().get_all(run_id)
 
     from engines.pitch.composer import compose_report as _compose
+
     report = _compose(intake, run.opportunities, evidence, state, budget_state, assumptions=run.assumptions)
     report["metadata"]["refinement_count"] = report["metadata"].get("refinement_count", 0) + 1
     run_manager.store_report(run_id, report)

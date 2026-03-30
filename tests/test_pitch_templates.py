@@ -1,8 +1,10 @@
 """Tests for engines/pitch/templates.py -- opportunity template definitions."""
+
 from __future__ import annotations
 
 import pytest
-from engines.pitch.templates import get_templates, OpportunityTemplate
+
+from engines.pitch.templates import OpportunityTemplate, get_templates
 
 VALID_SHAPES = {"automation", "copilot", "decision_support"}
 VALID_AREAS = {"support", "finance_ops", "operations", "rev_ops"}
@@ -44,20 +46,14 @@ def test_templates_cover_all_shapes(templates):
 
 def test_templates_have_signals(templates):
     for t in templates:
-        assert len(t.win_signals) >= 2, (
-            f"Template {t.template_id} has fewer than 2 win_signals"
-        )
+        assert len(t.win_signals) >= 2, f"Template {t.template_id} has fewer than 2 win_signals"
 
 
 def test_templates_have_engagements(templates):
     for t in templates:
-        assert len(t.engagement_ids) >= 1, (
-            f"Template {t.template_id} has no linked engagement_ids"
-        )
+        assert len(t.engagement_ids) >= 1, f"Template {t.template_id} has no linked engagement_ids"
 
 
 def test_templates_applicable_industries(templates):
     for t in templates:
-        assert len(t.applicable_industries) >= 1, (
-            f"Template {t.template_id} has no applicable_industries"
-        )
+        assert len(t.applicable_industries) >= 1, f"Template {t.template_id} has no applicable_industries"

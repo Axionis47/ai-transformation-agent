@@ -1,4 +1,5 @@
 """Tests for core/run_manager.py — run state machine."""
+
 import pytest
 
 from core import run_manager
@@ -11,6 +12,7 @@ def clear_run_store():
     """Reset in-memory run store before each test to prevent cross-test pollution."""
     run_manager.init_storage(MemoryStore())
     from services.memory.store import get_evidence_store
+
     get_evidence_store()._items.clear()
     yield
     run_manager.init_storage(MemoryStore())

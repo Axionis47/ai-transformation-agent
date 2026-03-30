@@ -4,6 +4,7 @@ One instance per hypothesis, runs in parallel. Uses BOTH tools:
 GROUND (search for counter-evidence) and RAG (find anti-patterns).
 Tracks running confidence and validates/rejects based on thresholds.
 """
+
 from __future__ import annotations
 
 from core.json_parser import extract_json
@@ -25,9 +26,7 @@ class HypothesisTesterAgent(BaseResearchAgent):
     PROMPT_NAME = "agent_hypothesis_tester"
     MAX_STEPS = 6
 
-    def __init__(
-        self, *, hypothesis: Hypothesis, tracker: HypothesisTracker, **kwargs
-    ) -> None:
+    def __init__(self, *, hypothesis: Hypothesis, tracker: HypothesisTracker, **kwargs) -> None:
         super().__init__(**kwargs)
         if self._max_steps_override is not None:
             self.MAX_STEPS = self._max_steps_override
@@ -60,9 +59,7 @@ class HypothesisTesterAgent(BaseResearchAgent):
         industry = intake.industry if intake else "unknown"
 
         # Pull evidence focused on the hypothesis's target process
-        focused = self._ctx.query_evidence(
-            process_area=self._hypothesis.target_process, top_k=10
-        ) if self._ctx else []
+        focused = self._ctx.query_evidence(process_area=self._hypothesis.target_process, top_k=10) if self._ctx else []
         if focused:
             ev_lines = [f"  - {e.title}: {e.snippet[:100]}" for e in focused]
             context += "\n\nFOCUSED EVIDENCE (target process):\n" + "\n".join(ev_lines)
@@ -144,7 +141,9 @@ class HypothesisTesterAgent(BaseResearchAgent):
                 f"Confidence held at {self._confidence:.2f} after {self._test_count} tests",
             )
             self._early_stop = True
-            return AgentThought(action="STOP", reasoning=f"confidence above {self._validate_threshold} after 3+ tests — validated")
+            return AgentThought(
+                action="STOP", reasoning=f"confidence above {self._validate_threshold} after 3+ tests — validated"
+            )
 
         # Duplicate query guard
         if action in ("GROUND", "RAG") and query:
@@ -161,7 +160,7 @@ class HypothesisTesterAgent(BaseResearchAgent):
     # ReAct: OBSERVE — tag evidence with hypothesis dimension
     # ------------------------------------------------------------------
     def _observe(self, observation: str) -> None:
-        for ev in self._evidence[self._prev_evidence_count:]:
+        for ev in self._evidence[self._prev_evidence_count :]:
             ev.dimension = "hypothesis_test"
             ev.process_area = self._hypothesis.target_process
             ev.produced_by = self._agent_id
@@ -194,12 +193,14 @@ class HypothesisTesterAgent(BaseResearchAgent):
         raw_sr = parsed.get("spawn_request")
         if not isinstance(raw_sr, dict) or not raw_sr.get("suggested_hypothesis"):
             return
-        self._spawn_requests.append(SpawnRequest(
-            requesting_agent=self._agent_id,
-            reason=raw_sr.get("reason", "Discovered during testing"),
-            suggested_hypothesis=raw_sr["suggested_hypothesis"],
-            priority="medium",
-        ))
+        self._spawn_requests.append(
+            SpawnRequest(
+                requesting_agent=self._agent_id,
+                reason=raw_sr.get("reason", "Discovered during testing"),
+                suggested_hypothesis=raw_sr["suggested_hypothesis"],
+                priority="medium",
+            )
+        )
 
     # ------------------------------------------------------------------
     # Result builder
@@ -220,14 +221,16 @@ class HypothesisTesterAgent(BaseResearchAgent):
 
     def _build_insights(self) -> list[DerivedInsight]:
         h = self._hypothesis
-        return [DerivedInsight(
-            insight_id=f"ins-ht-{h.hypothesis_id}",
-            phase="hypothesis_testing",
-            statement=f"Tested: {h.statement} — {h.status.value} ({h.confidence:.0%})",
-            supporting_evidence_ids=h.evidence_for[:5],
-            confidence=h.confidence,
-            produced_by_agent=self._agent_id,
-        )]
+        return [
+            DerivedInsight(
+                insight_id=f"ins-ht-{h.hypothesis_id}",
+                phase="hypothesis_testing",
+                statement=f"Tested: {h.statement} — {h.status.value} ({h.confidence:.0%})",
+                supporting_evidence_ids=h.evidence_for[:5],
+                confidence=h.confidence,
+                produced_by_agent=self._agent_id,
+            )
+        ]
 
     # ------------------------------------------------------------------
     # Helpers

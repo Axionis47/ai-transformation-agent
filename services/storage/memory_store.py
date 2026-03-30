@@ -2,6 +2,7 @@
 
 Used for local dev and tests. Implements StorageProtocol.
 """
+
 from __future__ import annotations
 
 from core.schemas import Run

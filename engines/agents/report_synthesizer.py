@@ -6,6 +6,7 @@ synthesizes everything into a coherent client-facing report.
 
 v2: structured input with citable evidence and section-aware feedback.
 """
+
 from __future__ import annotations
 
 import json
@@ -49,11 +50,15 @@ class ReportSynthesizerAgent(BaseResearchAgent):
 
     async def run(self) -> AgentResult:
         """Single synthesis call — no ReAct loop."""
-        emit(self._run_id, EventType.AGENT_SPAWNED, {
-            "agent_id": self._agent_id,
-            "agent_type": self.AGENT_TYPE,
-            "hypotheses_count": len(self._hypotheses),
-        })
+        emit(
+            self._run_id,
+            EventType.AGENT_SPAWNED,
+            {
+                "agent_id": self._agent_id,
+                "agent_type": self.AGENT_TYPE,
+                "hypotheses_count": len(self._hypotheses),
+            },
+        )
 
         try:
             context_briefing = ""
@@ -66,18 +71,26 @@ class ReportSynthesizerAgent(BaseResearchAgent):
 
             report = self._parse_report(raw)
 
-            emit(self._run_id, EventType.AGENT_COMPLETED, {
-                "agent_id": self._agent_id,
-                "opportunities": len(report.opportunities),
-                "key_insight": report.key_insight[:100],
-            })
+            emit(
+                self._run_id,
+                EventType.AGENT_COMPLETED,
+                {
+                    "agent_id": self._agent_id,
+                    "opportunities": len(report.opportunities),
+                    "key_insight": report.key_insight[:100],
+                },
+            )
             return self._build_result(report=report)
 
         except Exception as e:
-            emit(self._run_id, EventType.AGENT_FAILED, {
-                "agent_id": self._agent_id,
-                "error": str(e),
-            })
+            emit(
+                self._run_id,
+                EventType.AGENT_FAILED,
+                {
+                    "agent_id": self._agent_id,
+                    "error": str(e),
+                },
+            )
             fallback = self._fallback_report()
             return self._build_result(report=fallback, error=str(e))
 
@@ -90,10 +103,13 @@ class ReportSynthesizerAgent(BaseResearchAgent):
         if self._feedback and self._previous_report:
             previous = json.dumps(self._previous_report.model_dump(), indent=2, default=str)
         prompt = self._system_prompt.format(
-            company_name=company, industry=industry,
+            company_name=company,
+            industry=industry,
             context_briefing=context_briefing,
-            structured_hypotheses=structured, rejected_summary=rejected,
-            key_insights=insights, previous_report=previous,
+            structured_hypotheses=structured,
+            rejected_summary=rejected,
+            key_insights=insights,
+            previous_report=previous,
         )
         if self._feedback:
             prompt += self._build_feedback_section()
@@ -112,16 +128,12 @@ class ReportSynthesizerAgent(BaseResearchAgent):
         else:
             lines = ["\n\n## USER FEEDBACK", "Incorporate these changes:\n"]
         for i, fb in enumerate(self._feedback, 1):
-            lines.append(
-                f"{i}. [{fb.feedback_type}] Target: "
-                f"{fb.target_section} — \"{fb.instruction}\""
-            )
+            lines.append(f'{i}. [{fb.feedback_type}] Target: {fb.target_section} — "{fb.instruction}"')
         return "\n".join(lines)
 
     def _build_structured_input(self) -> tuple[str, str, str]:
         """Returns (structured_hypotheses, rejected_summary, key_insights)."""
-        validated = [h for h in self._hypotheses
-                     if h.status in (HypothesisStatus.VALIDATED, HypothesisStatus.TESTING)]
+        validated = [h for h in self._hypotheses if h.status in (HypothesisStatus.VALIDATED, HypothesisStatus.TESTING)]
         rejected = [h for h in self._hypotheses if h.status == HypothesisStatus.REJECTED]
         validated.sort(key=lambda h: h.confidence, reverse=True)
         blocks = [self._format_hypothesis_block(i, h) for i, h in enumerate(validated, 1)]
@@ -156,7 +168,7 @@ class ReportSynthesizerAgent(BaseResearchAgent):
         if not items:
             return ["    - (no evidence available)"]
         return [
-            f"    - [{ev.evidence_id[:12]}] \"{ev.snippet[:120]}\" "
+            f'    - [{ev.evidence_id[:12]}] "{ev.snippet[:120]}" '
             f"({ev.source_type.value.replace('_', ' ').title()}, {ev.relevance_score:.2f})"
             for ev in items
         ]
@@ -166,7 +178,7 @@ class ReportSynthesizerAgent(BaseResearchAgent):
         if not rejected:
             return "(None rejected)"
         return "\n".join(
-            f"- \"{h.statement[:60]}\" — rejected: "
+            f'- "{h.statement[:60]}" — rejected: '
             f"{h.reasoning_chain[-1].description[:80] if h.reasoning_chain else 'insufficient evidence'}"
             for h in rejected
         )
@@ -210,17 +222,19 @@ class ReportSynthesizerAgent(BaseResearchAgent):
                 cited = ", ".join(str(eid) for eid in ev_ids)
                 if cited not in ev_summary:
                     ev_summary = f"{ev_summary} (cited: {cited})"
-            result.append(ReportOpportunity(
-                title=item.get("title", "Untitled"),
-                hypothesis_id=item.get("hypothesis_id", "unknown"),
-                narrative=item.get("narrative", ""),
-                tier=item.get("tier", "medium"),
-                confidence=float(item.get("confidence", 0.5)),
-                evidence_summary=ev_summary,
-                risks=item.get("risks", []),
-                conditions_for_success=item.get("conditions_for_success", []),
-                recommended_approach=item.get("recommended_approach", ""),
-            ))
+            result.append(
+                ReportOpportunity(
+                    title=item.get("title", "Untitled"),
+                    hypothesis_id=item.get("hypothesis_id", "unknown"),
+                    narrative=item.get("narrative", ""),
+                    tier=item.get("tier", "medium"),
+                    confidence=float(item.get("confidence", 0.5)),
+                    evidence_summary=ev_summary,
+                    risks=item.get("risks", []),
+                    conditions_for_success=item.get("conditions_for_success", []),
+                    recommended_approach=item.get("recommended_approach", ""),
+                )
+            )
         return result
 
     def _fallback_report(self) -> AdaptiveReport:

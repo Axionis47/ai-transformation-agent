@@ -40,34 +40,52 @@ class Grounder:
     def ground(self, prompt: str, run_id: str, budget_state: BudgetState) -> GroundingResult:
         # Layer 1: query budget check
         if budget_state.external_search_queries_used >= self._query_budget:
-            emit(run_id, EventType.EXTERNAL_BUDGET_EXHAUSTED, {
-                "reason": "search query budget exhausted",
-                "used": budget_state.external_search_queries_used,
-                "budget": self._query_budget,
-            })
+            emit(
+                run_id,
+                EventType.EXTERNAL_BUDGET_EXHAUSTED,
+                {
+                    "reason": "search query budget exhausted",
+                    "used": budget_state.external_search_queries_used,
+                    "budget": self._query_budget,
+                },
+            )
             return GroundingResult(
-                text="", evidence_items=[], search_queries_used=0,
-                budget_exhausted=True, coverage_gap="search query budget exhausted",
+                text="",
+                evidence_items=[],
+                search_queries_used=0,
+                budget_exhausted=True,
+                coverage_gap="search query budget exhausted",
             )
 
         # Layer 2: call count check (defense-in-depth)
         if budget_state.external_search_calls_used >= self._max_calls:
-            emit(run_id, EventType.BUDGET_VIOLATION_BLOCKED, {
-                "resource": "external_search_calls",
-                "used": budget_state.external_search_calls_used,
-                "budget": self._max_calls,
-            })
+            emit(
+                run_id,
+                EventType.BUDGET_VIOLATION_BLOCKED,
+                {
+                    "resource": "external_search_calls",
+                    "used": budget_state.external_search_calls_used,
+                    "budget": self._max_calls,
+                },
+            )
             return GroundingResult(
-                text="", evidence_items=[], search_queries_used=0,
-                budget_exhausted=True, coverage_gap="api call limit reached",
+                text="",
+                evidence_items=[],
+                search_queries_used=0,
+                budget_exhausted=True,
+                coverage_gap="api call limit reached",
             )
 
-        emit(run_id, EventType.GROUNDING_CALL_REQUESTED, {
-            "prompt": prompt[:200],
-            "run_id": run_id,
-            "calls_used": budget_state.external_search_calls_used,
-            "queries_used": budget_state.external_search_queries_used,
-        })
+        emit(
+            run_id,
+            EventType.GROUNDING_CALL_REQUESTED,
+            {
+                "prompt": prompt[:200],
+                "run_id": run_id,
+                "calls_used": budget_state.external_search_calls_used,
+                "queries_used": budget_state.external_search_queries_used,
+            },
+        )
 
         raw = self._client.generate_with_grounding(prompt)  # type: ignore[attr-defined]
         budget_state.external_search_calls_used += 1
@@ -75,27 +93,39 @@ class Grounder:
         parsed: ParsedGroundingMetadata = parse_grounding_response(raw)
         budget_state.external_search_queries_used += parsed.search_query_count
 
-        emit(run_id, EventType.GROUNDING_QUERIES_COUNTED, {
-            "queries": parsed.search_queries,
-            "count": parsed.search_query_count,
-            "total_used": budget_state.external_search_queries_used,
-            "budget": self._query_budget,
-        })
+        emit(
+            run_id,
+            EventType.GROUNDING_QUERIES_COUNTED,
+            {
+                "queries": parsed.search_queries,
+                "count": parsed.search_query_count,
+                "total_used": budget_state.external_search_queries_used,
+                "budget": self._query_budget,
+            },
+        )
 
         if budget_state.external_search_queries_used >= self._query_budget:
-            emit(run_id, EventType.EXTERNAL_BUDGET_EXHAUSTED, {
-                "reason": "query budget reached after call",
-                "used": budget_state.external_search_queries_used,
-                "budget": self._query_budget,
-            })
+            emit(
+                run_id,
+                EventType.EXTERNAL_BUDGET_EXHAUSTED,
+                {
+                    "reason": "query budget reached after call",
+                    "used": budget_state.external_search_queries_used,
+                    "budget": self._query_budget,
+                },
+            )
 
         evidence_items = self._normalize_evidence(parsed, run_id, prompt)
 
-        emit(run_id, EventType.GROUNDING_CALL_COMPLETED, {
-            "text_length": len(parsed.text),
-            "chunks_count": len(parsed.chunks),
-            "supports_count": len(parsed.supports),
-        })
+        emit(
+            run_id,
+            EventType.GROUNDING_CALL_COMPLETED,
+            {
+                "text_length": len(parsed.text),
+                "chunks_count": len(parsed.chunks),
+                "supports_count": len(parsed.supports),
+            },
+        )
 
         return GroundingResult(
             text=parsed.text,
@@ -108,9 +138,7 @@ class Grounder:
         """Remove control characters that break JSON serialization."""
         return "".join(c if c >= " " or c in "\n\t" else " " for c in text)
 
-    def _normalize_evidence(
-        self, parsed: ParsedGroundingMetadata, run_id: str, prompt: str
-    ) -> list[EvidenceItem]:
+    def _normalize_evidence(self, parsed: ParsedGroundingMetadata, run_id: str, prompt: str) -> list[EvidenceItem]:
         items: list[EvidenceItem] = []
         for idx, chunk in enumerate(parsed.chunks):
             matching = [s for s in parsed.supports if idx in s.chunk_indices]
@@ -125,25 +153,27 @@ class Grounder:
                 relevance = 0.5
                 confidence = 0.5
 
-            items.append(EvidenceItem(
-                evidence_id=str(uuid.uuid4()),
-                run_id=run_id,
-                source_type=EvidenceSource.GOOGLE_SEARCH,
-                source_ref=chunk.uri,
-                title=self._sanitize(chunk.title),
-                uri=chunk.uri,
-                snippet=snippet,
-                relevance_score=relevance,
-                confidence_score=confidence,
-                retrieval_meta={
-                    "query": prompt,
-                    "domain": chunk.domain,
-                    "search_queries": parsed.search_queries,
-                },
-                provenance=Provenance(
-                    source_type="raw",
-                    source_evidence_ids=[],
-                    confidence=confidence,
-                ),
-            ))
+            items.append(
+                EvidenceItem(
+                    evidence_id=str(uuid.uuid4()),
+                    run_id=run_id,
+                    source_type=EvidenceSource.GOOGLE_SEARCH,
+                    source_ref=chunk.uri,
+                    title=self._sanitize(chunk.title),
+                    uri=chunk.uri,
+                    snippet=snippet,
+                    relevance_score=relevance,
+                    confidence_score=confidence,
+                    retrieval_meta={
+                        "query": prompt,
+                        "domain": chunk.domain,
+                        "search_queries": parsed.search_queries,
+                    },
+                    provenance=Provenance(
+                        source_type="raw",
+                        source_evidence_ids=[],
+                        confidence=confidence,
+                    ),
+                )
+            )
         return items

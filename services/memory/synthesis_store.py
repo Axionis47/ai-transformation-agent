@@ -4,10 +4,10 @@ Not raw evidence (that's EvidenceStore), not hypotheses (that's HypothesisTracke
 This stores conclusions drawn from evidence: "A + B + C means Y".
 Later agents read insights instead of re-deriving from raw evidence.
 """
+
 from __future__ import annotations
 
 from core.schemas import DerivedInsight
-
 
 _insights: dict[str, list[DerivedInsight]] = {}  # run_id -> insights
 _briefings: dict[str, dict[str, str]] = {}  # run_id -> {phase -> briefing}
@@ -36,17 +36,13 @@ class SynthesisStore:
         for insight in insights:
             self.save_insight(run_id, insight)
 
-    def get_insights(
-        self, run_id: str, phase: str | None = None
-    ) -> list[DerivedInsight]:
+    def get_insights(self, run_id: str, phase: str | None = None) -> list[DerivedInsight]:
         all_insights = _insights.get(run_id, [])
         if phase is not None:
             return [i for i in all_insights if i.phase == phase]
         return list(all_insights)
 
-    def save_phase_briefing(
-        self, run_id: str, phase: str, briefing: str
-    ) -> None:
+    def save_phase_briefing(self, run_id: str, phase: str, briefing: str) -> None:
         if run_id not in _briefings:
             _briefings[run_id] = {}
         _briefings[run_id][phase] = briefing

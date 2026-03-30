@@ -22,7 +22,7 @@ class GeminiClient:
     def __init__(self, config: dict) -> None:
         # google.genai imported here only — keeps SDK boundary isolated
         import google.genai as genai  # type: ignore[import]
-        from google.genai.types import Tool, GoogleSearch, GenerateContentConfig  # type: ignore[import]
+        from google.genai.types import GenerateContentConfig, GoogleSearch, Tool  # type: ignore[import]
 
         self._Tool = Tool
         self._GoogleSearch = GoogleSearch
@@ -47,9 +47,7 @@ class GeminiClient:
         return {"text": response.text or ""}
 
     def generate_with_grounding(self, prompt: str) -> dict:
-        cfg = self._GenerateContentConfig(
-            tools=[self._Tool(google_search=self._GoogleSearch())]
-        )
+        cfg = self._GenerateContentConfig(tools=[self._Tool(google_search=self._GoogleSearch())])
         response = self._client.models.generate_content(
             model=self._model,
             contents=prompt,
@@ -65,8 +63,12 @@ class GeminiClient:
                 grounding_meta = {
                     "web_search_queries": list(getattr(meta, "web_search_queries", []) or []),
                     "grounding_chunks": [
-                        {"web": {"uri": getattr(getattr(c, "web", None), "uri", ""),
-                                 "title": getattr(getattr(c, "web", None), "title", "")}}
+                        {
+                            "web": {
+                                "uri": getattr(getattr(c, "web", None), "uri", ""),
+                                "title": getattr(getattr(c, "web", None), "title", ""),
+                            }
+                        }
                         for c in (getattr(meta, "grounding_chunks", []) or [])
                     ],
                     "grounding_supports": [
@@ -78,9 +80,7 @@ class GeminiClient:
                         for s in (getattr(meta, "grounding_supports", []) or [])
                     ],
                     "search_entry_point": {
-                        "rendered_content": getattr(
-                            getattr(meta, "search_entry_point", None), "rendered_content", None
-                        )
+                        "rendered_content": getattr(getattr(meta, "search_entry_point", None), "rendered_content", None)
                     },
                 }
         return {"text": text, "grounding_metadata": grounding_meta}

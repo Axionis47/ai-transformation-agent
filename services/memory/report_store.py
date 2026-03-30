@@ -1,4 +1,5 @@
 """Report store: typed storage separate from Run object."""
+
 from __future__ import annotations
 
 

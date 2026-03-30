@@ -8,11 +8,10 @@ are nested within the run document).
 For runs with very large evidence sets (>200 items), evidence is
 stored in a sub-collection to stay under the 1MB doc limit.
 """
+
 from __future__ import annotations
 
-import json
 import logging
-from datetime import datetime
 
 from google.cloud import firestore
 
@@ -66,11 +65,7 @@ class FirestoreStore:
         return Run.model_validate(data)
 
     def list_runs(self, limit: int = 50, offset: int = 0) -> list[Run]:
-        query = (
-            self._collection
-            .order_by("created_at", direction=firestore.Query.DESCENDING)
-            .limit(limit + offset)
-        )
+        query = self._collection.order_by("created_at", direction=firestore.Query.DESCENDING).limit(limit + offset)
         docs = list(query.stream())
         runs = []
         for doc in docs[offset:]:

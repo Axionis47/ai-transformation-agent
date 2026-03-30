@@ -1,4 +1,5 @@
 """Tests for api/routes/rag.py — POST /v1/runs/{id}/rag:query endpoint."""
+
 import tempfile
 from unittest.mock import patch
 
@@ -19,6 +20,7 @@ def clear_run_store():
     """Isolate in-memory run state between tests."""
     run_manager.init_storage(MemoryStore())
     from services.memory.store import get_evidence_store
+
     get_evidence_store()._items.clear()
     yield
     run_manager.init_storage(MemoryStore())
@@ -45,10 +47,11 @@ def _create_run() -> dict:
 
 # --- 200 success path ---
 
+
 def test_rag_query_returns_200(tmpdir):
     run_data = _create_run()
     run_id = run_data["run_id"]
-    with patch("api.routes.rag.RAGStore", return_value=_make_seeded_store(tmpdir)):
+    with patch("api.routes.rag.get_rag_store", return_value=_make_seeded_store(tmpdir)):
         resp = client.post(
             f"/v1/runs/{run_id}/rag:query",
             json={"query": "customer support automation"},
@@ -59,7 +62,7 @@ def test_rag_query_returns_200(tmpdir):
 def test_rag_query_response_has_results_field(tmpdir):
     run_data = _create_run()
     run_id = run_data["run_id"]
-    with patch("api.routes.rag.RAGStore", return_value=_make_seeded_store(tmpdir)):
+    with patch("api.routes.rag.get_rag_store", return_value=_make_seeded_store(tmpdir)):
         resp = client.post(
             f"/v1/runs/{run_id}/rag:query",
             json={"query": "customer support automation"},
@@ -71,7 +74,7 @@ def test_rag_query_response_has_results_field(tmpdir):
 def test_rag_query_response_has_query_field(tmpdir):
     run_data = _create_run()
     run_id = run_data["run_id"]
-    with patch("api.routes.rag.RAGStore", return_value=_make_seeded_store(tmpdir)):
+    with patch("api.routes.rag.get_rag_store", return_value=_make_seeded_store(tmpdir)):
         resp = client.post(
             f"/v1/runs/{run_id}/rag:query",
             json={"query": "fraud detection mid-market"},
@@ -83,7 +86,7 @@ def test_rag_query_response_has_query_field(tmpdir):
 def test_rag_query_response_has_budget_exhausted_field(tmpdir):
     run_data = _create_run()
     run_id = run_data["run_id"]
-    with patch("api.routes.rag.RAGStore", return_value=_make_seeded_store(tmpdir)):
+    with patch("api.routes.rag.get_rag_store", return_value=_make_seeded_store(tmpdir)):
         resp = client.post(
             f"/v1/runs/{run_id}/rag:query",
             json={"query": "logistics dispatch optimization"},
@@ -96,7 +99,7 @@ def test_rag_query_first_call_not_budget_exhausted(tmpdir):
     run_data = _create_run()
     run_id = run_data["run_id"]
     store = _make_seeded_store(tmpdir)
-    with patch("api.routes.rag.RAGStore", return_value=store):
+    with patch("api.routes.rag.get_rag_store", return_value=store):
         resp = client.post(
             f"/v1/runs/{run_id}/rag:query",
             json={"query": "customer support"},
@@ -105,6 +108,7 @@ def test_rag_query_first_call_not_budget_exhausted(tmpdir):
 
 
 # --- 404 for unknown run ---
+
 
 def test_rag_query_nonexistent_run_returns_404():
     resp = client.post(
@@ -125,6 +129,7 @@ def test_rag_query_404_detail_mentions_run(tmpdir):
 
 # --- Budget exhaustion ---
 
+
 def test_rag_query_budget_exhaustion_returns_budget_exhausted_true(tmpdir):
     """Call the endpoint more times than rag_query_budget allows."""
     run_data = _create_run()
@@ -133,7 +138,7 @@ def test_rag_query_budget_exhaustion_returns_budget_exhausted_true(tmpdir):
     store = _make_seeded_store(tmpdir)
 
     last_resp = None
-    with patch("api.routes.rag.RAGStore", return_value=store):
+    with patch("api.routes.rag.get_rag_store", return_value=store):
         for i in range(budget + 1):
             last_resp = client.post(
                 f"/v1/runs/{run_id}/rag:query",
@@ -150,7 +155,7 @@ def test_rag_query_budget_exhausted_results_empty(tmpdir):
     store = _make_seeded_store(tmpdir)
 
     last_resp = None
-    with patch("api.routes.rag.RAGStore", return_value=store):
+    with patch("api.routes.rag.get_rag_store", return_value=store):
         for i in range(budget + 1):
             last_resp = client.post(
                 f"/v1/runs/{run_id}/rag:query",

@@ -3,6 +3,7 @@
 The model reads grounding text and extracts structured assumptions with
 confidence reasoning and source quotes.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -44,12 +45,14 @@ def extract_assumptions_llm(
 
     assumptions: list[Assumption] = []
     for item in parsed.get("assumptions", []):
-        assumptions.append(Assumption(
-            field=item.get("field", "unknown"),
-            value=item.get("value", ""),
-            confidence=float(item.get("confidence", 0.5)),
-            source="grounding",
-        ))
+        assumptions.append(
+            Assumption(
+                field=item.get("field", "unknown"),
+                value=item.get("value", ""),
+                confidence=float(item.get("confidence", 0.5)),
+                source="grounding",
+            )
+        )
 
     open_questions: list[str] = []
     for q in parsed.get("open_questions", []):
@@ -71,19 +74,22 @@ def extract_assumptions(
     avg_confidence = (
         sum(e.confidence_score for e in evidence_items if e.confidence_score is not None)
         / max(1, sum(1 for e in evidence_items if e.confidence_score is not None))
-        if evidence_items else 0.5
+        if evidence_items
+        else 0.5
     )
     if avg_confidence == 0.0:
         avg_confidence = 0.5
 
     # Single assumption from full text rather than keyword matching
     if grounding_text.strip():
-        assumptions = [Assumption(
-            field="company_description",
-            value=grounding_text[:300].strip(),
-            confidence=round(avg_confidence, 4),
-            source="grounding",
-        )]
+        assumptions = [
+            Assumption(
+                field="company_description",
+                value=grounding_text[:300].strip(),
+                confidence=round(avg_confidence, 4),
+                source="grounding",
+            )
+        ]
     else:
         assumptions = []
 

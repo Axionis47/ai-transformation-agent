@@ -1,14 +1,23 @@
 """Tests for engines/thought/evidence_acc.py -- EvidenceAccumulator."""
+
 from __future__ import annotations
+
 import uuid
+
 from core.schemas import EvidenceItem, EvidenceSource
 from engines.thought.evidence_acc import EvidenceAccumulator
 
 
 def _item(ref: str, rel: float = 0.7) -> EvidenceItem:
-    return EvidenceItem(evidence_id=str(uuid.uuid4()), run_id="r",
-        source_type=EvidenceSource.GOOGLE_SEARCH, source_ref=ref,
-        title="T", snippet="snippet", relevance_score=rel)
+    return EvidenceItem(
+        evidence_id=str(uuid.uuid4()),
+        run_id="r",
+        source_type=EvidenceSource.GOOGLE_SEARCH,
+        source_ref=ref,
+        title="T",
+        snippet="snippet",
+        relevance_score=rel,
+    )
 
 
 def test_add_new_evidence():
@@ -42,9 +51,17 @@ def test_get_all_sorted_by_relevance():
 def test_source_types_unique():
     acc = EvidenceAccumulator()
     acc.add(_item("ref-gs"))
-    acc.add(EvidenceItem(evidence_id=str(uuid.uuid4()), run_id="r",
-        source_type=EvidenceSource.WINS_KB, source_ref="ref-kb",
-        title="KB", snippet="kb snippet", relevance_score=0.7))
+    acc.add(
+        EvidenceItem(
+            evidence_id=str(uuid.uuid4()),
+            run_id="r",
+            source_type=EvidenceSource.WINS_KB,
+            source_ref="ref-kb",
+            title="KB",
+            snippet="kb snippet",
+            relevance_score=0.7,
+        )
+    )
     types = acc.source_types()
     assert EvidenceSource.GOOGLE_SEARCH.value in types
     assert EvidenceSource.WINS_KB.value in types

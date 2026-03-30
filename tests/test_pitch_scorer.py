@@ -1,4 +1,5 @@
 """Tests for engines/pitch/scorer.py -- four-dimension opportunity scoring."""
+
 from __future__ import annotations
 
 from engines.pitch.matcher import TemplateMatch
@@ -6,9 +7,7 @@ from engines.pitch.roi_model import ROIEstimate
 from engines.pitch.scorer import score_opportunity
 from engines.pitch.templates import get_templates
 
-_CONFIG = {
-    "scoring": {"w_roi": 0.30, "w_feasibility": 0.30, "w_ttv": 0.20, "w_confidence": 0.20}
-}
+_CONFIG = {"scoring": {"w_roi": 0.30, "w_feasibility": 0.30, "w_ttv": 0.20, "w_confidence": 0.20}}
 
 
 def _make_match(matched_engagement_ids=None, llm_scores=None, template_idx=0):
@@ -24,10 +23,15 @@ def _make_match(matched_engagement_ids=None, llm_scores=None, template_idx=0):
 
 def _make_roi(adjusted_value=60.0, timeline_weeks=8):
     return ROIEstimate(
-        primary_metric="ticket_reduction", base_value=60.0,
-        adjusted_value=adjusted_value, size_factor=1.0, industry_factor=1.0,
-        source_engagement_id="eng-001", timeline_weeks=timeline_weeks,
-        assumptions={}, sensitivity={},
+        primary_metric="ticket_reduction",
+        base_value=60.0,
+        adjusted_value=adjusted_value,
+        size_factor=1.0,
+        industry_factor=1.0,
+        source_engagement_id="eng-001",
+        timeline_weeks=timeline_weeks,
+        assumptions={},
+        sensitivity={},
     )
 
 

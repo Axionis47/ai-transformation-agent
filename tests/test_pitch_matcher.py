@@ -1,8 +1,9 @@
 """Tests for engines/pitch/matcher.py -- template matching (fallback mode)."""
+
 from __future__ import annotations
 
 from core.schemas import EvidenceItem, EvidenceSource
-from engines.pitch.matcher import match_templates, TemplateMatch
+from engines.pitch.matcher import TemplateMatch, match_templates
 from engines.pitch.templates import get_templates
 
 
@@ -25,9 +26,11 @@ def _make_evidence(
 
 
 SUPPORT_EVIDENCE = _make_evidence(
-    "ev-001", "Support team ticket routing",
+    "ev-001",
+    "Support team ticket routing",
     "Customer support triage chatbot deflection help desk",
-    EvidenceSource.WINS_KB, "eng-001",
+    EvidenceSource.WINS_KB,
+    "eng-001",
 )
 
 

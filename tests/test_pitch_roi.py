@@ -1,8 +1,10 @@
 """Tests for engines/pitch/roi_model.py -- ROI translation and scaling logic."""
+
 from __future__ import annotations
 
 import pytest
-from engines.pitch.roi_model import translate_roi, ROIEstimate
+
+from engines.pitch.roi_model import ROIEstimate, translate_roi
 
 ENGAGEMENT_LOOKUP = {
     "eng-001": {

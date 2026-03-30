@@ -1,4 +1,5 @@
 """Evidence pruning utilities for loop boundaries and context assembly."""
+
 from __future__ import annotations
 
 from core.schemas import EvidenceItem

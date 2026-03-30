@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass
@@ -8,14 +8,14 @@ class OpportunityTemplate:
     template_id: str
     name: str
     description: str
-    solution_shape: str        # automation | copilot | decision_support
-    workflow_area: str          # support | finance_ops | operations | rev_ops
-    win_signals: list[str]      # keywords in evidence that suggest this applies
-    anti_signals: list[str]     # keywords that suggest it does not apply
-    roi_drivers: list[str]      # what drives ROI for this pattern
+    solution_shape: str  # automation | copilot | decision_support
+    workflow_area: str  # support | finance_ops | operations | rev_ops
+    win_signals: list[str]  # keywords in evidence that suggest this applies
+    anti_signals: list[str]  # keywords that suggest it does not apply
+    roi_drivers: list[str]  # what drives ROI for this pattern
     typical_timeline_weeks: int
     applicable_industries: list[str]
-    engagement_ids: list[str]   # linked seed engagements
+    engagement_ids: list[str]  # linked seed engagements
 
 
 def get_templates() -> list[OpportunityTemplate]:
@@ -30,8 +30,15 @@ def get_templates() -> list[OpportunityTemplate]:
             solution_shape="automation",
             workflow_area="support",
             win_signals=[
-                "support", "triage", "ticket", "routing", "chatbot",
-                "customer service", "deflection", "contact centre", "help desk",
+                "support",
+                "triage",
+                "ticket",
+                "routing",
+                "chatbot",
+                "customer service",
+                "deflection",
+                "contact centre",
+                "help desk",
             ],
             anti_signals=["no customer interaction", "b2b only", "no inbound requests"],
             roi_drivers=["ticket_volume", "agent_headcount", "resolution_time"],
@@ -49,8 +56,15 @@ def get_templates() -> list[OpportunityTemplate]:
             solution_shape="automation",
             workflow_area="finance_ops",
             win_signals=[
-                "claims", "invoice", "billing", "accounts payable", "time tracking",
-                "payroll", "finance", "reconciliation", "accounts receivable",
+                "claims",
+                "invoice",
+                "billing",
+                "accounts payable",
+                "time tracking",
+                "payroll",
+                "finance",
+                "reconciliation",
+                "accounts receivable",
             ],
             anti_signals=["no financial operations", "cash-only", "no billing system"],
             roi_drivers=["transaction_volume", "error_cost", "finance_headcount"],
@@ -68,8 +82,15 @@ def get_templates() -> list[OpportunityTemplate]:
             solution_shape="automation",
             workflow_area="operations",
             win_signals=[
-                "scheduling", "quality", "inspection", "inventory", "shrinkage",
-                "defect", "operations", "appointment", "workflow",
+                "scheduling",
+                "quality",
+                "inspection",
+                "inventory",
+                "shrinkage",
+                "defect",
+                "operations",
+                "appointment",
+                "workflow",
             ],
             anti_signals=["no physical operations", "fully manual preferred", "no volume"],
             roi_drivers=["throughput", "error_rate", "operations_headcount"],
@@ -87,8 +108,15 @@ def get_templates() -> list[OpportunityTemplate]:
             solution_shape="copilot",
             workflow_area="finance_ops",
             win_signals=[
-                "fraud", "risk", "compliance", "alert", "flagged", "suspicious",
-                "false positive", "transaction review", "anomaly",
+                "fraud",
+                "risk",
+                "compliance",
+                "alert",
+                "flagged",
+                "suspicious",
+                "false positive",
+                "transaction review",
+                "anomaly",
             ],
             anti_signals=["no financial risk", "no transaction monitoring", "no analyst team"],
             roi_drivers=["analyst_headcount", "fraud_loss_rate", "transaction_volume"],
@@ -106,8 +134,15 @@ def get_templates() -> list[OpportunityTemplate]:
             solution_shape="copilot",
             workflow_area="operations",
             win_signals=[
-                "documentation", "proposal", "report", "content", "writing",
-                "clinical notes", "notes", "drafting", "document creation",
+                "documentation",
+                "proposal",
+                "report",
+                "content",
+                "writing",
+                "clinical notes",
+                "notes",
+                "drafting",
+                "document creation",
             ],
             anti_signals=["no document creation", "no written output required"],
             roi_drivers=["knowledge_worker_time", "document_volume", "win_rate"],
@@ -125,8 +160,16 @@ def get_templates() -> list[OpportunityTemplate]:
             solution_shape="decision_support",
             workflow_area="operations",
             win_signals=[
-                "predictive", "forecast", "maintenance", "demand", "trend",
-                "prediction", "sensor", "breakdown", "downtime", "iot",
+                "predictive",
+                "forecast",
+                "maintenance",
+                "demand",
+                "trend",
+                "prediction",
+                "sensor",
+                "breakdown",
+                "downtime",
+                "iot",
             ],
             anti_signals=["no historical data", "no sensors", "less than 6 months data"],
             roi_drivers=["downtime_cost", "forecast_accuracy", "maintenance_cost"],
@@ -144,8 +187,16 @@ def get_templates() -> list[OpportunityTemplate]:
             solution_shape="decision_support",
             workflow_area="finance_ops",
             win_signals=[
-                "compliance", "regulatory", "audit", "policy", "review",
-                "regulation", "legal", "governance", "sox", "gdpr",
+                "compliance",
+                "regulatory",
+                "audit",
+                "policy",
+                "review",
+                "regulation",
+                "legal",
+                "governance",
+                "sox",
+                "gdpr",
             ],
             anti_signals=["no regulatory requirements", "exempt from regulation"],
             roi_drivers=["compliance_risk", "fte_cost", "review_frequency"],
@@ -163,8 +214,16 @@ def get_templates() -> list[OpportunityTemplate]:
             solution_shape="decision_support",
             workflow_area="operations",
             win_signals=[
-                "resource", "dispatch", "allocation", "staffing", "routing",
-                "supplier", "scheduling", "utilization", "fleet", "workforce",
+                "resource",
+                "dispatch",
+                "allocation",
+                "staffing",
+                "routing",
+                "supplier",
+                "scheduling",
+                "utilization",
+                "fleet",
+                "workforce",
             ],
             anti_signals=["no resource constraints", "fully automated already", "no dispatch"],
             roi_drivers=["utilization_rate", "fuel_cost", "overtime_cost"],

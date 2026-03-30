@@ -3,6 +3,7 @@
 No keyword signal counting. The model evaluates each template's fit
 against accumulated evidence and returns structured scores.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -45,7 +46,9 @@ def _build_evidence_text(evidence: list[EvidenceItem]) -> str:
             unknown = sum(1 for c in conds if c.get("status") == "UNKNOWN")
             if conds:
                 line += f"\n    Conditions: {met} met, {unmet} unmet, {unknown} unknown"
-            triggered = [a.get("pattern", "") for a in crossref.get("anti_pattern_check", []) if a.get("status") == "TRIGGERED"]
+            triggered = [
+                a.get("pattern", "") for a in crossref.get("anti_pattern_check", []) if a.get("status") == "TRIGGERED"
+            ]
             if triggered:
                 line += f"\n    Anti-patterns triggered: {', '.join(triggered[:2])}"
         lines.append(line)
@@ -53,7 +56,8 @@ def _build_evidence_text(evidence: list[EvidenceItem]) -> str:
 
 
 def _build_engagement_summary(
-    template: OpportunityTemplate, engagement_lookup: dict[str, dict],
+    template: OpportunityTemplate,
+    engagement_lookup: dict[str, dict],
     evidence: list[EvidenceItem] | None = None,
 ) -> str:
     """Build engagement summary including cross-ref data from reasoning loop."""
@@ -162,29 +166,27 @@ def match_templates_llm(
         engagement_ids = parsed.get("matched_engagement_ids", [])
         # Also include any WINS_KB evidence IDs automatically
         for e in evidence:
-            if (
-                e.source_type == EvidenceSource.WINS_KB
-                and e.source_ref
-                and e.source_ref not in engagement_ids
-            ):
+            if e.source_type == EvidenceSource.WINS_KB and e.source_ref and e.source_ref not in engagement_ids:
                 engagement_ids.append(e.source_ref)
 
-        matches.append(TemplateMatch(
-            template=tmpl,
-            match_score=round(fit_score, 4),
-            matched_evidence_ids=supporting_ids,
-            matched_engagement_ids=engagement_ids,
-            tier_override=parsed.get("tier"),
-            reasoning=parsed.get("reasoning", ""),
-            risks=parsed.get("risks", []),
-            adaptation_needed=parsed.get("adaptation_needed"),
-            llm_scores={
-                "feasibility": float(parsed.get("feasibility", 0.5)),
-                "roi": float(parsed.get("roi_score", 0.5)),
-                "time_to_value": float(parsed.get("time_to_value", 0.5)),
-                "confidence": float(parsed.get("confidence", 0.3)),
-            },
-        ))
+        matches.append(
+            TemplateMatch(
+                template=tmpl,
+                match_score=round(fit_score, 4),
+                matched_evidence_ids=supporting_ids,
+                matched_engagement_ids=engagement_ids,
+                tier_override=parsed.get("tier"),
+                reasoning=parsed.get("reasoning", ""),
+                risks=parsed.get("risks", []),
+                adaptation_needed=parsed.get("adaptation_needed"),
+                llm_scores={
+                    "feasibility": float(parsed.get("feasibility", 0.5)),
+                    "roi": float(parsed.get("roi_score", 0.5)),
+                    "time_to_value": float(parsed.get("time_to_value", 0.5)),
+                    "confidence": float(parsed.get("confidence", 0.3)),
+                },
+            )
+        )
 
     matches.sort(key=lambda m: m.match_score, reverse=True)
     return matches
@@ -198,17 +200,16 @@ def match_templates(
     matches: list[TemplateMatch] = []
     for tmpl in templates:
         evidence_ids = [e.evidence_id for e in evidence[:5]]
-        engagement_ids = [
-            e.source_ref for e in evidence
-            if e.source_type == EvidenceSource.WINS_KB and e.source_ref
-        ]
+        engagement_ids = [e.source_ref for e in evidence if e.source_type == EvidenceSource.WINS_KB and e.source_ref]
         if evidence:
             avg_score = sum(e.relevance_score for e in evidence) / len(evidence)
-            matches.append(TemplateMatch(
-                template=tmpl,
-                match_score=round(avg_score * 0.5, 4),
-                matched_evidence_ids=evidence_ids,
-                matched_engagement_ids=engagement_ids,
-            ))
+            matches.append(
+                TemplateMatch(
+                    template=tmpl,
+                    match_score=round(avg_score * 0.5, 4),
+                    matched_evidence_ids=evidence_ids,
+                    matched_engagement_ids=engagement_ids,
+                )
+            )
     matches.sort(key=lambda m: m.match_score, reverse=True)
     return matches[:5]

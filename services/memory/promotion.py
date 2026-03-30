@@ -1,4 +1,5 @@
 """Promotion gate: observe-validate-promote pipeline for evidence."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -60,52 +61,65 @@ class PromotionGate:
                 reason = "missing required field (evidence_id or source_type) on item"
                 result.rejected += 1
                 result.rejection_reasons.append(reason)
-                emit(run_id, EventType.EVIDENCE_REJECTED, {
-                    "reason": reason,
-                    "source_label": source_label,
-                })
+                emit(
+                    run_id,
+                    EventType.EVIDENCE_REJECTED,
+                    {
+                        "reason": reason,
+                        "source_label": source_label,
+                    },
+                )
                 continue
 
             # Step 2: Phase-aware relevance threshold
             if item.relevance_score < threshold:
-                reason = (
-                    f"relevance {item.relevance_score:.3f} below threshold "
-                    f"{threshold:.3f} for {item.evidence_id}"
-                )
+                reason = f"relevance {item.relevance_score:.3f} below threshold {threshold:.3f} for {item.evidence_id}"
                 result.rejected += 1
                 result.rejection_reasons.append(reason)
-                emit(run_id, EventType.EVIDENCE_REJECTED, {
-                    "evidence_id": item.evidence_id,
-                    "relevance_score": item.relevance_score,
-                    "threshold": threshold,
-                    "reason": reason,
-                    "source_label": source_label,
-                })
+                emit(
+                    run_id,
+                    EventType.EVIDENCE_REJECTED,
+                    {
+                        "evidence_id": item.evidence_id,
+                        "relevance_score": item.relevance_score,
+                        "threshold": threshold,
+                        "reason": reason,
+                        "source_label": source_label,
+                    },
+                )
                 continue
 
             # Step 2.5: Contradiction detection
             existing = self._store.get_all(run_id)
             contradictions = detector.check(existing, item)
             for c in contradictions:
-                emit(run_id, EventType.EVIDENCE_CONTRADICTION, {
-                    "field": c.field,
-                    "existing_id": c.existing_evidence_id,
-                    "new_id": c.new_evidence_id,
-                    "resolution": c.resolution,
-                    "source_label": source_label,
-                })
+                emit(
+                    run_id,
+                    EventType.EVIDENCE_CONTRADICTION,
+                    {
+                        "field": c.field,
+                        "existing_id": c.existing_evidence_id,
+                        "new_id": c.new_evidence_id,
+                        "resolution": c.resolution,
+                        "source_label": source_label,
+                    },
+                )
 
             # Step 3: Dedup via store (handles score-based replacement)
             is_new = self._store.add(run_id, item)
             result.accepted += 1
             result.accepted_items.append(item)
 
-            emit(run_id, EventType.EVIDENCE_PROMOTED, {
-                "evidence_id": item.evidence_id,
-                "source_type": item.source_type.value,
-                "relevance_score": item.relevance_score,
-                "is_new": is_new,
-                "source_label": source_label,
-            })
+            emit(
+                run_id,
+                EventType.EVIDENCE_PROMOTED,
+                {
+                    "evidence_id": item.evidence_id,
+                    "source_type": item.source_type.value,
+                    "relevance_score": item.relevance_score,
+                    "is_new": is_new,
+                    "source_label": source_label,
+                },
+            )
 
         return result

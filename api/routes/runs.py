@@ -15,7 +15,7 @@ router = APIRouter()
 class CreateRunRequest(BaseModel):
     company_name: str
     industry: str
-    reasoning_depth: Optional[int] = None       # user-configurable: 1-10
+    reasoning_depth: Optional[int] = None  # user-configurable: 1-10
     confidence_threshold: Optional[float] = None  # user-configurable: 0.0-1.0
 
 

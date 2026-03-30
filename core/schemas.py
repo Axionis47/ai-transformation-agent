@@ -163,7 +163,9 @@ class EvidenceItem(BaseModel):
     retrieval_meta: dict = {}
     provenance: Optional[Provenance] = None
     produced_by: str = ""  # which agent produced this evidence
-    dimension: str = ""  # "technology" | "scale" | "revenue" | "operations" | "industry" | "pain_point" | "hypothesis_test"
+    dimension: str = (
+        ""  # "technology" | "scale" | "revenue" | "operations" | "industry" | "pain_point" | "hypothesis_test"
+    )
     process_area: str = ""  # "dispatch" | "billing" | "maintenance" | "tracking" | "" (if not process-specific)
 
 
@@ -278,6 +280,7 @@ class TraceEvent(BaseModel):
 # --- Confidence ---
 class FieldKnowledge(BaseModel):
     """Per-field synthesized understanding, updated each reasoning loop."""
+
     field: str
     synthesis: str = ""
     evidence_ids: list[str] = []
@@ -412,6 +415,7 @@ class AdaptiveReport(BaseModel):
 
 class ReasoningStep(BaseModel):
     """One step in a hypothesis's causal reasoning chain."""
+
     step_type: str  # "formed_because" | "tested_with" | "contradicted_by" | "revised_because" | "validated_by"
     description: str
     evidence_ids: list[str] = []
@@ -421,6 +425,7 @@ class ReasoningStep(BaseModel):
 
 class DerivedInsight(BaseModel):
     """A conclusion drawn from evidence — not raw evidence itself."""
+
     insight_id: str
     phase: str  # which phase produced this
     statement: str  # "Their dispatch is manual, costing ~15% efficiency"
@@ -431,6 +436,7 @@ class DerivedInsight(BaseModel):
 
 class AgentScope(str, Enum):
     """Controls what context an agent can see."""
+
     COMPANY_PROFILER = "company_profiler"
     INDUSTRY_ANALYST = "industry_analyst"
     PAIN_INVESTIGATOR = "pain_investigator"
@@ -441,6 +447,7 @@ class AgentScope(str, Enum):
 
 class AgentResult(BaseModel):
     """Typed result returned by every research agent to the orchestrator."""
+
     agent_id: str
     agent_type: str
     success: bool = True

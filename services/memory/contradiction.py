@@ -1,4 +1,5 @@
 """Contradiction detection: identifies conflicting evidence from different sources."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -12,6 +13,7 @@ SCALE_FIELDS = {"employee_count", "revenue", "headcount", "company_size", "emplo
 @dataclass
 class Contradiction:
     """A detected conflict between evidence items."""
+
     field: str
     existing_evidence_id: str
     new_evidence_id: str
@@ -25,9 +27,7 @@ class ContradictionDetector:
     Resolution: USER_PROVIDED always wins (user is the authority on their company).
     """
 
-    def check(
-        self, existing: list[EvidenceItem], new_item: EvidenceItem
-    ) -> list[Contradiction]:
+    def check(self, existing: list[EvidenceItem], new_item: EvidenceItem) -> list[Contradiction]:
         """Check if new_item contradicts any existing evidence.
 
         Only checks cross-source contradictions (same source type = no conflict).
@@ -45,12 +45,14 @@ class ContradictionDetector:
                 resolution = "existing_wins"
             else:
                 resolution = "flagged"
-            contradictions.append(Contradiction(
-                field=field,
-                existing_evidence_id=ex.evidence_id,
-                new_evidence_id=new_item.evidence_id,
-                resolution=resolution,
-            ))
+            contradictions.append(
+                Contradiction(
+                    field=field,
+                    existing_evidence_id=ex.evidence_id,
+                    new_evidence_id=new_item.evidence_id,
+                    resolution=resolution,
+                )
+            )
         return contradictions
 
     def _find_shared_field(self, a: EvidenceItem, b: EvidenceItem) -> str | None:

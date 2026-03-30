@@ -5,6 +5,7 @@ GROUND (web search for company-specific pain evidence) and RAG
 (past engagement knowledge base for similar pain patterns).
 Returns typed AgentResult with pain_points list.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -51,14 +52,8 @@ class PainPointInvestigatorAgent(BaseResearchAgent):
         insights = self._ctx.get_derived_insights() if self._ctx else []
         insight_block = ""
         if insights:
-            insight_lines = [
-                f"- [{i.produced_by_agent}] {i.statement}"
-                for i in insights
-            ]
-            insight_block = (
-                "\nSTRUCTURED INSIGHTS FROM PRIOR PHASES:\n"
-                + "\n".join(insight_lines)
-            )
+            insight_lines = [f"- [{i.produced_by_agent}] {i.statement}" for i in insights]
+            insight_block = "\nSTRUCTURED INSIGHTS FROM PRIOR PHASES:\n" + "\n".join(insight_lines)
 
         prompt = self._system_prompt.format(
             company_name=company,
@@ -101,20 +96,16 @@ class PainPointInvestigatorAgent(BaseResearchAgent):
 
         if action in ("GROUND", "RAG") and query:
             if query in self._past_queries:
-                return AgentThought(
-                    action="STOP", reasoning="duplicate query — stopping"
-                )
+                return AgentThought(action="STOP", reasoning="duplicate query — stopping")
             self._past_queries.append(query)
 
-        return AgentThought(
-            action=action, query=query, reasoning=reasoning
-        )
+        return AgentThought(action=action, query=query, reasoning=reasoning)
 
     # ------------------------------------------------------------------
     # ReAct: OBSERVE — tag new evidence with pain dimension
     # ------------------------------------------------------------------
     def _observe(self, observation: str) -> None:
-        for ev in self._evidence[self._prev_evidence_count:]:
+        for ev in self._evidence[self._prev_evidence_count :]:
             ev.dimension = "pain_point"
             ev.process_area = self._current_process or ""
             ev.produced_by = self._agent_id
@@ -143,33 +134,32 @@ class PainPointInvestigatorAgent(BaseResearchAgent):
         for raw in self._pain_points:
             if not isinstance(raw, dict) or not raw.get("description"):
                 continue
-            result.append(PainPoint(
-                pain_id=f"pp-{uuid.uuid4().hex[:8]}",
-                description=raw.get("description", ""),
-                affected_process=raw.get("affected_process", "general"),
-                severity=raw.get("severity", "medium"),
-                current_workaround=raw.get("current_workaround", ""),
-                evidence_ids=evidence_ids[:5],
-                confidence=self._compute_confidence(),
-            ))
+            result.append(
+                PainPoint(
+                    pain_id=f"pp-{uuid.uuid4().hex[:8]}",
+                    description=raw.get("description", ""),
+                    affected_process=raw.get("affected_process", "general"),
+                    severity=raw.get("severity", "medium"),
+                    current_workaround=raw.get("current_workaround", ""),
+                    evidence_ids=evidence_ids[:5],
+                    confidence=self._compute_confidence(),
+                )
+            )
         return result
 
-    def _build_derived_insights(
-        self, pain_points: list[PainPoint]
-    ) -> list[DerivedInsight]:
+    def _build_derived_insights(self, pain_points: list[PainPoint]) -> list[DerivedInsight]:
         insights: list[DerivedInsight] = []
         for pp in pain_points:
-            insights.append(DerivedInsight(
-                insight_id=f"ins-{uuid.uuid4().hex[:8]}",
-                phase="pain_investigation",
-                statement=(
-                    f"Pain point in {pp.affected_process}: "
-                    f"{pp.description} (severity: {pp.severity})"
-                ),
-                supporting_evidence_ids=pp.evidence_ids,
-                confidence=pp.confidence,
-                produced_by_agent=self._agent_id,
-            ))
+            insights.append(
+                DerivedInsight(
+                    insight_id=f"ins-{uuid.uuid4().hex[:8]}",
+                    phase="pain_investigation",
+                    statement=(f"Pain point in {pp.affected_process}: {pp.description} (severity: {pp.severity})"),
+                    supporting_evidence_ids=pp.evidence_ids,
+                    confidence=pp.confidence,
+                    produced_by_agent=self._agent_id,
+                )
+            )
         return insights
 
     # ------------------------------------------------------------------
@@ -193,8 +183,4 @@ class PainPointInvestigatorAgent(BaseResearchAgent):
 
     def _build_summary(self) -> str:
         n = len(self._pain_points)
-        return (
-            f"pain_investigator: {self._steps_taken} steps, "
-            f"{len(self._evidence)} evidence, "
-            f"{n} pain points"
-        )
+        return f"pain_investigator: {self._steps_taken} steps, {len(self._evidence)} evidence, {n} pain points"

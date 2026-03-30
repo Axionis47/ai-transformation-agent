@@ -4,6 +4,7 @@ Instead of handing the LLM a growing pile of raw evidence, working memory
 maintains a structured brief: one synthesis per required field, updated
 after each loop. This keeps prompt size constant while depth increases.
 """
+
 from __future__ import annotations
 
 from core.schemas import EvidenceItem, FieldKnowledge
@@ -14,9 +15,7 @@ class WorkingMemory:
     """Structured research state that grows in quality, not size."""
 
     def __init__(self) -> None:
-        self._fields: dict[str, FieldKnowledge] = {
-            f: FieldKnowledge(field=f) for f in REQUIRED_FIELDS
-        }
+        self._fields: dict[str, FieldKnowledge] = {f: FieldKnowledge(field=f) for f in REQUIRED_FIELDS}
         self._hypotheses: list[str] = []
 
     def get_field(self, field: str) -> FieldKnowledge:
@@ -25,8 +24,9 @@ class WorkingMemory:
     def get_all_fields(self) -> dict[str, FieldKnowledge]:
         return dict(self._fields)
 
-    def update_field(self, field: str, synthesis: str, evidence_ids: list[str],
-                     confidence: float, loop_idx: int) -> None:
+    def update_field(
+        self, field: str, synthesis: str, evidence_ids: list[str], confidence: float, loop_idx: int
+    ) -> None:
         """Update a field's synthesis after new evidence is processed."""
         fk = self._fields.get(field)
         if not fk:
@@ -70,6 +70,7 @@ class WorkingMemory:
     def classify_evidence(self, evidence: list[EvidenceItem]) -> dict[str, list[EvidenceItem]]:
         """Group evidence items by which field they most likely cover."""
         from engines.thought.mid import _FIELD_SIGNALS
+
         result: dict[str, list[EvidenceItem]] = {f: [] for f in REQUIRED_FIELDS}
         for ev in evidence:
             text = f"{ev.title} {ev.snippet}".lower()

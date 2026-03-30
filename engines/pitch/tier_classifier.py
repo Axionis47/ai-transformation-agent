@@ -3,6 +3,7 @@
 No if/else rules. The LLM decides the tier during opportunity evaluation.
 This module reads the LLM's decision and applies it.
 """
+
 from __future__ import annotations
 
 from core.schemas import OpportunityTier

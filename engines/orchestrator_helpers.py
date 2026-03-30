@@ -2,10 +2,13 @@
 
 Split from orchestrator.py to respect the 200-line limit.
 """
+
 from __future__ import annotations
 
 import logging
 
+from core import run_manager as rm
+from core.events import EventType
 from core.schemas import (
     AgentResult,
     AgentScope,
@@ -14,14 +17,12 @@ from core.schemas import (
     ReportFeedback,
     Run,
 )
-from core import run_manager as rm
-from engines.context_provider import AgentContextProvider
-from engines.hypothesis_tracker import HypothesisTracker
 from engines.agents.hypothesis_tester import HypothesisTesterAgent
 from engines.agents.report_synthesizer import ReportSynthesizerAgent
+from engines.context_provider import AgentContextProvider
+from engines.hypothesis_tracker import HypothesisTracker
 from services.memory.synthesis_store import get_synthesis_store
 from services.trace import emit
-from core.events import EventType
 
 log = logging.getLogger(__name__)
 
@@ -58,9 +59,7 @@ def promote_result(run_id: str, result: AgentResult) -> None:
         run.spawn_requests.extend(result.spawn_requests)
 
 
-async def synthesize_between_phases(
-    synthesizer: object, run_id: str, phase: str
-) -> None:
+async def synthesize_between_phases(synthesizer: object, run_id: str, phase: str) -> None:
     """Call PhaseSynthesizer between pipeline phases."""
     run = rm.get_run(run_id)
     assert run is not None
@@ -182,8 +181,7 @@ def has_budget(budget: BudgetState, config: dict) -> bool:
     budgets = config.get("budgets", {})
     search_cap = int(budgets.get("external_search_query_budget", 25))
     rag_cap = int(budgets.get("rag_query_budget", 15))
-    return (budget.external_search_queries_used < search_cap
-            or budget.rag_queries_used < rag_cap)
+    return budget.external_search_queries_used < search_cap or budget.rag_queries_used < rag_cap
 
 
 def _result_to_state(result: AgentResult) -> AgentState:

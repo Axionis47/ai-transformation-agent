@@ -2,6 +2,7 @@
 
 No keyword matching. The model reasons about what's known and what's missing.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -187,29 +188,28 @@ def assess_coverage_with_llm(
     # Prefer LLM-provided field coverage over keyword fallback
     llm_fc = parsed.get("field_coverage")
     if llm_fc and isinstance(llm_fc, dict):
-        field_coverage = {
-            f: max(0.0, min(1.0, float(llm_fc.get(f, 0.0))))
-            for f in REQUIRED_FIELDS
-        }
+        field_coverage = {f: max(0.0, min(1.0, float(llm_fc.get(f, 0.0)))) for f in REQUIRED_FIELDS}
         overall = sum(field_coverage.values()) / max(len(REQUIRED_FIELDS), 1)
 
     # Extract contradictions flagged by LLM — normalize strings to dicts
     llm_contradictions = parsed.get("contradictions")
     if llm_contradictions and isinstance(llm_contradictions, list):
-        contradictions = [
-            c if isinstance(c, dict) else {"description": str(c)}
-            for c in llm_contradictions
-        ]
+        contradictions = [c if isinstance(c, dict) else {"description": str(c)} for c in llm_contradictions]
 
-    from services.trace import emit as _emit
     from core.events import EventType as _ET
-    _emit(run_id, _ET.MID_GAP_DETECTED, {
-        "react_raw_length": len(raw_text),
-        "react_parsed_keys": list(parsed.keys()),
-        "react_action": parsed.get("action", "NONE"),
-        "react_thinking": str(parsed.get("thinking", ""))[:200],
-        "phase": phase["name"],
-    })
+    from services.trace import emit as _emit
+
+    _emit(
+        run_id,
+        _ET.MID_GAP_DETECTED,
+        {
+            "react_raw_length": len(raw_text),
+            "react_parsed_keys": list(parsed.keys()),
+            "react_action": parsed.get("action", "NONE"),
+            "react_thinking": str(parsed.get("thinking", ""))[:200],
+            "phase": phase["name"],
+        },
+    )
 
     action = parsed.get("action", "STOP").upper()
 
@@ -219,18 +219,27 @@ def assess_coverage_with_llm(
         # No evidence yet and LLM failed — try grounding first, then RAG
         if ground_remaining > 0:
             action = "GROUND"
-            parsed = {"query": f"What does {company_name} do and what challenges do they face in {industry}?",
-                      "target_field": "company_profile", "thinking": "LLM reasoning unavailable, using fallback query"}
+            parsed = {
+                "query": f"What does {company_name} do and what challenges do they face in {industry}?",
+                "target_field": "company_profile",
+                "thinking": "LLM reasoning unavailable, using fallback query",
+            }
         elif rag_remaining > 0:
             action = "RAG"
-            parsed = {"query": f"{industry} automation implementation",
-                      "target_field": "similar_wins", "thinking": "LLM reasoning unavailable, searching past engagements"}
+            parsed = {
+                "query": f"{industry} automation implementation",
+                "target_field": "similar_wins",
+                "thinking": "LLM reasoning unavailable, searching past engagements",
+            }
     elif not raw_text and evidence:
         # Have evidence but LLM failed — try RAG if not used yet, else STOP gracefully
         if rag_remaining > 0:
             action = "RAG"
-            parsed = {"query": f"{industry} {company_name} automation",
-                      "target_field": "similar_wins", "thinking": "LLM reasoning unavailable, searching for similar past cases"}
+            parsed = {
+                "query": f"{industry} {company_name} automation",
+                "target_field": "similar_wins",
+                "thinking": "LLM reasoning unavailable, searching for similar past cases",
+            }
         else:
             action = "STOP"
     if action == "STOP":
@@ -316,9 +325,7 @@ def assess_coverage(
     w_div = float(conf_cfg.get("source_diversity_weight", 0.20))
 
     evidence_coverage = sum(field_coverage.values()) / max(len(REQUIRED_FIELDS), 1)
-    evidence_strength = (
-        sum(e.relevance_score for e in evidence) / len(evidence) if evidence else 0.0
-    )
+    evidence_strength = sum(e.relevance_score for e in evidence) / len(evidence) if evidence else 0.0
     unique_types = {e.source_type for e in evidence}
     source_diversity = min(len(unique_types) / 3.0, 1.0)
 

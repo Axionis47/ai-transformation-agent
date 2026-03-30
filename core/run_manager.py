@@ -22,7 +22,6 @@ from core.schemas import (
     ReasoningState,
     Run,
     RunStatus,
-    SpawnRequest,
     UserInteractionPoint,
 )
 from services import trace
@@ -57,7 +56,12 @@ VALID_TRANSITIONS: dict[RunStatus, list[RunStatus]] = {
     RunStatus.GROUNDING: [RunStatus.DEEP_RESEARCH, RunStatus.FAILED],
     RunStatus.DEEP_RESEARCH: [RunStatus.HYPOTHESIS_FORMATION, RunStatus.GROUNDING, RunStatus.FAILED],
     RunStatus.HYPOTHESIS_FORMATION: [RunStatus.HYPOTHESIS_TESTING, RunStatus.DEEP_RESEARCH, RunStatus.FAILED],
-    RunStatus.HYPOTHESIS_TESTING: [RunStatus.SYNTHESIS, RunStatus.HYPOTHESIS_FORMATION, RunStatus.DEEP_RESEARCH, RunStatus.FAILED],
+    RunStatus.HYPOTHESIS_TESTING: [
+        RunStatus.SYNTHESIS,
+        RunStatus.HYPOTHESIS_FORMATION,
+        RunStatus.DEEP_RESEARCH,
+        RunStatus.FAILED,
+    ],
     RunStatus.REVIEW: [RunStatus.PUBLISHED, RunStatus.HYPOTHESIS_TESTING, RunStatus.DEEP_RESEARCH, RunStatus.FAILED],
 }
 
@@ -112,8 +116,7 @@ def transition(run_id: str, new_status: RunStatus) -> Run:
     allowed = VALID_TRANSITIONS.get(run.status, [])
     if new_status not in allowed:
         raise ValueError(
-            f"Invalid transition: {run.status.value} -> {new_status.value}. "
-            f"Allowed: {[s.value for s in allowed]}"
+            f"Invalid transition: {run.status.value} -> {new_status.value}. Allowed: {[s.value for s in allowed]}"
         )
     run.status = new_status
     return _persist(run)
@@ -125,8 +128,9 @@ def add_evidence(
     source_label: str = "unknown",
     phase: str = "grounding",
 ) -> Run:
-    from services.memory.store import get_evidence_store
     from services.memory.promotion import PromotionGate
+    from services.memory.store import get_evidence_store
+
     run = _require_run(run_id)
     gate = PromotionGate(store=get_evidence_store())
     result = gate.promote_batch(run_id, items, source_label=source_label, phase=phase)
@@ -136,6 +140,7 @@ def add_evidence(
 
 def get_evidence(run_id: str) -> list[EvidenceItem]:
     from services.memory.store import get_evidence_store
+
     return get_evidence_store().get_all(run_id)
 
 
@@ -158,6 +163,7 @@ def update_working_memory(
 
 
 # --- Multi-agent state updates ---
+
 
 def update_company_understanding(run_id: str, understanding: CompanyUnderstanding) -> Run:
     run = _require_run(run_id)
@@ -238,6 +244,7 @@ def update_assumptions(run_id: str, assumptions: AssumptionsDraft) -> Run:
 
 def store_opportunities(run_id: str, opportunities: list[Opportunity]) -> Run:
     from services.memory.opp_store import get_opportunity_store
+
     run = _require_run(run_id)
     run.opportunities = opportunities
     get_opportunity_store().store(run_id, opportunities)
@@ -246,6 +253,7 @@ def store_opportunities(run_id: str, opportunities: list[Opportunity]) -> Run:
 
 def store_report(run_id: str, report: dict) -> Run:
     from services.memory.report_store import get_report_store
+
     run = _require_run(run_id)
     run.report = report
     get_report_store().store(run_id, report)

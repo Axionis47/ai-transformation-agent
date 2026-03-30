@@ -3,6 +3,7 @@
 Both MemoryStore and FirestoreStore implement this.
 run_manager calls these methods; never talks to a backend directly.
 """
+
 from __future__ import annotations
 
 from typing import Protocol

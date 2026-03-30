@@ -1,4 +1,5 @@
 """Tests for engines/thought/assumptions.py -- extract_assumptions fallback."""
+
 from __future__ import annotations
 
 import uuid
@@ -16,9 +17,16 @@ EMPTY_TEXT = ""
 
 
 def _ev(score: float) -> EvidenceItem:
-    return EvidenceItem(evidence_id=str(uuid.uuid4()), run_id="r",
-        source_type=EvidenceSource.GOOGLE_SEARCH, source_ref=f"ref-{uuid.uuid4().hex[:6]}",
-        title="T", snippet="s", relevance_score=score, confidence_score=score)
+    return EvidenceItem(
+        evidence_id=str(uuid.uuid4()),
+        run_id="r",
+        source_type=EvidenceSource.GOOGLE_SEARCH,
+        source_ref=f"ref-{uuid.uuid4().hex[:6]}",
+        title="T",
+        snippet="s",
+        relevance_score=score,
+        confidence_score=score,
+    )
 
 
 def test_assumptions_extracted_from_text():

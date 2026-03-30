@@ -4,13 +4,13 @@ Not just form/validate/reject — tracks WHY each hypothesis exists,
 what evidence supports or contradicts it, and how it evolved.
 The reasoning chain feeds directly into the report.
 """
+
 from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
 
 from core.schemas import (
-    DerivedInsight,
     Hypothesis,
     HypothesisStatus,
     ReasoningStep,
@@ -72,9 +72,16 @@ class HypothesisTracker:
         h.test_results.append(test_result)
         h.confidence = max(0.0, min(1.0, h.confidence + test_result.impact_on_confidence))
 
-        is_condition = test_result.test_type in (
-            "prerequisite", "condition", "caveat",
-        ) or "prerequisit" in narrative.lower() or "condition" in narrative.lower()
+        is_condition = (
+            test_result.test_type
+            in (
+                "prerequisite",
+                "condition",
+                "caveat",
+            )
+            or "prerequisit" in narrative.lower()
+            or "condition" in narrative.lower()
+        )
 
         if test_result.impact_on_confidence < 0:
             h.evidence_against.extend(test_result.evidence_ids)
@@ -86,13 +93,15 @@ class HypothesisTracker:
             h.evidence_for.extend(test_result.evidence_ids)
             step_type = "tested_with"
 
-        h.reasoning_chain.append(ReasoningStep(
-            step_type=step_type,
-            description=narrative,
-            evidence_ids=test_result.evidence_ids,
-            confidence_delta=test_result.impact_on_confidence,
-            timestamp=datetime.now(timezone.utc),
-        ))
+        h.reasoning_chain.append(
+            ReasoningStep(
+                step_type=step_type,
+                description=narrative,
+                evidence_ids=test_result.evidence_ids,
+                confidence_delta=test_result.impact_on_confidence,
+                timestamp=datetime.now(timezone.utc),
+            )
+        )
         return h
 
     def revise(
@@ -106,25 +115,29 @@ class HypothesisTracker:
         h = self._get(hypothesis_id)
         old_statement = h.statement
         h.statement = new_statement
-        h.reasoning_chain.append(ReasoningStep(
-            step_type="revised_because",
-            description=f"Revised from '{old_statement}' — {reason}",
-            evidence_ids=evidence_ids or [],
-            confidence_delta=0.0,
-            timestamp=datetime.now(timezone.utc),
-        ))
+        h.reasoning_chain.append(
+            ReasoningStep(
+                step_type="revised_because",
+                description=f"Revised from '{old_statement}' — {reason}",
+                evidence_ids=evidence_ids or [],
+                confidence_delta=0.0,
+                timestamp=datetime.now(timezone.utc),
+            )
+        )
         return h
 
     def validate(self, hypothesis_id: str, reason: str) -> Hypothesis:
         h = self._get(hypothesis_id)
         h.status = HypothesisStatus.VALIDATED
-        h.reasoning_chain.append(ReasoningStep(
-            step_type="validated_by",
-            description=reason,
-            evidence_ids=[],
-            confidence_delta=0.0,
-            timestamp=datetime.now(timezone.utc),
-        ))
+        h.reasoning_chain.append(
+            ReasoningStep(
+                step_type="validated_by",
+                description=reason,
+                evidence_ids=[],
+                confidence_delta=0.0,
+                timestamp=datetime.now(timezone.utc),
+            )
+        )
         return h
 
     def validate_with_conditions(
@@ -137,29 +150,30 @@ class HypothesisTracker:
         h = self._get(hypothesis_id)
         h.status = HypothesisStatus.VALIDATED
         h.conditions_for_success = conditions
-        h.reasoning_chain.append(ReasoningStep(
-            step_type="validated_by",
-            description=(
-                f"Conditionally validated: {reason}. "
-                f"Requires: {', '.join(conditions)}"
-            ),
-            evidence_ids=[],
-            confidence_delta=0.0,
-            timestamp=datetime.now(timezone.utc),
-        ))
+        h.reasoning_chain.append(
+            ReasoningStep(
+                step_type="validated_by",
+                description=(f"Conditionally validated: {reason}. Requires: {', '.join(conditions)}"),
+                evidence_ids=[],
+                confidence_delta=0.0,
+                timestamp=datetime.now(timezone.utc),
+            )
+        )
         return h
 
     def reject(self, hypothesis_id: str, reason: str) -> Hypothesis:
         h = self._get(hypothesis_id)
         h.status = HypothesisStatus.REJECTED
         h.confidence = 0.0
-        h.reasoning_chain.append(ReasoningStep(
-            step_type="contradicted_by",
-            description=f"Rejected: {reason}",
-            evidence_ids=[],
-            confidence_delta=-h.confidence,
-            timestamp=datetime.now(timezone.utc),
-        ))
+        h.reasoning_chain.append(
+            ReasoningStep(
+                step_type="contradicted_by",
+                description=f"Rejected: {reason}",
+                evidence_ids=[],
+                confidence_delta=-h.confidence,
+                timestamp=datetime.now(timezone.utc),
+            )
+        )
         return h
 
     def get(self, hypothesis_id: str) -> Hypothesis | None:
@@ -172,12 +186,12 @@ class HypothesisTracker:
         return [h for h in self._hypotheses.values() if h.status == status]
 
     def get_untested(self) -> list[Hypothesis]:
-        return [h for h in self._hypotheses.values()
-                if h.status == HypothesisStatus.FORMING]
+        return [h for h in self._hypotheses.values() if h.status == HypothesisStatus.FORMING]
 
     def get_low_confidence(self, threshold: float = 0.5) -> list[Hypothesis]:
-        return [h for h in self._hypotheses.values()
-                if h.status == HypothesisStatus.TESTING and h.confidence < threshold]
+        return [
+            h for h in self._hypotheses.values() if h.status == HypothesisStatus.TESTING and h.confidence < threshold
+        ]
 
     def should_investigate_more(self) -> bool:
         """True if there are untested or low-confidence hypotheses."""
@@ -212,15 +226,17 @@ class HypothesisTracker:
         validated = self.get_by_status(HypothesisStatus.VALIDATED)
         opps = []
         for h in sorted(validated, key=lambda x: x.confidence, reverse=True):
-            opps.append(ReportOpportunity(
-                title=h.statement,
-                hypothesis_id=h.hypothesis_id,
-                narrative=self.get_full_narrative(h.hypothesis_id),
-                tier=self._classify_tier(h),
-                confidence=h.confidence,
-                risks=h.risks,
-                conditions_for_success=h.conditions_for_success,
-            ))
+            opps.append(
+                ReportOpportunity(
+                    title=h.statement,
+                    hypothesis_id=h.hypothesis_id,
+                    narrative=self.get_full_narrative(h.hypothesis_id),
+                    tier=self._classify_tier(h),
+                    confidence=h.confidence,
+                    risks=h.risks,
+                    conditions_for_success=h.conditions_for_success,
+                )
+            )
         return opps
 
     @staticmethod

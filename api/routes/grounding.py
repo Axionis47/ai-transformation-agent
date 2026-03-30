@@ -22,6 +22,7 @@ def _build_client(config: dict) -> object:
     Set USE_FAKE_CLIENT=1 to force fake client (useful for tests).
     """
     import os
+
     if os.getenv("USE_FAKE_CLIENT", "").strip() in ("1", "true"):
         return FakeGeminiClient()
     try:

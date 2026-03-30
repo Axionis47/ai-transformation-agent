@@ -1,4 +1,5 @@
 """Extract JSON from LLM responses that may include markdown code blocks."""
+
 from __future__ import annotations
 
 import json

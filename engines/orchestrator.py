@@ -5,19 +5,20 @@ Drives: grounding → synthesis → research → synthesis → hypothesis format
 
 NOT an LLM agent. The only thing that writes to run_manager (rule #1).
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
 
+from core import run_manager as rm
 from core.events import EventType
 from core.schemas import AgentScope, BudgetState, HypothesisStatus, Run, RunStatus
-from core import run_manager as rm
 from engines.agents.base import BaseResearchAgent
 from engines.agents.company_profiler import CompanyProfilerAgent
+from engines.agents.hypothesis_former import HypothesisFormerAgent
 from engines.agents.industry_analyst import IndustryAnalystAgent
 from engines.agents.pain_investigator import PainPointInvestigatorAgent
-from engines.agents.hypothesis_former import HypothesisFormerAgent
 from engines.context_provider import AgentContextProvider
 from engines.hypothesis_tracker import HypothesisTracker
 from engines.orchestrator_helpers import (
@@ -102,15 +103,9 @@ class Orchestrator:
         assert run is not None
         budget = run.budget_state
 
-        profiler = self._create_agent(
-            CompanyProfilerAgent, run, AgentScope.COMPANY_PROFILER, budget
-        )
-        analyst = self._create_agent(
-            IndustryAnalystAgent, run, AgentScope.INDUSTRY_ANALYST, budget
-        )
-        results = await asyncio.gather(
-            profiler.run(), analyst.run(), return_exceptions=True
-        )
+        profiler = self._create_agent(CompanyProfilerAgent, run, AgentScope.COMPANY_PROFILER, budget)
+        analyst = self._create_agent(IndustryAnalystAgent, run, AgentScope.INDUSTRY_ANALYST, budget)
+        results = await asyncio.gather(profiler.run(), analyst.run(), return_exceptions=True)
         for r in results:
             if isinstance(r, Exception):
                 log.error("Grounding agent failed: %s", r)
@@ -124,8 +119,10 @@ class Orchestrator:
         run = rm.get_run(run_id)
         assert run is not None
         investigator = self._create_agent(
-            PainPointInvestigatorAgent, run,
-            AgentScope.PAIN_INVESTIGATOR, run.budget_state,
+            PainPointInvestigatorAgent,
+            run,
+            AgentScope.PAIN_INVESTIGATOR,
+            run.budget_state,
         )
         result = await investigator.run()
         promote_result(run_id, result)
@@ -137,8 +134,10 @@ class Orchestrator:
         run = rm.get_run(run_id)
         assert run is not None
         former = self._create_agent(
-            HypothesisFormerAgent, run,
-            AgentScope.HYPOTHESIS_FORMER, run.budget_state,
+            HypothesisFormerAgent,
+            run,
+            AgentScope.HYPOTHESIS_FORMER,
+            run.budget_state,
         )
         result = await former.run()
         promote_result(run_id, result)
@@ -174,15 +173,31 @@ class Orchestrator:
         for h in self._tracker.get_all():
             if h.status in (HypothesisStatus.TESTING, HypothesisStatus.FORMING):
                 if h.confidence >= self._validate_threshold:
-                    self._tracker.validate(h.hypothesis_id, f"Confidence {h.confidence:.0%} meets threshold after testing")
-                    emit(run_id, EventType.HYPOTHESIS_VALIDATED, {"hypothesis_id": h.hypothesis_id, "confidence": h.confidence})
+                    self._tracker.validate(
+                        h.hypothesis_id, f"Confidence {h.confidence:.0%} meets threshold after testing"
+                    )
+                    emit(
+                        run_id,
+                        EventType.HYPOTHESIS_VALIDATED,
+                        {"hypothesis_id": h.hypothesis_id, "confidence": h.confidence},
+                    )
                 elif h.confidence < self._reject_threshold:
                     self._tracker.reject(h.hypothesis_id, f"Confidence {h.confidence:.0%} below rejection threshold")
-                    emit(run_id, EventType.HYPOTHESIS_REJECTED, {"hypothesis_id": h.hypothesis_id, "confidence": h.confidence})
+                    emit(
+                        run_id,
+                        EventType.HYPOTHESIS_REJECTED,
+                        {"hypothesis_id": h.hypothesis_id, "confidence": h.confidence},
+                    )
                 else:
                     # Between thresholds — validate with conditions
-                    self._tracker.validate_with_conditions(h.hypothesis_id, f"Moderate confidence {h.confidence:.0%}", ["Requires further validation"])
-                    emit(run_id, EventType.HYPOTHESIS_VALIDATED, {"hypothesis_id": h.hypothesis_id, "confidence": h.confidence})
+                    self._tracker.validate_with_conditions(
+                        h.hypothesis_id, f"Moderate confidence {h.confidence:.0%}", ["Requires further validation"]
+                    )
+                    emit(
+                        run_id,
+                        EventType.HYPOTHESIS_VALIDATED,
+                        {"hypothesis_id": h.hypothesis_id, "confidence": h.confidence},
+                    )
         # Sync finalized hypotheses to run state
         rm.add_hypotheses(run_id, self._tracker.get_all())
 
@@ -192,8 +207,12 @@ class Orchestrator:
         run = rm.get_run(run_id)
         assert run is not None
         report_result = await generate_report(
-            run_id, run, self._tracker, self._config,
-            self._grounder, self._rag,
+            run_id,
+            run,
+            self._tracker,
+            self._config,
+            self._grounder,
+            self._rag,
         )
         if report_result and report_result.adaptive_report:
             rm.store_adaptive_report(run_id, report_result.adaptive_report)
@@ -203,9 +222,7 @@ class Orchestrator:
     # ------------------------------------------------------------------
     # Factory
     # ------------------------------------------------------------------
-    def _create_agent(
-        self, cls: type, run: Run, scope: AgentScope, budget: BudgetState
-    ) -> BaseResearchAgent:
+    def _create_agent(self, cls: type, run: Run, scope: AgentScope, budget: BudgetState) -> BaseResearchAgent:
         agent_type = cls.AGENT_TYPE
         return cls(
             config=self._config,

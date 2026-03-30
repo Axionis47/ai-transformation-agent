@@ -7,6 +7,7 @@ These tests verify that:
 4. Recall obeys max_items and source filtering
 5. System handles insufficient evidence cleanly
 """
+
 import uuid
 
 from core.schemas import (
@@ -29,8 +30,12 @@ from services.memory.router import (
 
 def _item(eid: str, score: float = 0.5, source: EvidenceSource = EvidenceSource.WINS_KB) -> EvidenceItem:
     return EvidenceItem(
-        evidence_id=eid, run_id="r1", source_type=source,
-        source_ref=f"ref-{eid}", title=f"Title {eid}", snippet=f"Snippet {eid}",
+        evidence_id=eid,
+        run_id="r1",
+        source_type=source,
+        source_ref=f"ref-{eid}",
+        title=f"Title {eid}",
+        snippet=f"Snippet {eid}",
         relevance_score=score,
     )
 
@@ -52,10 +57,19 @@ def _config() -> dict:
 
 def _opp(eid_list: list[str], tier: OpportunityTier = OpportunityTier.EASY) -> Opportunity:
     return Opportunity(
-        opportunity_id=str(uuid.uuid4()), run_id="r1", template_id="tpl-1",
-        name="Test Opp", description="Desc", tier=tier,
-        feasibility=0.8, roi=0.7, time_to_value=0.9, confidence=0.6,
-        evidence_ids=eid_list, assumptions={}, rationale="test",
+        opportunity_id=str(uuid.uuid4()),
+        run_id="r1",
+        template_id="tpl-1",
+        name="Test Opp",
+        description="Desc",
+        tier=tier,
+        feasibility=0.8,
+        roi=0.7,
+        time_to_value=0.9,
+        confidence=0.6,
+        evidence_ids=eid_list,
+        assumptions={},
+        rationale="test",
     )
 
 
@@ -119,8 +133,11 @@ def test_pitch_context_carries_metadata():
     router = ContextRouter()
     intake = _intake("healthcare")
     ctx = router.recall_for_pitch(
-        "r1", [], AssumptionsDraft(assumptions=[], open_questions=[]),
-        intake, {"field_a": 0.8},
+        "r1",
+        [],
+        AssumptionsDraft(assumptions=[], open_questions=[]),
+        intake,
+        {"field_a": 0.8},
     )
     assert ctx.industry == "healthcare"
     assert ctx.field_coverage == {"field_a": 0.8}
@@ -181,8 +198,11 @@ def test_no_engine_receives_full_blob():
     assert len(thought_ctx.relevant_evidence) <= THOUGHT_MAX_EVIDENCE
 
     pitch_ctx = router.recall_for_pitch(
-        "r1", evidence, AssumptionsDraft(assumptions=[], open_questions=[]),
-        intake, {},
+        "r1",
+        evidence,
+        AssumptionsDraft(assumptions=[], open_questions=[]),
+        intake,
+        {},
     )
     assert len(pitch_ctx.evidence) <= PITCH_MAX_EVIDENCE
 

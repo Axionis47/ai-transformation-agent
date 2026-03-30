@@ -1,4 +1,5 @@
 """Opportunity store: typed storage separate from Run object."""
+
 from __future__ import annotations
 
 from core.schemas import Opportunity

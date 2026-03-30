@@ -18,20 +18,22 @@ app = FastAPI(title="AI Opportunity Mapper", version="0.1.0")
 @app.on_event("startup")
 def _init_storage() -> None:
     """Initialize storage backend from config at startup."""
-    from core.config import load_config
     from core import run_manager
+    from core.config import load_config
 
     cfg = load_config()
     backend = cfg.get("storage", {}).get("backend", "memory")
 
     if backend == "firestore":
         from services.storage.firestore_store import FirestoreStore
+
         project_id = cfg.get("gcp", {}).get("project_id")
         store = FirestoreStore(project_id=project_id)
         run_manager.init_storage(store)
         log.info("Storage: Firestore (project=%s)", project_id)
     else:
         log.info("Storage: in-memory")
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -58,6 +60,7 @@ def health() -> dict:
 def get_defaults() -> dict:
     """Return default config for the home page — no hardcoded frontend values."""
     from core.config import load_config
+
     cfg = load_config()
     budgets = cfg.get("budgets", {})
     models = cfg.get("models", {})
@@ -68,8 +71,12 @@ def get_defaults() -> dict:
         "reasoning_model": models.get("reasoning_model", "gemini-2.5-flash"),
         "synthesis_model": models.get("synthesis_model", "gemini-2.5-pro"),
         "pipeline_stages": [
-            "Intake", "Grounding", "Deep Research",
-            "Hypothesis Formation", "Hypothesis Testing",
-            "Synthesis", "Review",
+            "Intake",
+            "Grounding",
+            "Deep Research",
+            "Hypothesis Formation",
+            "Hypothesis Testing",
+            "Synthesis",
+            "Review",
         ],
     }

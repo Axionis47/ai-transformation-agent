@@ -5,6 +5,7 @@ the primary context for the next phase's agents — not raw evidence dumps.
 
 Uses real LLM (grounder.reason()) to compress, NOT just concatenation.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -18,7 +19,6 @@ from core.schemas import (
     PainPoint,
 )
 from services.memory.synthesis_store import SynthesisStore
-
 
 _PROMPT_DIR = Path(__file__).parent.parent / "prompts"
 
@@ -100,15 +100,11 @@ class PhaseSynthesizer:
         context_parts = [f"PRIOR BRIEFING:\n{grounding_briefing}"]
         if pain_points:
             pp_text = "\n".join(
-                f"- {p.description} (severity: {p.severity}, process: {p.affected_process})"
-                for p in pain_points
+                f"- {p.description} (severity: {p.severity}, process: {p.affected_process})" for p in pain_points
             )
             context_parts.append(f"PAIN POINTS IDENTIFIED:\n{pp_text}")
         if insights:
-            ins_text = "\n".join(
-                f"- {i.statement} [{i.confidence:.0%} confidence]"
-                for i in insights
-            )
+            ins_text = "\n".join(f"- {i.statement} [{i.confidence:.0%} confidence]" for i in insights)
             context_parts.append(f"DERIVED INSIGHTS:\n{ins_text}")
 
         context = "\n\n".join(context_parts)
@@ -137,23 +133,17 @@ class PhaseSynthesizer:
         hyp_text = []
         for h in hypotheses:
             status_label = h.status.value.upper()
-            chain_summary = " → ".join(
-                s.step_type for s in h.reasoning_chain
-            )
+            chain_summary = " → ".join(s.step_type for s in h.reasoning_chain)
             hyp_text.append(
-                f"- [{status_label}] {h.statement} "
-                f"(confidence: {h.confidence:.0%}, chain: {chain_summary})"
+                f"- [{status_label}] {h.statement} (confidence: {h.confidence:.0%}, chain: {chain_summary})"
             )
 
         context = "HYPOTHESES TESTED:\n" + "\n".join(hyp_text)
         if insights:
-            context += "\n\nKEY INSIGHTS:\n" + "\n".join(
-                f"- {i.statement}" for i in insights[:10]
-            )
+            context += "\n\nKEY INSIGHTS:\n" + "\n".join(f"- {i.statement}" for i in insights[:10])
 
         prompt = (
-            "You are a senior analyst preparing the final synthesis briefing.\n\n"
-            + context + "\n\n"
+            "You are a senior analyst preparing the final synthesis briefing.\n\n" + context + "\n\n"
             "Write a 3-5 sentence briefing that captures:\n"
             "1. Which hypotheses were validated and why\n"
             "2. Which were rejected and what we learned from that\n"

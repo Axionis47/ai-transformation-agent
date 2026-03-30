@@ -1,4 +1,5 @@
 """Tests for services/grounder/grounder.py — budget enforcement and trace emission."""
+
 from __future__ import annotations
 
 import pytest

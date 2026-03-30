@@ -28,10 +28,7 @@ _ALL_STAGES = [
 
 def _budget_view(run: Run) -> BudgetView:
     remaining_rag = run.budgets.rag_query_budget - run.budget_state.rag_queries_used
-    remaining_search = (
-        run.budgets.external_search_query_budget
-        - run.budget_state.external_search_queries_used
-    )
+    remaining_search = run.budgets.external_search_query_budget - run.budget_state.external_search_queries_used
     return BudgetView(
         rag_queries_remaining=max(0, remaining_rag),
         external_search_queries_remaining=max(0, remaining_search),
@@ -123,8 +120,11 @@ def _build_ui_hints(run: Run) -> UIHints:
             stage_title="Generating Assumptions",
             stage_description="Intake saved. Start analysis to generate assumptions.",
             progress=prog,
-            actions=[UIAction(id="start_analysis", label="Start Analysis",
-                              endpoint=f"/v1/runs/{run.run_id}/start", method="POST")],
+            actions=[
+                UIAction(
+                    id="start_analysis", label="Start Analysis", endpoint=f"/v1/runs/{run.run_id}/start", method="POST"
+                )
+            ],
             editable_fields=[],
             budget_view=bv,
         )
@@ -133,40 +133,70 @@ def _build_ui_hints(run: Run) -> UIHints:
         return _assumptions_draft_hints(run, bv, prog)
 
     if status == RunStatus.ASSUMPTIONS_CONFIRMED:
-        return UIHints(stage_title="Assumptions Confirmed",
-                       stage_description="Starting reasoning phase.", progress=prog,
-                       actions=[], editable_fields=[], budget_view=bv)
+        return UIHints(
+            stage_title="Assumptions Confirmed",
+            stage_description="Starting reasoning phase.",
+            progress=prog,
+            actions=[],
+            editable_fields=[],
+            budget_view=bv,
+        )
 
     if status == RunStatus.REASONING:
-        return UIHints(stage_title="Agent Reasoning",
-                       stage_description="The agent is reasoning over your company data.",
-                       progress=prog,
-                       actions=[UIAction(id="answer_question", label="Answer Question",
-                                         endpoint=f"/v1/runs/{run.run_id}/answer", method="POST")],
-                       editable_fields=[], budget_view=bv, agent_message=None)
+        return UIHints(
+            stage_title="Agent Reasoning",
+            stage_description="The agent is reasoning over your company data.",
+            progress=prog,
+            actions=[
+                UIAction(
+                    id="answer_question",
+                    label="Answer Question",
+                    endpoint=f"/v1/runs/{run.run_id}/answer",
+                    method="POST",
+                )
+            ],
+            editable_fields=[],
+            budget_view=bv,
+            agent_message=None,
+        )
 
     if status == RunStatus.SYNTHESIS:
-        return UIHints(stage_title="Synthesising Opportunities",
-                       stage_description="Synthesising findings into opportunities.",
-                       progress=prog, actions=[], editable_fields=[], budget_view=bv)
+        return UIHints(
+            stage_title="Synthesising Opportunities",
+            stage_description="Synthesising findings into opportunities.",
+            progress=prog,
+            actions=[],
+            editable_fields=[],
+            budget_view=bv,
+        )
 
     if status == RunStatus.REPORT:
-        return UIHints(stage_title="Report Ready",
-                       stage_description="Your opportunity report is ready to publish.",
-                       progress=prog,
-                       actions=[UIAction(id="publish_report", label="Publish Report",
-                                         endpoint=f"/v1/runs/{run.run_id}/publish",
-                                         method="POST", confirm=True)],
-                       editable_fields=[], budget_view=bv)
+        return UIHints(
+            stage_title="Report Ready",
+            stage_description="Your opportunity report is ready to publish.",
+            progress=prog,
+            actions=[
+                UIAction(
+                    id="publish_report",
+                    label="Publish Report",
+                    endpoint=f"/v1/runs/{run.run_id}/publish",
+                    method="POST",
+                    confirm=True,
+                )
+            ],
+            editable_fields=[],
+            budget_view=bv,
+        )
 
     return UIHints(
         stage_title="Published" if status == RunStatus.PUBLISHED else "Failed",
-        stage_description=("Report published." if status == RunStatus.PUBLISHED
-                           else "The run encountered an error."),
+        stage_description=("Report published." if status == RunStatus.PUBLISHED else "The run encountered an error."),
         progress=prog,
-        actions=[UIAction(id="view_report", label="View Report",
-                          endpoint=f"/v1/runs/{run.run_id}/report", method="GET")],
-        editable_fields=[], budget_view=bv,
+        actions=[
+            UIAction(id="view_report", label="View Report", endpoint=f"/v1/runs/{run.run_id}/report", method="GET")
+        ],
+        editable_fields=[],
+        budget_view=bv,
     )
 
 

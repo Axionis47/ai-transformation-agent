@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 _INDUSTRY_TEXT: dict[str, str] = {
     "logistics": (
         "The company operates a fleet of 500 vehicles for dispatch and routing. "
@@ -43,7 +42,14 @@ _REACT_RESPONSES: dict[int, dict] = {
         "query": "What does this company do, how many employees, what products and market position?",
         "target_field": "company_profile",
         "reasoning": "Must understand the company before searching our knowledge base. Web search first.",
-        "field_coverage": {"company_profile": 0.1, "industry_context": 0.1, "business_processes": 0.0, "pain_points": 0.0, "similar_wins": 0.0, "scale_indicators": 0.1},
+        "field_coverage": {
+            "company_profile": 0.1,
+            "industry_context": 0.1,
+            "business_processes": 0.0,
+            "pain_points": 0.0,
+            "similar_wins": 0.0,
+            "scale_indicators": 0.1,
+        },
         "contradictions": [],
     },
     # Phase 2: DISCOVER — dig into pain points via web search
@@ -53,7 +59,14 @@ _REACT_RESPONSES: dict[int, dict] = {
         "query": "What are the operational challenges, manual processes, and inefficiencies?",
         "target_field": "pain_points",
         "reasoning": "Need specific pain points to make targeted RAG queries in the next phase.",
-        "field_coverage": {"company_profile": 0.6, "industry_context": 0.5, "business_processes": 0.2, "pain_points": 0.1, "similar_wins": 0.0, "scale_indicators": 0.4},
+        "field_coverage": {
+            "company_profile": 0.6,
+            "industry_context": 0.5,
+            "business_processes": 0.2,
+            "pain_points": 0.1,
+            "similar_wins": 0.0,
+            "scale_indicators": 0.4,
+        },
         "contradictions": [],
     },
     # Phase 3: MATCH — search knowledge base with informed queries
@@ -63,7 +76,14 @@ _REACT_RESPONSES: dict[int, dict] = {
         "query": "mid-market company manual compliance workflow automation",
         "target_field": "similar_wins",
         "reasoning": "With company context established, we can make targeted KB queries for comparable engagements.",
-        "field_coverage": {"company_profile": 0.7, "industry_context": 0.6, "business_processes": 0.5, "pain_points": 0.6, "similar_wins": 0.1, "scale_indicators": 0.5},
+        "field_coverage": {
+            "company_profile": 0.7,
+            "industry_context": 0.6,
+            "business_processes": 0.5,
+            "pain_points": 0.6,
+            "similar_wins": 0.1,
+            "scale_indicators": 0.5,
+        },
         "contradictions": [],
     },
     # Phase 4: FILL/STOP — enough evidence gathered
@@ -73,7 +93,14 @@ _REACT_RESPONSES: dict[int, dict] = {
         "query": "",
         "target_field": "",
         "reasoning": "All required fields have adequate coverage. Evidence is sufficient for opportunity synthesis.",
-        "field_coverage": {"company_profile": 0.9, "industry_context": 0.8, "business_processes": 0.7, "pain_points": 0.8, "similar_wins": 0.6, "scale_indicators": 0.6},
+        "field_coverage": {
+            "company_profile": 0.9,
+            "industry_context": 0.8,
+            "business_processes": 0.7,
+            "pain_points": 0.8,
+            "similar_wins": 0.6,
+            "scale_indicators": 0.6,
+        },
         "contradictions": [],
     },
 }
@@ -98,6 +125,7 @@ class FakeGeminiClient:
         idx = min(self._reason_count - 1, 3)
         react = _REACT_RESPONSES.get(idx, _REACT_RESPONSES[3])
         import json
+
         return {"text": json.dumps(react)}
 
     def generate_with_grounding(self, prompt: str) -> dict:
@@ -120,36 +148,72 @@ class FakeGeminiClient:
     @staticmethod
     def _fake_assumption_extraction(prompt: str) -> str:
         import json
-        return json.dumps({
-            "assumptions": [
-                {"field": "company_description", "value": "Mid-market company with manual workflows across support and operations", "confidence": 0.8, "confidence_reasoning": "Grounding text directly describes company operations", "source_quote": "operates with manual workflows"},
-                {"field": "industry_segment", "value": "Core operations within the industry vertical", "confidence": 0.7, "confidence_reasoning": "Industry identified from grounding", "source_quote": "industry segment identified"},
-                {"field": "company_size", "value": "Mid-market, estimated 200-2000 employees", "confidence": 0.5, "confidence_reasoning": "Inferred from operational scale", "source_quote": "mid-market scale"},
-            ],
-            "open_questions": [
-                {"field": "key_products", "reason": "No specific product details in research", "suggested_query": "What products does the company offer?"},
-                {"field": "technology_stack", "reason": "No technology details found", "suggested_query": "What technology platforms does the company use?"},
-                {"field": "business_model", "reason": "Revenue model not described", "suggested_query": "How does the company generate revenue?"},
-            ],
-        })
+
+        return json.dumps(
+            {
+                "assumptions": [
+                    {
+                        "field": "company_description",
+                        "value": "Mid-market company with manual workflows across support and operations",
+                        "confidence": 0.8,
+                        "confidence_reasoning": "Grounding text directly describes company operations",
+                        "source_quote": "operates with manual workflows",
+                    },
+                    {
+                        "field": "industry_segment",
+                        "value": "Core operations within the industry vertical",
+                        "confidence": 0.7,
+                        "confidence_reasoning": "Industry identified from grounding",
+                        "source_quote": "industry segment identified",
+                    },
+                    {
+                        "field": "company_size",
+                        "value": "Mid-market, estimated 200-2000 employees",
+                        "confidence": 0.5,
+                        "confidence_reasoning": "Inferred from operational scale",
+                        "source_quote": "mid-market scale",
+                    },
+                ],
+                "open_questions": [
+                    {
+                        "field": "key_products",
+                        "reason": "No specific product details in research",
+                        "suggested_query": "What products does the company offer?",
+                    },
+                    {
+                        "field": "technology_stack",
+                        "reason": "No technology details found",
+                        "suggested_query": "What technology platforms does the company use?",
+                    },
+                    {
+                        "field": "business_model",
+                        "reason": "Revenue model not described",
+                        "suggested_query": "How does the company generate revenue?",
+                    },
+                ],
+            }
+        )
 
     @staticmethod
     def _fake_opportunity_eval(prompt: str) -> str:
         import json
-        return json.dumps({
-            "fit_score": 0.65,
-            "tier": "MEDIUM",
-            "reasoning": "Evidence suggests operational inefficiencies that this template addresses, but industry-specific validation is limited.",
-            "supporting_evidence_ids": [],
-            "matched_engagement_ids": [],
-            "risks": ["Limited industry-specific evidence", "Scale assumptions need validation"],
-            "adaptation_needed": "Industry-specific workflows may require customization of the standard approach.",
-            "feasibility": 0.7,
-            "roi_score": 0.6,
-            "time_to_value": 0.7,
-            "confidence": 0.55,
-            "rationale": "The company shows patterns consistent with this opportunity but requires adaptation for their specific context.",
-        })
+
+        return json.dumps(
+            {
+                "fit_score": 0.65,
+                "tier": "MEDIUM",
+                "reasoning": "Evidence suggests operational inefficiencies that this template addresses, but industry-specific validation is limited.",
+                "supporting_evidence_ids": [],
+                "matched_engagement_ids": [],
+                "risks": ["Limited industry-specific evidence", "Scale assumptions need validation"],
+                "adaptation_needed": "Industry-specific workflows may require customization of the standard approach.",
+                "feasibility": 0.7,
+                "roi_score": 0.6,
+                "time_to_value": 0.7,
+                "confidence": 0.55,
+                "rationale": "The company shows patterns consistent with this opportunity but requires adaptation for their specific context.",
+            }
+        )
 
     @staticmethod
     def default_response(prompt: str) -> dict:
@@ -174,8 +238,6 @@ class FakeGeminiClient:
                         "confidence_scores": [0.85],
                     },
                 ],
-                "search_entry_point": {
-                    "rendered_content": "<style>.search-entry{}</style><div>Search</div>"
-                },
+                "search_entry_point": {"rendered_content": "<style>.search-entry{}</style><div>Search</div>"},
             },
         }

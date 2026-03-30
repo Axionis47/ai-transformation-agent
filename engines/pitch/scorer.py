@@ -3,6 +3,7 @@
 When LLM scores are missing and no data supports a computed score,
 marks the dimension as None and flags data_sufficiency accordingly.
 """
+
 from __future__ import annotations
 
 from core.schemas import EvidenceItem

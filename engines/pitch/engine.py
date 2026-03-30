@@ -2,6 +2,7 @@
 
 Uses the model to evaluate template fit, tier, and scores.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -54,8 +55,13 @@ class PitchEngine:
         # Use LLM-based matching if grounder is available
         if self._grounder is not None:
             matches = match_templates_llm(
-                evidence, self._templates, company_intake, assumptions,
-                self._grounder, run_id, self._engagements,
+                evidence,
+                self._templates,
+                company_intake,
+                assumptions,
+                self._grounder,
+                run_id,
+                self._engagements,
             )
         else:
             matches = match_templates(evidence, self._templates)
@@ -65,14 +71,16 @@ class PitchEngine:
         for match in matches:
             tier, adaptation = classify_tier(match, industry, self._engagements)
             roi_estimate = translate_roi(
-                match.matched_engagement_ids, size_band, industry, self._engagements,
+                match.matched_engagement_ids,
+                size_band,
+                industry,
+                self._engagements,
             )
             scores = score_opportunity(match, roi_estimate, self._config, evidence_map)
 
             # Use LLM rationale if available, otherwise build from match data
             rationale = match.reasoning or (
-                f"Score: {match.match_score:.2f}. "
-                f"Backed by {len(match.matched_engagement_ids)} past engagements."
+                f"Score: {match.match_score:.2f}. Backed by {len(match.matched_engagement_ids)} past engagements."
             )
 
             risks = match.risks or []
@@ -100,24 +108,38 @@ class PitchEngine:
             opportunities.append(opp)
 
         opportunities.sort(
-            key=lambda o: (o.roi + o.feasibility + o.time_to_value + o.confidence),
+            key=lambda o: o.roi + o.feasibility + o.time_to_value + o.confidence,
             reverse=True,
         )
         opportunities = opportunities[:_MAX_OPPORTUNITIES]
 
         tier_counts = {t.value: sum(1 for o in opportunities if o.tier == t) for t in OpportunityTier}
-        emit(run_id, EventType.OPPORTUNITIES_COMPUTED, {
-            "total": len(opportunities), "tier_counts": tier_counts,
-        })
+        emit(
+            run_id,
+            EventType.OPPORTUNITIES_COMPUTED,
+            {
+                "total": len(opportunities),
+                "tier_counts": tier_counts,
+            },
+        )
         if any(o.assumptions for o in opportunities):
-            emit(run_id, EventType.ROI_MODEL_COMPUTED, {
-                "opportunities_with_roi": sum(1 for o in opportunities if o.assumptions),
-            })
-        emit(run_id, EventType.CONFIDENCE_COMPUTED, {
-            "avg_confidence": round(
-                sum(o.confidence for o in opportunities) / max(len(opportunities), 1), 3,
-            ),
-        })
+            emit(
+                run_id,
+                EventType.ROI_MODEL_COMPUTED,
+                {
+                    "opportunities_with_roi": sum(1 for o in opportunities if o.assumptions),
+                },
+            )
+        emit(
+            run_id,
+            EventType.CONFIDENCE_COMPUTED,
+            {
+                "avg_confidence": round(
+                    sum(o.confidence for o in opportunities) / max(len(opportunities), 1),
+                    3,
+                ),
+            },
+        )
         return opportunities
 
     def compose_report(
@@ -131,11 +153,19 @@ class PitchEngine:
         assumptions: "AssumptionsDraft | None" = None,
     ) -> dict:
         report = composer_mod.compose_report(
-            company_intake, opportunities, evidence, reasoning_state, budget_state,
+            company_intake,
+            opportunities,
+            evidence,
+            reasoning_state,
+            budget_state,
             assumptions=assumptions,
         )
-        emit(run_id, EventType.REPORT_RENDERED, {
-            "opportunity_count": len(opportunities),
-            "evidence_count": len(evidence),
-        })
+        emit(
+            run_id,
+            EventType.REPORT_RENDERED,
+            {
+                "opportunity_count": len(opportunities),
+                "evidence_count": len(evidence),
+            },
+        )
         return report

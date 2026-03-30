@@ -11,6 +11,7 @@ Scope rules:
 - HYPOTHESIS_TESTER: sees specific hypothesis + all evidence + insights
 - REPORT_SYNTHESIZER: sees validated hypotheses + all insights + evidence
 """
+
 from __future__ import annotations
 
 from core.schemas import (
@@ -27,30 +28,52 @@ from core.schemas import (
 )
 from services.memory.synthesis_store import get_synthesis_store
 
-
 # What each scope can access
 _SCOPE_ACCESS = {
     AgentScope.COMPANY_PROFILER: {
-        "intake", "evidence",
+        "intake",
+        "evidence",
     },
     AgentScope.INDUSTRY_ANALYST: {
-        "intake", "evidence",
+        "intake",
+        "evidence",
     },
     AgentScope.PAIN_INVESTIGATOR: {
-        "intake", "company_understanding", "industry_context",
-        "briefings", "insights", "evidence",
+        "intake",
+        "company_understanding",
+        "industry_context",
+        "briefings",
+        "insights",
+        "evidence",
     },
     AgentScope.HYPOTHESIS_FORMER: {
-        "intake", "company_understanding", "industry_context",
-        "pain_points", "briefings", "insights", "evidence",
+        "intake",
+        "company_understanding",
+        "industry_context",
+        "pain_points",
+        "briefings",
+        "insights",
+        "evidence",
     },
     AgentScope.HYPOTHESIS_TESTER: {
-        "intake", "company_understanding", "industry_context",
-        "pain_points", "hypotheses", "briefings", "insights", "evidence",
+        "intake",
+        "company_understanding",
+        "industry_context",
+        "pain_points",
+        "hypotheses",
+        "briefings",
+        "insights",
+        "evidence",
     },
     AgentScope.REPORT_SYNTHESIZER: {
-        "intake", "company_understanding", "industry_context",
-        "pain_points", "hypotheses", "briefings", "insights", "evidence",
+        "intake",
+        "company_understanding",
+        "industry_context",
+        "pain_points",
+        "hypotheses",
+        "briefings",
+        "insights",
+        "evidence",
     },
 }
 
@@ -88,9 +111,7 @@ class AgentContextProvider:
             return []
         return list(self._run.pain_points)
 
-    def get_hypotheses(
-        self, status: HypothesisStatus | None = None
-    ) -> list[Hypothesis]:
+    def get_hypotheses(self, status: HypothesisStatus | None = None) -> list[Hypothesis]:
         if "hypotheses" not in self._access:
             return []
         hyps = self._run.hypotheses
@@ -108,9 +129,7 @@ class AgentContextProvider:
             return {}
         return self._synthesis.get_all_briefings(self._run.run_id)
 
-    def get_derived_insights(
-        self, phase: str | None = None
-    ) -> list[DerivedInsight]:
+    def get_derived_insights(self, phase: str | None = None) -> list[DerivedInsight]:
         if "insights" not in self._access:
             return []
         return self._synthesis.get_insights(self._run.run_id, phase=phase)
@@ -167,9 +186,7 @@ class AgentContextProvider:
         if ic:
             trends = ", ".join(ic.key_trends[:3]) if ic.key_trends else "unknown"
             parts.append(
-                f"INDUSTRY [{ic.confidence:.0%} confidence]:\n"
-                f"  Trends: {trends}\n"
-                f"  AI adoption: {ic.ai_adoption_level}"
+                f"INDUSTRY [{ic.confidence:.0%} confidence]:\n  Trends: {trends}\n  AI adoption: {ic.ai_adoption_level}"
             )
 
         pps = self.get_pain_points()

@@ -4,6 +4,7 @@ Runs a ReAct loop: THINK (ask LLM what to search) → ACT (ground via
 Google Search) → OBSERVE (accumulate evidence) → repeat until confident
 or budget exhausted. Returns typed AgentResult with CompanyUnderstanding.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -91,20 +92,16 @@ class CompanyProfilerAgent(BaseResearchAgent):
 
         if action == "GROUND" and query:
             if query in self._past_queries:
-                return AgentThought(
-                    action="STOP", reasoning="duplicate query — stopping"
-                )
+                return AgentThought(action="STOP", reasoning="duplicate query — stopping")
             self._past_queries.append(query)
 
-        return AgentThought(
-            action=action, query=query, reasoning=reasoning
-        )
+        return AgentThought(action=action, query=query, reasoning=reasoning)
 
     # ------------------------------------------------------------------
     # ReAct: OBSERVE — tag new evidence with current dimension
     # ------------------------------------------------------------------
     def _observe(self, observation: str) -> None:
-        for ev in self._evidence[self._prev_evidence_count:]:
+        for ev in self._evidence[self._prev_evidence_count :]:
             ev.dimension = self._current_dimension or "operations"
             ev.produced_by = self._agent_id
 
@@ -142,16 +139,16 @@ class CompanyProfilerAgent(BaseResearchAgent):
         for dim in _DIMENSIONS:
             val = self._assessment.get(dim, "unknown")
             if val.lower() != "unknown":
-                insights.append(DerivedInsight(
-                    insight_id=f"ins-{uuid.uuid4().hex[:8]}",
-                    phase="grounding",
-                    statement=f"Company {dim.replace('_', ' ')}: {val[:200]}",
-                    supporting_evidence_ids=[
-                        e.evidence_id for e in self._evidence[:5]
-                    ],
-                    confidence=self._compute_confidence(),
-                    produced_by_agent=self._agent_id,
-                ))
+                insights.append(
+                    DerivedInsight(
+                        insight_id=f"ins-{uuid.uuid4().hex[:8]}",
+                        phase="grounding",
+                        statement=f"Company {dim.replace('_', ' ')}: {val[:200]}",
+                        supporting_evidence_ids=[e.evidence_id for e in self._evidence[:5]],
+                        confidence=self._compute_confidence(),
+                        produced_by_agent=self._agent_id,
+                    )
+                )
         return insights
 
     # ------------------------------------------------------------------
@@ -164,16 +161,9 @@ class CompanyProfilerAgent(BaseResearchAgent):
         return max(0, query_budget - used)
 
     def _compute_confidence(self) -> float:
-        filled = sum(
-            1 for d in _DIMENSIONS
-            if self._assessment.get(d, "unknown").lower() != "unknown"
-        )
+        filled = sum(1 for d in _DIMENSIONS if self._assessment.get(d, "unknown").lower() != "unknown")
         return round(min(filled / len(_DIMENSIONS), 1.0), 2)
 
     def _build_summary(self) -> str:
         conf = self._compute_confidence()
-        return (
-            f"company_profiler: {self._steps_taken} steps, "
-            f"{len(self._evidence)} evidence, "
-            f"{conf:.0%} confidence"
-        )
+        return f"company_profiler: {self._steps_taken} steps, {len(self._evidence)} evidence, {conf:.0%} confidence"

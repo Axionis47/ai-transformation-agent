@@ -1,6 +1,10 @@
 """Tests for engines/thought/reasoning_loop.py -- ThoughtEngine."""
+
 from __future__ import annotations
-import tempfile, uuid
+
+import tempfile
+import uuid
+
 from core.schemas import AssumptionsDraft, BudgetState, CompanyIntake, EvidenceItem, EvidenceSource
 from engines.thought import ThoughtEngine
 from services.grounder.fake_client import FakeGeminiClient
@@ -12,12 +16,21 @@ from services.rag.store import RAGStore
 INTAKE = CompanyIntake(company_name="Acme Logistics", industry="logistics")
 NO_ASSUMPTIONS = AssumptionsDraft(assumptions=[], open_questions=[])
 CFG = {
-    "reasoning": {"depth_budget": 5, "confidence_threshold": 0.7,
-        "min_field_coverage": 0.3, "stagnation_threshold": 2, "stagnation_delta": 0.02},
-    "budgets": {"external_search_query_budget": 10, "external_search_max_calls": 8,
-        "rag_query_budget": 15, "rag_top_k": 5, "rag_min_score": 0.3},
-    "confidence": {"evidence_coverage_weight": 0.45, "evidence_strength_weight": 0.35,
-        "source_diversity_weight": 0.20},
+    "reasoning": {
+        "depth_budget": 5,
+        "confidence_threshold": 0.7,
+        "min_field_coverage": 0.3,
+        "stagnation_threshold": 2,
+        "stagnation_delta": 0.02,
+    },
+    "budgets": {
+        "external_search_query_budget": 10,
+        "external_search_max_calls": 8,
+        "rag_query_budget": 15,
+        "rag_top_k": 5,
+        "rag_min_score": 0.3,
+    },
+    "confidence": {"evidence_coverage_weight": 0.45, "evidence_strength_weight": 0.35, "source_diversity_weight": 0.20},
 }
 
 
@@ -74,13 +87,16 @@ def test_resume_after_answer():
         budget = BudgetState(external_search_queries_used=5, rag_queries_used=8)
         r = eng.run_loop("r6", INTAKE, NO_ASSUMPTIONS, budget)
         if not r.completed and r.pending_question:
-            ev = EvidenceItem(evidence_id=str(uuid.uuid4()), run_id="r6",
+            ev = EvidenceItem(
+                evidence_id=str(uuid.uuid4()),
+                run_id="r6",
                 source_type=EvidenceSource.USER_PROVIDED,
                 source_ref=r.pending_question.question_id,
-                title=r.pending_question.field, snippet="500 employees",
-                relevance_score=1.0)
-            r2 = eng.run_loop("r6", INTAKE, NO_ASSUMPTIONS, budget,
-                existing_evidence=[ev], start_loop=r.loops_run)
+                title=r.pending_question.field,
+                snippet="500 employees",
+                relevance_score=1.0,
+            )
+            r2 = eng.run_loop("r6", INTAKE, NO_ASSUMPTIONS, budget, existing_evidence=[ev], start_loop=r.loops_run)
             assert r2 is not None
 
 

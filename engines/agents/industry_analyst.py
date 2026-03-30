@@ -6,6 +6,7 @@ or budget exhausted. Returns typed AgentResult with IndustryContext.
 
 Runs in PARALLEL with CompanyProfiler — fully independent, no shared state.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -84,28 +85,23 @@ class IndustryAnalystAgent(BaseResearchAgent):
             trends = assessment.get("key_trends")
             if isinstance(trends, list) and trends:
                 self._assessment["key_trends"] = trends
-            for dim in ("competitive_dynamics", "regulatory_landscape",
-                        "ai_adoption_level"):
+            for dim in ("competitive_dynamics", "regulatory_landscape", "ai_adoption_level"):
                 val = assessment.get(dim)
                 if val and isinstance(val, str) and val.strip():
                     self._assessment[dim] = val
 
         if action == "GROUND" and query:
             if query in self._past_queries:
-                return AgentThought(
-                    action="STOP", reasoning="duplicate query — stopping"
-                )
+                return AgentThought(action="STOP", reasoning="duplicate query — stopping")
             self._past_queries.append(query)
 
-        return AgentThought(
-            action=action, query=query, reasoning=reasoning
-        )
+        return AgentThought(action=action, query=query, reasoning=reasoning)
 
     # ------------------------------------------------------------------
     # ReAct: OBSERVE — tag new evidence with industry dimension
     # ------------------------------------------------------------------
     def _observe(self, observation: str) -> None:
-        for ev in self._evidence[self._prev_evidence_count:]:
+        for ev in self._evidence[self._prev_evidence_count :]:
             ev.dimension = "industry"
             ev.produced_by = self._agent_id
 
@@ -122,12 +118,9 @@ class IndustryAnalystAgent(BaseResearchAgent):
         ic = IndustryContext(
             industry=intake.industry if intake else "unknown",
             key_trends=trends,
-            competitive_dynamics=str(self._assessment.get(
-                "competitive_dynamics", "")),
-            regulatory_landscape=str(self._assessment.get(
-                "regulatory_landscape", "")),
-            ai_adoption_level=str(self._assessment.get(
-                "ai_adoption_level", "")),
+            competitive_dynamics=str(self._assessment.get("competitive_dynamics", "")),
+            regulatory_landscape=str(self._assessment.get("regulatory_landscape", "")),
+            ai_adoption_level=str(self._assessment.get("ai_adoption_level", "")),
             confidence=confidence,
             evidence_ids=[e.evidence_id for e in self._evidence],
         )
@@ -147,32 +140,29 @@ class IndustryAnalystAgent(BaseResearchAgent):
         insights: list[DerivedInsight] = []
         trends = self._assessment.get("key_trends", [])
         if isinstance(trends, list) and trends:
-            insights.append(DerivedInsight(
-                insight_id=f"ins-{uuid.uuid4().hex[:8]}",
-                phase="grounding",
-                statement=f"Industry trends: {', '.join(trends[:3])}",
-                supporting_evidence_ids=[
-                    e.evidence_id for e in self._evidence[:5]
-                ],
-                confidence=self._compute_confidence(),
-                produced_by_agent=self._agent_id,
-            ))
-        for dim in ("competitive_dynamics", "regulatory_landscape",
-                     "ai_adoption_level"):
-            val = self._assessment.get(dim, "")
-            if isinstance(val, str) and val.strip():
-                insights.append(DerivedInsight(
+            insights.append(
+                DerivedInsight(
                     insight_id=f"ins-{uuid.uuid4().hex[:8]}",
                     phase="grounding",
-                    statement=(
-                        f"Industry {dim.replace('_', ' ')}: {val[:200]}"
-                    ),
-                    supporting_evidence_ids=[
-                        e.evidence_id for e in self._evidence[:5]
-                    ],
+                    statement=f"Industry trends: {', '.join(trends[:3])}",
+                    supporting_evidence_ids=[e.evidence_id for e in self._evidence[:5]],
                     confidence=self._compute_confidence(),
                     produced_by_agent=self._agent_id,
-                ))
+                )
+            )
+        for dim in ("competitive_dynamics", "regulatory_landscape", "ai_adoption_level"):
+            val = self._assessment.get(dim, "")
+            if isinstance(val, str) and val.strip():
+                insights.append(
+                    DerivedInsight(
+                        insight_id=f"ins-{uuid.uuid4().hex[:8]}",
+                        phase="grounding",
+                        statement=(f"Industry {dim.replace('_', ' ')}: {val[:200]}"),
+                        supporting_evidence_ids=[e.evidence_id for e in self._evidence[:5]],
+                        confidence=self._compute_confidence(),
+                        produced_by_agent=self._agent_id,
+                    )
+                )
         return insights
 
     # ------------------------------------------------------------------
@@ -189,8 +179,7 @@ class IndustryAnalystAgent(BaseResearchAgent):
         trends = self._assessment.get("key_trends", [])
         if isinstance(trends, list) and len(trends) > 0:
             filled += 1
-        for dim in ("competitive_dynamics", "regulatory_landscape",
-                    "ai_adoption_level"):
+        for dim in ("competitive_dynamics", "regulatory_landscape", "ai_adoption_level"):
             val = self._assessment.get(dim, "")
             if isinstance(val, str) and val.strip():
                 filled += 1
@@ -198,8 +187,4 @@ class IndustryAnalystAgent(BaseResearchAgent):
 
     def _build_summary(self) -> str:
         conf = self._compute_confidence()
-        return (
-            f"industry_analyst: {self._steps_taken} steps, "
-            f"{len(self._evidence)} evidence, "
-            f"{conf:.0%} confidence"
-        )
+        return f"industry_analyst: {self._steps_taken} steps, {len(self._evidence)} evidence, {conf:.0%} confidence"

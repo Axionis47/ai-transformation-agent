@@ -1,4 +1,5 @@
 """Tests for services/memory/pruning.py — evidence pruning utilities."""
+
 from core.schemas import EvidenceItem, EvidenceSource
 from services.memory.pruning import (
     deduplicate_by_source,
@@ -9,9 +10,13 @@ from services.memory.pruning import (
 
 def _item(eid: str, score: float = 0.5, source_ref: str = "", title: str = "", snippet: str = "") -> EvidenceItem:
     return EvidenceItem(
-        evidence_id=eid, run_id="r1", source_type=EvidenceSource.WINS_KB,
-        source_ref=source_ref or eid, title=title or f"Title {eid}",
-        snippet=snippet or f"Snippet {eid}", relevance_score=score,
+        evidence_id=eid,
+        run_id="r1",
+        source_type=EvidenceSource.WINS_KB,
+        source_ref=source_ref or eid,
+        title=title or f"Title {eid}",
+        snippet=snippet or f"Snippet {eid}",
+        relevance_score=score,
     )
 
 

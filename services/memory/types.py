@@ -1,4 +1,5 @@
 """Memory type definitions, recall contracts, and provenance tracking."""
+
 from __future__ import annotations
 
 from enum import Enum

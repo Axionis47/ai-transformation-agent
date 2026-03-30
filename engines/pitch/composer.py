@@ -6,7 +6,6 @@ from core.schemas import (
     CompanyIntake,
     EvidenceItem,
     Opportunity,
-    OpportunityTier,
     ReasoningState,
 )
 
@@ -27,46 +26,52 @@ def compose_report(
     for opp in opportunities:
         tier_key = opp.tier.value
         all_evidence_ids.update(opp.evidence_ids)
-        by_tier.setdefault(tier_key, []).append({
-            "opportunity_id": opp.opportunity_id,
-            "name": opp.name,
-            "description": opp.description,
-            "template_id": opp.template_id,
-            "feasibility": opp.feasibility,
-            "roi": opp.roi,
-            "time_to_value": opp.time_to_value,
-            "confidence": opp.confidence,
-            "rationale": opp.rationale,
-            "adaptation_needed": opp.adaptation_needed,
-            "evidence_ids": opp.evidence_ids,
-            "risks": opp.risks,
-            "data_sufficiency": opp.data_sufficiency,
-        })
+        by_tier.setdefault(tier_key, []).append(
+            {
+                "opportunity_id": opp.opportunity_id,
+                "name": opp.name,
+                "description": opp.description,
+                "template_id": opp.template_id,
+                "feasibility": opp.feasibility,
+                "roi": opp.roi,
+                "time_to_value": opp.time_to_value,
+                "confidence": opp.confidence,
+                "rationale": opp.rationale,
+                "adaptation_needed": opp.adaptation_needed,
+                "evidence_ids": opp.evidence_ids,
+                "risks": opp.risks,
+                "data_sufficiency": opp.data_sufficiency,
+            }
+        )
 
     # Evidence annex with opportunity cross-references
     evidence_annex = []
     for e in evidence:
         cited_by = [o.name for o in opportunities if e.evidence_id in o.evidence_ids]
-        evidence_annex.append({
-            "evidence_id": e.evidence_id,
-            "source_type": e.source_type.value,
-            "title": e.title,
-            "snippet": e.snippet[:300],
-            "uri": e.uri,
-            "relevance_score": e.relevance_score,
-            "cited_by_opportunities": cited_by,
-        })
+        evidence_annex.append(
+            {
+                "evidence_id": e.evidence_id,
+                "source_type": e.source_type.value,
+                "title": e.title,
+                "snippet": e.snippet[:300],
+                "uri": e.uri,
+                "relevance_score": e.relevance_score,
+                "cited_by_opportunities": cited_by,
+            }
+        )
 
     # Assumptions snapshot
     assumptions_snapshot = []
     if assumptions:
         for a in assumptions.assumptions:
-            assumptions_snapshot.append({
-                "field": a.field,
-                "value": a.value,
-                "confidence": a.confidence,
-                "source": a.source,
-            })
+            assumptions_snapshot.append(
+                {
+                    "field": a.field,
+                    "value": a.value,
+                    "confidence": a.confidence,
+                    "source": a.source,
+                }
+            )
 
     # Field coverage detail
     field_coverage = {}

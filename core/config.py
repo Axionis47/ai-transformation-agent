@@ -28,9 +28,7 @@ def _set_nested(d: dict, path: str, value: Any) -> None:
 
 def load_config() -> dict:
     if not _DEFAULTS_PATH.exists():
-        raise FileNotFoundError(
-            f"Config file not found: {_DEFAULTS_PATH}"
-        )
+        raise FileNotFoundError(f"Config file not found: {_DEFAULTS_PATH}")
     with open(_DEFAULTS_PATH) as f:
         config = yaml.safe_load(f)
 

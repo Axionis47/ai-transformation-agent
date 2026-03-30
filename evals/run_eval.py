@@ -1,4 +1,5 @@
 """CLI entry point: run eval harness across all 25 company bundles and print metrics."""
+
 from __future__ import annotations
 
 import sys
@@ -8,7 +9,7 @@ from evals.metrics import compute_metrics, format_report
 
 
 def main() -> None:
-    print(f"Running eval harness for 25 company bundles...")
+    print("Running eval harness for 25 company bundles...")
     results = run_all()
     metrics = compute_metrics(results)
     report = format_report(metrics)

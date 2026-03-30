@@ -1,4 +1,5 @@
 """Aggregate metrics computation for eval results."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -34,10 +35,15 @@ def compute_metrics(results: list[EvalResult]) -> AggregateMetrics:
     """Compute aggregate metrics across all eval results."""
     if not results:
         return AggregateMetrics(
-            total_runs=0, successful_runs=0, success_rate=0.0,
-            avg_evidence_count=0.0, avg_opportunity_count=0.0,
-            avg_confidence=0.0, avg_coverage=0.0,
-            budget_adherence_rate=0.0, avg_latency_seconds=0.0,
+            total_runs=0,
+            successful_runs=0,
+            success_rate=0.0,
+            avg_evidence_count=0.0,
+            avg_opportunity_count=0.0,
+            avg_confidence=0.0,
+            avg_coverage=0.0,
+            budget_adherence_rate=0.0,
+            avg_latency_seconds=0.0,
             tier_totals={"easy": 0, "medium": 0, "hard": 0},
         )
 
@@ -55,7 +61,10 @@ def compute_metrics(results: list[EvalResult]) -> AggregateMetrics:
         ind = r.industry
         if ind not in industry_breakdown:
             industry_breakdown[ind] = {
-                "total": 0, "success": 0, "avg_confidence": 0.0, "avg_opportunities": 0.0,
+                "total": 0,
+                "success": 0,
+                "avg_confidence": 0.0,
+                "avg_opportunities": 0.0,
             }
         industry_breakdown[ind]["total"] += 1
         if r.success:
@@ -110,9 +119,6 @@ def format_report(metrics: AggregateMetrics) -> str:
         total = stats["total"]
         avg_conf = stats["avg_confidence"]
         avg_opps = stats["avg_opportunities"]
-        lines.append(
-            f"    {ind:<25} {ok}/{total} runs  "
-            f"conf={avg_conf:.3f}  opps={avg_opps:.1f}"
-        )
+        lines.append(f"    {ind:<25} {ok}/{total} runs  conf={avg_conf:.3f}  opps={avg_opps:.1f}")
     lines.append("=" * 60)
     return "\n".join(lines)

@@ -1,4 +1,5 @@
 """Tests for api/routes/pitch.py -- synthesis, publish, evidence, and report endpoints."""
+
 from __future__ import annotations
 
 import pytest
@@ -15,9 +16,10 @@ client = TestClient(app)
 @pytest.fixture(autouse=True)
 def clear_state():
     run_manager.init_storage(MemoryStore())
-    from services.memory.store import get_evidence_store
     from services.memory.opp_store import get_opportunity_store
     from services.memory.report_store import get_report_store
+    from services.memory.store import get_evidence_store
+
     get_evidence_store()._items.clear()
     get_opportunity_store()._items.clear()
     get_report_store()._items.clear()
@@ -31,15 +33,15 @@ def clear_state():
 def _run_id() -> str:
     """Create a run in legacy mode so assumptions/reasoning/synthesis flow works."""
     run = run_manager.create_run(
-        "Acme Corp", "logistics",
+        "Acme Corp",
+        "logistics",
         config_overrides={"orchestration.mode": "legacy"},
     )
     return run.run_id
 
 
 def _create_reasoning_complete_run(rid: str) -> None:
-    client.put(f"/v1/runs/{rid}/company-intake",
-               json={"company_name": "Acme Corp", "industry": "logistics"})
+    client.put(f"/v1/runs/{rid}/company-intake", json={"company_name": "Acme Corp", "industry": "logistics"})
     client.post(f"/v1/runs/{rid}/start")
     client.post(f"/v1/runs/{rid}/assumptions/confirm")
     client.post(f"/v1/runs/{rid}/start")
@@ -78,16 +80,14 @@ def test_synthesize_from_reasoning():
 
 def test_synthesize_wrong_status():
     rid = _run_id()
-    client.put(f"/v1/runs/{rid}/company-intake",
-               json={"company_name": "Acme Corp", "industry": "logistics"})
+    client.put(f"/v1/runs/{rid}/company-intake", json={"company_name": "Acme Corp", "industry": "logistics"})
     r = client.post(f"/v1/runs/{rid}/synthesize")
     assert r.status_code == 409
 
 
 def test_synthesize_incomplete_reasoning():
     rid = _run_id()
-    client.put(f"/v1/runs/{rid}/company-intake",
-               json={"company_name": "Acme Corp", "industry": "logistics"})
+    client.put(f"/v1/runs/{rid}/company-intake", json={"company_name": "Acme Corp", "industry": "logistics"})
     client.post(f"/v1/runs/{rid}/start")
     client.post(f"/v1/runs/{rid}/assumptions/confirm")
     client.post(f"/v1/runs/{rid}/start")
@@ -108,8 +108,7 @@ def test_publish_from_report():
 
 def test_publish_wrong_status():
     rid = _run_id()
-    client.put(f"/v1/runs/{rid}/company-intake",
-               json={"company_name": "Acme Corp", "industry": "logistics"})
+    client.put(f"/v1/runs/{rid}/company-intake", json={"company_name": "Acme Corp", "industry": "logistics"})
     r = client.post(f"/v1/runs/{rid}/publish")
     assert r.status_code == 409
 

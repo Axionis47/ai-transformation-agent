@@ -1,4 +1,5 @@
 """Tests for services/rag/store.py — ChromaDB wrapper."""
+
 import tempfile
 
 import pytest
@@ -49,17 +50,21 @@ def test_count_reflects_added_documents(store):
 
 
 def test_query_returns_results(store):
-    store.add_documents([
-        _doc("eng-001", "Customer support triage automation for financial services.", {"title": "Triage"}),
-    ])
+    store.add_documents(
+        [
+            _doc("eng-001", "Customer support triage automation for financial services.", {"title": "Triage"}),
+        ]
+    )
     results = store.query("customer support", top_k=5)
     assert len(results) >= 1
 
 
 def test_query_results_have_required_fields(store):
-    store.add_documents([
-        _doc("eng-002", "Fraud detection copilot for analysts.", {"title": "Fraud"}),
-    ])
+    store.add_documents(
+        [
+            _doc("eng-002", "Fraud detection copilot for analysts.", {"title": "Fraud"}),
+        ]
+    )
     results = store.query("fraud detection")
     assert len(results) > 0
     r = results[0]
@@ -70,29 +75,30 @@ def test_query_results_have_required_fields(store):
 
 
 def test_query_score_is_between_0_and_1(store):
-    store.add_documents([
-        _doc("eng-003", "Inventory forecasting for retail chains."),
-    ])
+    store.add_documents(
+        [
+            _doc("eng-003", "Inventory forecasting for retail chains."),
+        ]
+    )
     results = store.query("inventory management retail")
     for r in results:
         assert 0.0 <= r["score"] <= 1.0
 
 
 def test_query_top_k_limits_results(store):
-    docs = [
-        _doc(f"doc-{i}", f"Engagement document number {i} about automation.")
-        for i in range(10)
-    ]
+    docs = [_doc(f"doc-{i}", f"Engagement document number {i} about automation.") for i in range(10)]
     store.add_documents(docs)
     results = store.query("automation", top_k=3)
     assert len(results) <= 3
 
 
 def test_query_returns_sorted_by_relevance(store):
-    store.add_documents([
-        _doc("rel-1", "Customer support triage and ticket automation."),
-        _doc("rel-2", "Fleet maintenance scheduling for trucks."),
-    ])
+    store.add_documents(
+        [
+            _doc("rel-1", "Customer support triage and ticket automation."),
+            _doc("rel-2", "Fleet maintenance scheduling for trucks."),
+        ]
+    )
     results = store.query("customer support ticket triage")
     scores = [r["score"] for r in results]
     assert scores == sorted(scores, reverse=True)

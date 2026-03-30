@@ -4,6 +4,7 @@ Runs AFTER CompanyProfiler, IndustryAnalyst, and PainInvestigator.
 Uses RAG only (analogous past engagements). NO grounding.
 Returns typed AgentResult with hypotheses registered via HypothesisTracker.
 """
+
 from __future__ import annotations
 
 from core.json_parser import extract_json
@@ -51,19 +52,12 @@ class HypothesisFormerAgent(BaseResearchAgent):
 
         structured_inputs = ""
         if insights:
-            structured_inputs += (
-                "\nSTRUCTURED INSIGHTS (from prior agents):\n"
-            )
-            structured_inputs += "\n".join(
-                f"- [{i.phase}] {i.statement} [{i.confidence:.0%}]"
-                for i in insights
-            )
+            structured_inputs += "\nSTRUCTURED INSIGHTS (from prior agents):\n"
+            structured_inputs += "\n".join(f"- [{i.phase}] {i.statement} [{i.confidence:.0%}]" for i in insights)
         if pain_points:
             structured_inputs += "\nIDENTIFIED PAIN POINTS:\n"
             structured_inputs += "\n".join(
-                f"- [{pp.severity.upper()}] {pp.description}"
-                f" (process: {pp.affected_process})"
-                for pp in pain_points
+                f"- [{pp.severity.upper()}] {pp.description} (process: {pp.affected_process})" for pp in pain_points
             )
 
         prompt = self._system_prompt.format(
@@ -124,9 +118,7 @@ class HypothesisFormerAgent(BaseResearchAgent):
         if is_last_step and action == "RAG":
             action = "STOP"
 
-        return AgentThought(
-            action=action, query=query, reasoning=reasoning
-        )
+        return AgentThought(action=action, query=query, reasoning=reasoning)
 
     # ------------------------------------------------------------------
     # ReAct: ACT — only RAG, override to block GROUND
@@ -134,20 +126,12 @@ class HypothesisFormerAgent(BaseResearchAgent):
     async def _act(self, thought: AgentThought) -> str:
         if thought.action == "RAG" and self._rag:
             self._budget.total_tool_calls_used += 1
-            rag_result = self._rag.query(
-                thought.query, self._run_id, self._budget
-            )
+            rag_result = self._rag.query(thought.query, self._run_id, self._budget)
             if rag_result.budget_exhausted:
                 return "RAG BUDGET EXHAUSTED"
             self._evidence.extend(rag_result.results)
-            snippets = [
-                f"- {r.source_ref}: {r.snippet[:100]}"
-                for r in rag_result.results[:3]
-            ]
-            return (
-                f"RAG returned {len(rag_result.results)} results:\n"
-                + "\n".join(snippets)
-            )
+            snippets = [f"- {r.source_ref}: {r.snippet[:100]}" for r in rag_result.results[:3]]
+            return f"RAG returned {len(rag_result.results)} results:\n" + "\n".join(snippets)
         return f"Unknown action: {thought.action}"
 
     # ------------------------------------------------------------------
@@ -177,11 +161,7 @@ class HypothesisFormerAgent(BaseResearchAgent):
                 continue
             raw_evidence = raw.get("evidence_for", [])
             # Use LLM-cited evidence if valid, else fallback to collected
-            ev_for = (
-                raw_evidence
-                if isinstance(raw_evidence, list) and raw_evidence
-                else evidence_ids[:3]
-            )
+            ev_for = raw_evidence if isinstance(raw_evidence, list) and raw_evidence else evidence_ids[:3]
             self._tracker.form(
                 statement=raw["statement"],
                 category=raw.get("category", "automation"),
@@ -198,14 +178,16 @@ class HypothesisFormerAgent(BaseResearchAgent):
     def _build_insights(self, hypotheses: list[Hypothesis]) -> list[DerivedInsight]:
         insights: list[DerivedInsight] = []
         for h in hypotheses:
-            insights.append(DerivedInsight(
-                insight_id=f"ins-hf-{h.hypothesis_id}",
-                phase="hypothesis_formation",
-                statement=f"Hypothesis: {h.statement}",
-                supporting_evidence_ids=h.evidence_for[:5],
-                confidence=h.confidence,
-                produced_by_agent=self._agent_id,
-            ))
+            insights.append(
+                DerivedInsight(
+                    insight_id=f"ins-hf-{h.hypothesis_id}",
+                    phase="hypothesis_formation",
+                    statement=f"Hypothesis: {h.statement}",
+                    supporting_evidence_ids=h.evidence_for[:5],
+                    confidence=h.confidence,
+                    produced_by_agent=self._agent_id,
+                )
+            )
         return insights
 
     # ------------------------------------------------------------------
@@ -224,8 +206,4 @@ class HypothesisFormerAgent(BaseResearchAgent):
 
     def _build_summary(self) -> str:
         n = len(self._tracker.get_all())
-        return (
-            f"hypothesis_former: {self._steps_taken} steps, "
-            f"{len(self._evidence)} evidence, "
-            f"{n} hypotheses formed"
-        )
+        return f"hypothesis_former: {self._steps_taken} steps, {len(self._evidence)} evidence, {n} hypotheses formed"

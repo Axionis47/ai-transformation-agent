@@ -3,6 +3,7 @@
 Does NOT mutate run state. Returns a result the API endpoint uses
 to drive re-testing and report regeneration.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -61,7 +62,9 @@ def prepare_enrichment(run: Run, inputs: list[EnrichmentInput]) -> EnrichmentRes
     for h in run.hypotheses:
         if h.hypothesis_id in result.affected_hypothesis_ids:
             result.pre_enrichment_confidence[h.hypothesis_id] = h.confidence
-            result.pre_enrichment_status[h.hypothesis_id] = h.status.value if hasattr(h.status, 'value') else str(h.status)
+            result.pre_enrichment_status[h.hypothesis_id] = (
+                h.status.value if hasattr(h.status, "value") else str(h.status)
+            )
 
     return result
 

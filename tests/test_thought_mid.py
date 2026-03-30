@@ -1,10 +1,11 @@
 """Tests for engines/thought/mid.py -- LLM-based MID gap detection."""
+
 from __future__ import annotations
 
 import uuid
 
 from core.schemas import BudgetState, EvidenceItem, EvidenceSource
-from engines.thought.mid import REQUIRED_FIELDS, assess_coverage, _estimate_field_coverage
+from engines.thought.mid import REQUIRED_FIELDS, _estimate_field_coverage, assess_coverage
 
 CONFIG = {
     "confidence": {"evidence_coverage_weight": 0.45, "evidence_strength_weight": 0.35, "source_diversity_weight": 0.20},
@@ -13,8 +14,15 @@ CONFIG = {
 
 
 def _ev(s: str, src: EvidenceSource = EvidenceSource.GOOGLE_SEARCH, score: float = 0.8) -> EvidenceItem:
-    return EvidenceItem(evidence_id=str(uuid.uuid4()), run_id="r", source_type=src,
-        source_ref=f"ref-{uuid.uuid4().hex[:8]}", title="T", snippet=s, relevance_score=score)
+    return EvidenceItem(
+        evidence_id=str(uuid.uuid4()),
+        run_id="r",
+        source_type=src,
+        source_ref=f"ref-{uuid.uuid4().hex[:8]}",
+        title="T",
+        snippet=s,
+        relevance_score=score,
+    )
 
 
 def test_required_fields_defined():
