@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Start Python API on port 8000 (internal only)
 gunicorn api.app:app \
   -k uvicorn.workers.UvicornWorker \
