@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from core import run_manager
 from services.rag.ingest import ensure_loaded
 from services.rag.retrieval import RAGQueryResult, RAGRetriever
-from services.rag.store import RAGStore
+from services.rag.store import get_rag_store
 
 router = APIRouter()
 
@@ -21,7 +21,7 @@ def rag_query(run_id: str, body: RAGQueryRequest) -> RAGQueryResult:
     if run is None:
         raise HTTPException(status_code=404, detail=f"Run not found: {run_id}")
 
-    store = RAGStore()
+    store = get_rag_store()
     ensure_loaded(store)
 
     retriever = RAGRetriever(store=store, config=run.config_snapshot)

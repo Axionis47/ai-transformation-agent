@@ -22,3 +22,4 @@ SPRINT_PLAN.md
 SPRINT_*_PLAN.md
 .claude/
 data/chroma_store/
+frontend/data/

@@ -1,6 +1,24 @@
 from __future__ import annotations
 
+from enum import Enum
+
 from pydantic import BaseModel
+
+
+class ChunkType(str, Enum):
+    """Each engagement is split into these independently retrievable facets."""
+
+    PROBLEM_PATTERN = "problem_pattern"
+    SOLUTION_APPROACH = "solution_approach"
+    PRECONDITIONS = "preconditions"
+    OUTCOMES = "outcomes"
+    DISCOVERY_INSIGHT = "discovery_insight"
+    IMPLEMENTATION_FRICTION = "implementation_friction"
+    GENERALIZATION = "generalization"
+
+
+ALL_CHUNK_TYPES = list(ChunkType)
+CHUNK_TYPE_COUNT = len(ALL_CHUNK_TYPES)
 
 
 class EngagementCase(BaseModel):
@@ -18,7 +36,14 @@ class EngagementCase(BaseModel):
     conditions_for_success: list[str]
     anti_patterns: list[str]
     tags: list[str]
+    # Engagement economics
+    engagement_value_usd: int = 0
+    team_composition: str = ""
+    buyer_persona: str = ""
+    trigger_event: str = ""
     # Analyst case notebook fields
+    solution_description: str = ""
+    outcome_narrative: str = ""
     generalized_for: str = ""
     lessons_learned: list[str] = []
     discovery_insight: str = ""
