@@ -7,6 +7,20 @@ on:
     branches: [main]
 
 jobs:
+  python-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install ruff
+        run: pip install ruff==0.15.0
+      - name: Ruff lint
+        run: ruff check .
+      - name: Ruff format check
+        run: ruff format --check .
+
   test:
     runs-on: ubuntu-latest
     steps:
@@ -19,6 +33,20 @@ jobs:
       - name: Run tests
         run: python -m pytest tests/ -q --tb=short
 
+  frontend-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install frontend deps
+        run: cd frontend && npm install
+      - name: ESLint
+        run: cd frontend && npm run lint
+      - name: Prettier check
+        run: cd frontend && npm run format:check
+
   frontend-build:
     runs-on: ubuntu-latest
     steps:
@@ -30,3 +58,16 @@ jobs:
         run: cd frontend && npm install
       - name: Build frontend
         run: cd frontend && npm run build
+
+  frontend-typecheck:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install frontend deps
+        run: cd frontend && npm install
+      - name: TypeScript typecheck (advisory)
+        run: cd frontend && npm run typecheck
