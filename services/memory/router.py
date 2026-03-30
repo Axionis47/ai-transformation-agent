@@ -3,10 +3,12 @@
 Each engine gets a typed context assembly method that returns only what it needs,
 under hard limits, with logging of what was dropped.
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
+from core.events import EventType
 from core.schemas import (
     AssumptionsDraft,
     BudgetState,
@@ -21,12 +23,12 @@ from services.memory.pruning import (
     prune_for_field_scope,
 )
 from services.trace import emit
-from core.events import EventType
 
 
 @dataclass
 class ThoughtContext:
     """Minimal context for the reasoning loop."""
+
     intake: CompanyIntake
     budget_state: BudgetState
     relevant_evidence: list[EvidenceItem]
@@ -38,6 +40,7 @@ class ThoughtContext:
 @dataclass
 class MIDContext:
     """Minimal context for MID assessment."""
+
     evidence: list[EvidenceItem]
     budget_state: BudgetState
     confidence_weights: dict[str, float]
@@ -47,6 +50,7 @@ class MIDContext:
 @dataclass
 class PitchContext:
     """Minimal context for pitch synthesis."""
+
     evidence: list[EvidenceItem]
     assumptions: AssumptionsDraft
     industry: str
@@ -58,6 +62,7 @@ class PitchContext:
 @dataclass
 class ReportContext:
     """Minimal context for report composition."""
+
     opportunities: list[Opportunity]
     linked_evidence: list[EvidenceItem]
     intake: CompanyIntake
@@ -81,8 +86,55 @@ PITCH_MIN_RELEVANCE = 0.3
 REPORT_MAX_EVIDENCE = 30  # only linked evidence, so naturally bounded
 
 
+@dataclass
+class RecallProfile:
+    """Generic recall configuration for any agent or engine.
+
+    Use this to define custom recall needs without adding a new method
+    to ContextRouter for every new consumer.
+    """
+
+    name: str
+    max_items: int = 15
+    min_relevance: float = 0.3
+    source_types: list[str] | None = None  # filter by source type
+    field_scope: list[str] | None = None  # filter by field keywords
+    max_per_field: int = 5  # only used if field_scope is set
+
+
 class ContextRouter:
     """Assembles filtered, budgeted context for each engine."""
+
+    def recall(
+        self,
+        run_id: str,
+        evidence: list[EvidenceItem],
+        profile: RecallProfile,
+    ) -> tuple[list[EvidenceItem], int]:
+        """Generic recall: filter evidence according to a RecallProfile.
+
+        Returns (filtered_items, dropped_count). Any agent can use this
+        by defining its own RecallProfile.
+        """
+        deduped = deduplicate_by_source(evidence)
+
+        if profile.source_types:
+            type_set = set(profile.source_types)
+            deduped = [e for e in deduped if e.source_type.value in type_set]
+
+        if profile.field_scope:
+            from engines.thought.mid import _FIELD_SIGNALS
+
+            deduped = prune_for_field_scope(deduped, _FIELD_SIGNALS, profile.field_scope, profile.max_per_field)
+
+        pruned, dropped = prune_by_relevance(
+            deduped,
+            min_relevance=profile.min_relevance,
+            max_items=profile.max_items,
+        )
+
+        self._log_recall(run_id, profile.name, len(evidence), len(pruned), dropped)
+        return pruned, dropped
 
     def recall_for_thought(
         self,
@@ -203,12 +255,14 @@ class ContextRouter:
         )
 
     @staticmethod
-    def _log_recall(
-        run_id: str, need: str, total: int, returned: int, dropped: int
-    ) -> None:
-        emit(run_id, EventType.QUERY_PLAN_CREATED, {
-            "recall_need": need,
-            "total_available": total,
-            "returned": returned,
-            "dropped": dropped,
-        })
+    def _log_recall(run_id: str, need: str, total: int, returned: int, dropped: int) -> None:
+        emit(
+            run_id,
+            EventType.QUERY_PLAN_CREATED,
+            {
+                "recall_need": need,
+                "total_available": total,
+                "returned": returned,
+                "dropped": dropped,
+            },
+        )

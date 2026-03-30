@@ -1,13 +1,14 @@
 """Tests for services/rag/retrieval.py — RAGRetriever with budget enforcement."""
+
 import tempfile
 
 import pytest
 
 from core.schemas import BudgetState, EvidenceSource
+from services import trace as trace_module
 from services.rag.ingest import ensure_loaded
 from services.rag.retrieval import RAGQueryResult, RAGRetriever
 from services.rag.store import RAGStore
-from services import trace as trace_module
 
 
 def _config(rag_query_budget: int = 8, rag_top_k: int = 5, rag_min_score: float = 0.3) -> dict:
@@ -22,7 +23,7 @@ def _config(rag_query_budget: int = 8, rag_top_k: int = 5, rag_min_score: float 
 
 @pytest.fixture
 def loaded_store():
-    """RAGStore seeded with all engagements from seed file."""
+    """RAGStore seeded with all chunked engagements."""
     with tempfile.TemporaryDirectory() as tmpdir:
         store = RAGStore(persist_dir=tmpdir)
         ensure_loaded(store)
@@ -39,6 +40,7 @@ def clear_trace_events():
 
 # --- Basic query ---
 
+
 def test_query_returns_rag_query_result(loaded_store):
     retriever = RAGRetriever(loaded_store, _config())
     result = retriever.query("customer support automation", "run-001", BudgetState())
@@ -48,8 +50,9 @@ def test_query_returns_rag_query_result(loaded_store):
 def test_query_results_are_evidence_items(loaded_store):
     retriever = RAGRetriever(loaded_store, _config())
     result = retriever.query("customer support automation", "run-001", BudgetState())
+    from core.schemas import EvidenceItem
+
     for item in result.results:
-        from core.schemas import EvidenceItem
         assert isinstance(item, EvidenceItem)
 
 
@@ -68,12 +71,22 @@ def test_query_results_have_evidence_id(loaded_store):
         assert len(item.evidence_id) > 0
 
 
-def test_query_results_have_source_ref(loaded_store):
+def test_query_results_source_ref_is_chunked_id(loaded_store):
+    """source_ref should be engagement_id::chunk_type format."""
     retriever = RAGRetriever(loaded_store, _config())
     result = retriever.query("customer support automation", "run-001", BudgetState())
     for item in result.results:
-        assert item.source_ref
-        assert len(item.source_ref) > 0
+        assert "::" in item.source_ref, f"source_ref not chunked: {item.source_ref}"
+
+
+def test_query_results_retrieval_meta_has_chunk_info(loaded_store):
+    """retrieval_meta should include chunk_type and engagement_id."""
+    retriever = RAGRetriever(loaded_store, _config())
+    result = retriever.query("logistics dispatch", "run-001", BudgetState())
+    for item in result.results:
+        assert "chunk_type" in item.retrieval_meta
+        assert "engagement_id" in item.retrieval_meta
+        assert item.retrieval_meta["engagement_id"].startswith("eng-")
 
 
 def test_query_results_have_relevance_score(loaded_store):
@@ -100,6 +113,7 @@ def test_query_snippet_truncated_to_500_chars(loaded_store):
 
 
 # --- Budget enforcement ---
+
 
 def test_budget_increments_after_query(loaded_store):
     retriever = RAGRetriever(loaded_store, _config(rag_query_budget=5))
@@ -129,6 +143,7 @@ def test_budget_exhausted_budget_state_not_incremented(loaded_store):
 
 # --- Min score filtering ---
 
+
 def test_min_score_very_high_returns_zero_results(loaded_store):
     retriever = RAGRetriever(loaded_store, _config(rag_min_score=0.99))
     result = retriever.query("customer support", "run-005", BudgetState())
@@ -141,13 +156,8 @@ def test_min_score_zero_returns_results(loaded_store):
     assert len(result.results) > 0
 
 
-def test_filtered_count_reflects_removed_results(loaded_store):
-    retriever = RAGRetriever(loaded_store, _config(rag_min_score=0.99))
-    result = retriever.query("logistics dispatch", "run-007", BudgetState())
-    assert result.filtered_count >= 0
-
-
 # --- Trace events ---
+
 
 def test_trace_rag_query_executed_emitted(loaded_store):
     retriever = RAGRetriever(loaded_store, _config())

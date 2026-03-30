@@ -4,8 +4,21 @@ from __future__ import annotations
 import chromadb
 from chromadb.utils import embedding_functions
 
-
 _COLLECTION_NAME = "wins_kb"
+_singleton: "RAGStore | None" = None
+
+
+def get_rag_store(persist_dir: str = "./data/chroma_store") -> "RAGStore":
+    """Return a module-level singleton RAGStore.
+
+    Prevents multiple ChromaDB clients from fighting over the same
+    SQLite file, which causes locking errors in tests and under
+    concurrent requests.
+    """
+    global _singleton
+    if _singleton is None:
+        _singleton = RAGStore(persist_dir=persist_dir)
+    return _singleton
 
 
 class RAGStore:
