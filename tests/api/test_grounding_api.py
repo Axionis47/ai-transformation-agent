@@ -30,8 +30,8 @@ def _create_run() -> dict:
 
 
 def _fake_patch():
-    """Patch _build_client to always return a FakeGeminiClient."""
-    return patch("api.routes.grounding._build_client", return_value=FakeGeminiClient())
+    """Patch build_gemini_client to always return a FakeGeminiClient."""
+    return patch("api.routes.grounding.build_gemini_client", return_value=FakeGeminiClient())
 
 
 def test_ground_returns_200():

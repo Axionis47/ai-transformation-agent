@@ -334,10 +334,10 @@ async def enrich_run(run_id: str, body: EnrichRequest) -> EnrichResponse:
 
 def _get_grounder(config: dict) -> object:
     """Obtain a grounder instance for report re-synthesis."""
-    from api.routes.grounding import _build_client
+    from api.client_factory import build_gemini_client
     from services.grounder.grounder import Grounder
 
-    client = _build_client(config)
+    client = build_gemini_client(config)
     return Grounder(client=client, config=config)
 
 

@@ -41,9 +41,9 @@ def _load_engagements() -> dict[str, dict]:
 
 
 def _make_engine(config: dict) -> ThoughtEngine:
-    from api.routes.grounding import _build_client
+    from api.client_factory import build_gemini_client
 
-    client = _build_client(config)
+    client = build_gemini_client(config)
     grounder = Grounder(client=client, config=config)
     store = get_rag_store()
     ensure_loaded(store)
@@ -133,11 +133,11 @@ def _start_legacy(run_id: str, run: Run) -> ReasoningLoopResult:
 
 async def _start_multi_agent(run_id: str, run: Run) -> Run:
     """Launch the multi-agent orchestrator pipeline."""
-    from api.routes.grounding import _build_client
+    from api.client_factory import build_gemini_client
     from engines.orchestrator import Orchestrator
 
     config = run.config_snapshot
-    grounder = Grounder(client=_build_client(config), config=config)
+    grounder = Grounder(client=build_gemini_client(config), config=config)
     store = get_rag_store()
     ensure_loaded(store)
     orch = Orchestrator(

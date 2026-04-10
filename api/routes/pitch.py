@@ -58,10 +58,10 @@ def synthesize(run_id: str) -> dict:
     lookup = _load_engagement_lookup()
 
     # Build grounder for LLM-based opportunity evaluation
-    from api.routes.grounding import _build_client
+    from api.client_factory import build_gemini_client
     from services.grounder.grounder import Grounder
 
-    client = _build_client(run.config_snapshot)
+    client = build_gemini_client(run.config_snapshot)
     grounder = Grounder(client=client, config=run.config_snapshot)
 
     engine = PitchEngine(config=run.config_snapshot, engagement_lookup=lookup, grounder=grounder)
