@@ -55,14 +55,16 @@ def promote_result(run_id: str, result: AgentResult) -> None:
         rm.add_hypotheses(run_id, result.hypotheses)
     if result.spawn_requests:
         run = rm.get_run(run_id)
-        assert run is not None
+        if run is None:
+            raise RuntimeError(f"Run {run_id} not found during result promotion")
         run.spawn_requests.extend(result.spawn_requests)
 
 
 async def synthesize_between_phases(synthesizer: object, run_id: str, phase: str) -> None:
     """Call PhaseSynthesizer between pipeline phases."""
     run = rm.get_run(run_id)
-    assert run is not None
+    if run is None:
+        raise RuntimeError(f"Run {run_id} not found during phase synthesis")
     store = get_synthesis_store()
     if phase == "grounding":
         await synthesizer.synthesize_grounding(  # type: ignore[attr-defined]
@@ -94,7 +96,8 @@ async def test_hypotheses(
     import asyncio
 
     run = rm.get_run(run_id)
-    assert run is not None
+    if run is None:
+        raise RuntimeError(f"Run {run_id} not found during hypothesis testing")
     tasks = []
     for h in hypotheses:
         tester = HypothesisTesterAgent(
@@ -126,7 +129,8 @@ async def handle_spawns(
 ) -> None:
     """Form and test hypotheses from spawn requests."""
     run = rm.get_run(run_id)
-    assert run is not None
+    if run is None:
+        raise RuntimeError(f"Run {run_id} not found during spawn handling")
     existing_ids = {h.hypothesis_id for h in run.hypotheses}
     for sr in run.spawn_requests:
         emit(run_id, EventType.SPAWN_REQUESTED, {"hypothesis": sr.suggested_hypothesis})

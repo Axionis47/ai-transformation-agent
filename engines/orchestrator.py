@@ -100,7 +100,8 @@ class Orchestrator:
         emit(run_id, EventType.REASONING_LOOP_STARTED, {"phase": "grounding"})
 
         run = rm.get_run(run_id)
-        assert run is not None
+        if run is None:
+            raise RuntimeError(f"Run {run_id} not found during grounding")
         budget = run.budget_state
 
         profiler = self._create_agent(CompanyProfilerAgent, run, AgentScope.COMPANY_PROFILER, budget)
@@ -117,7 +118,8 @@ class Orchestrator:
         emit(run_id, EventType.REASONING_LOOP_STARTED, {"phase": "deep_research"})
 
         run = rm.get_run(run_id)
-        assert run is not None
+        if run is None:
+            raise RuntimeError(f"Run {run_id} not found during deep_research")
         investigator = self._create_agent(
             PainPointInvestigatorAgent,
             run,
@@ -132,7 +134,8 @@ class Orchestrator:
         emit(run_id, EventType.REASONING_LOOP_STARTED, {"phase": "hypothesis_formation"})
 
         run = rm.get_run(run_id)
-        assert run is not None
+        if run is None:
+            raise RuntimeError(f"Run {run_id} not found during hypothesis_formation")
         former = self._create_agent(
             HypothesisFormerAgent,
             run,
@@ -150,7 +153,8 @@ class Orchestrator:
         emit(run_id, EventType.REASONING_LOOP_STARTED, {"phase": "hypothesis_testing"})
 
         run = rm.get_run(run_id)
-        assert run is not None
+        if run is None:
+            raise RuntimeError(f"Run {run_id} not found during hypothesis_testing")
         args = (self._tracker, self._config, self._grounder, self._rag)
 
         # First pass: test all hypotheses in parallel
@@ -165,7 +169,8 @@ class Orchestrator:
 
         # Handle spawn requests
         run = rm.get_run(run_id)
-        assert run is not None
+        if run is None:
+            raise RuntimeError(f"Run {run_id} not found during spawn handling")
         if run.spawn_requests and has_budget(run.budget_state, self._config):
             await handle_spawns(run_id, run.budget_state, *args)
 
@@ -205,7 +210,8 @@ class Orchestrator:
         rm.transition(run_id, RunStatus.REPORT)
         emit(run_id, EventType.REASONING_LOOP_STARTED, {"phase": "report"})
         run = rm.get_run(run_id)
-        assert run is not None
+        if run is None:
+            raise RuntimeError(f"Run {run_id} not found during report generation")
         report_result = await generate_report(
             run_id,
             run,
