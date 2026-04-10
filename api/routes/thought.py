@@ -5,7 +5,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
-from core import run_manager
+from core import run_manager, run_state
 from core.events import EventType
 from core.schemas import (
     AssumptionsDraft,
@@ -93,7 +93,7 @@ async def start_run(run_id: str) -> Run | AssumptionsDraft | ReasoningLoopResult
         engine = _make_engine(run.config_snapshot)
         draft = engine.generate_assumptions(run_id, run.company_intake, run.budget_state)
         run_manager.transition(run_id, RunStatus.ASSUMPTIONS_DRAFT)
-        run_manager.update_assumptions(run_id, draft)
+        run_state.update_assumptions(run_id, draft)
         return draft
 
     # Legacy mode: ASSUMPTIONS_CONFIRMED → start reasoning
@@ -126,8 +126,8 @@ def _start_legacy(run_id: str, run: Run) -> ReasoningLoopResult:
         contradictions=result.contradictions,
         confidence_history=result.confidence_history,
     )
-    run_manager.add_evidence(run_id, result.evidence_items, source_label="reasoning_loop")
-    run_manager.update_reasoning_state(run_id, state)
+    run_state.add_evidence(run_id, result.evidence_items, source_label="reasoning_loop")
+    run_state.update_reasoning_state(run_id, state)
     return result
 
 
@@ -158,7 +158,7 @@ def confirm_assumptions(run_id: str, body: AssumptionsDraft | None = None) -> Ru
     confirmed = body if body is not None else run.assumptions
     if confirmed is None:
         confirmed = AssumptionsDraft(assumptions=[], open_questions=[])
-    run_manager.update_assumptions(run_id, confirmed)
+    run_state.update_assumptions(run_id, confirmed)
     run_manager.transition(run_id, RunStatus.ASSUMPTIONS_CONFIRMED)
     edits = body is not None
     emit(
@@ -208,7 +208,7 @@ def answer_question(run_id: str, body: UserAnswer) -> ReasoningLoopResult:
             confidence=1.0,
         ),
     )
-    run_manager.add_evidence(run_id, [answer_evidence], source_label="user_answer")
+    run_state.add_evidence(run_id, [answer_evidence], source_label="user_answer")
     if run.company_intake is None:
         raise HTTPException(status_code=400, detail="Company intake missing")
     assumptions = run.assumptions or AssumptionsDraft(assumptions=[], open_questions=[])
@@ -245,6 +245,6 @@ def answer_question(run_id: str, body: UserAnswer) -> ReasoningLoopResult:
         contradictions=result.contradictions,
         confidence_history=result.confidence_history,
     )
-    run_manager.add_evidence(run_id, result.evidence_items, source_label="reasoning_loop_resumed")
-    run_manager.update_reasoning_state(run_id, new_state)
+    run_state.add_evidence(run_id, result.evidence_items, source_label="reasoning_loop_resumed")
+    run_state.update_reasoning_state(run_id, new_state)
     return result

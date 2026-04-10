@@ -5,7 +5,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
-from core import run_manager
+from core import run_manager, run_state
 from core.events import EventType
 from core.schemas import (
     AssumptionsDraft,
@@ -74,7 +74,7 @@ def synthesize(run_id: str) -> dict:
         run_id, get_evidence_store().get_all(run_id), assumptions, intake, field_coverage
     )
     opportunities = engine.synthesize(run_id, pitch_ctx.evidence, assumptions, intake, field_coverage)
-    run_manager.store_opportunities(run_id, opportunities)
+    run_state.store_opportunities(run_id, opportunities)
     run_manager.transition(run_id, RunStatus.SYNTHESIS)
 
     # Route context: report composer gets only linked evidence
@@ -91,7 +91,7 @@ def synthesize(run_id: str) -> dict:
         budget_state,
         assumptions=run.assumptions,
     )
-    run_manager.store_report(run_id, report)
+    run_state.store_report(run_id, report)
     run_manager.transition(run_id, RunStatus.REPORT)
 
     tier_counts = {}
@@ -136,14 +136,14 @@ def refine_report(run_id: str, body: RefineRequest) -> dict:
                     a.value = corr.new_value
                     a.confidence = 1.0
                     a.source = "user"
-        run_manager.update_assumptions(run_id, run.assumptions)
+        run_state.update_assumptions(run_id, run.assumptions)
         emit(run_id, EventType.ASSUMPTIONS_CORRECTED, {"corrections": changes["corrected"]})
 
     # Remove opportunities
     if body.removed_opportunity_ids:
         kept = [o for o in run.opportunities if o.opportunity_id not in body.removed_opportunity_ids]
         changes["removed"] = body.removed_opportunity_ids
-        run_manager.store_opportunities(run_id, kept)
+        run_state.store_opportunities(run_id, kept)
         emit(run_id, EventType.OPPORTUNITIES_REMOVED, {"ids": body.removed_opportunity_ids})
 
     # Add user context as evidence
@@ -161,7 +161,7 @@ def refine_report(run_id: str, body: RefineRequest) -> dict:
             snippet=body.additional_context,
             relevance_score=0.9,
         )
-        run_manager.add_evidence(run_id, ev)
+        run_state.add_evidence(run_id, ev)
 
     # Re-compose report with updated state
     run = run_manager.get_run(run_id)
@@ -174,7 +174,7 @@ def refine_report(run_id: str, body: RefineRequest) -> dict:
 
     report = _compose(intake, run.opportunities, evidence, state, budget_state, assumptions=run.assumptions)
     report["metadata"]["refinement_count"] = report["metadata"].get("refinement_count", 0) + 1
-    run_manager.store_report(run_id, report)
+    run_state.store_report(run_id, report)
 
     emit(run_id, EventType.REPORT_REFINED, {"changes": changes})
     return {"report": report, "changes": changes}

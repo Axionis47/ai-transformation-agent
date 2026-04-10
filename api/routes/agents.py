@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from core import run_manager
+from core import run_manager, run_state
 from core.schemas import (
     AgentState,
     Hypothesis,
@@ -223,7 +223,7 @@ async def refine_report(run_id: str, body: ReportRefineRequest) -> Run:
             feedback=deepens,
         )
         if result and result.adaptive_report:
-            run_manager.store_adaptive_report(run_id, result.adaptive_report)
+            run_state.store_adaptive_report(run_id, result.adaptive_report)
 
         return run_manager.get_run(run_id)
 
@@ -246,7 +246,7 @@ async def refine_report(run_id: str, body: ReportRefineRequest) -> Run:
             feedback=edits,
         )
         if result and result.adaptive_report:
-            run_manager.store_adaptive_report(run_id, result.adaptive_report)
+            run_state.store_adaptive_report(run_id, result.adaptive_report)
 
     return run_manager.get_run(run_id)
 
@@ -269,7 +269,7 @@ async def enrich_run(run_id: str, body: EnrichRequest) -> EnrichResponse:
     emit(run_id, EventType.ENRICHMENT_SUBMITTED, {"input_count": len(body.inputs)})
 
     enrichment = prepare_enrichment(run, body.inputs)
-    run_manager.add_evidence(run_id, enrichment.evidence_items, source_label="enrichment", phase="enrichment")
+    run_state.add_evidence(run_id, enrichment.evidence_items, source_label="enrichment", phase="enrichment")
 
     # Re-test affected hypotheses
     tracker = HypothesisTracker()
@@ -292,14 +292,14 @@ async def enrich_run(run_id: str, body: EnrichRequest) -> EnrichResponse:
                     tracker.validate(h.hypothesis_id, f"Enrichment: confidence {h.confidence:.0%}")
                 elif h.confidence < reject_thresh:
                     tracker.reject(h.hypothesis_id, f"Enrichment: confidence {h.confidence:.0%}")
-        run_manager.add_hypotheses(run_id, tracker.get_all())
+        run_state.add_hypotheses(run_id, tracker.get_all())
 
         # Regenerate report
         run = run_manager.get_run(run_id)
         assert run is not None
         result = await generate_report(run_id, run, tracker, config, grounder, rag)
         if result and result.adaptive_report:
-            run_manager.store_adaptive_report(run_id, result.adaptive_report)
+            run_state.store_adaptive_report(run_id, result.adaptive_report)
 
     # Build deltas
     run = run_manager.get_run(run_id)

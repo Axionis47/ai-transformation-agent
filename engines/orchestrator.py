@@ -12,6 +12,7 @@ import asyncio
 import logging
 
 from core import run_manager as rm
+from core import run_state as rs
 from core.events import EventType
 from core.schemas import AgentScope, BudgetState, HypothesisStatus, Run, RunStatus
 from engines.agents.base import BaseResearchAgent
@@ -204,7 +205,7 @@ class Orchestrator:
                         {"hypothesis_id": h.hypothesis_id, "confidence": h.confidence},
                     )
         # Sync finalized hypotheses to run state
-        rm.add_hypotheses(run_id, self._tracker.get_all())
+        rs.add_hypotheses(run_id, self._tracker.get_all())
 
     async def _run_report_phase(self, run_id: str) -> None:
         rm.transition(run_id, RunStatus.REPORT)
@@ -221,7 +222,7 @@ class Orchestrator:
             self._rag,
         )
         if report_result and report_result.adaptive_report:
-            rm.store_adaptive_report(run_id, report_result.adaptive_report)
+            rs.store_adaptive_report(run_id, report_result.adaptive_report)
             promote_result(run_id, report_result)
         rm.transition(run_id, RunStatus.REVIEW)
 

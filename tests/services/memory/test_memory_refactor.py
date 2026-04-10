@@ -2,7 +2,7 @@
 
 import pytest
 
-from core import run_manager
+from core import run_manager, run_state
 from core.schemas import EvidenceItem, EvidenceSource, Opportunity, OpportunityTier
 from services import trace
 from services.memory.opp_store import get_opportunity_store
@@ -40,7 +40,7 @@ def _ev(eid, run_id="r1", src=EvidenceSource.GOOGLE_SEARCH, rel=0.8, title="Test
 
 def test_add_evidence_writes_to_store():
     run = run_manager.create_run("Acme", "logistics")
-    run_manager.add_evidence(run.run_id, [_ev("e1", run_id=run.run_id)])
+    run_state.add_evidence(run.run_id, [_ev("e1", run_id=run.run_id)])
     stored = get_evidence_store().get_all(run.run_id)
     assert len(stored) == 1 and stored[0].evidence_id == "e1"
 
@@ -62,26 +62,26 @@ def test_store_opportunities_writes_to_store():
         assumptions={},
         rationale="test",
     )
-    run_manager.store_opportunities(run.run_id, [opp])
+    run_state.store_opportunities(run.run_id, [opp])
     stored = get_opportunity_store().get_all(run.run_id)
     assert len(stored) == 1 and stored[0].opportunity_id == "opp-1"
 
 
 def test_store_report_writes_to_store():
     run = run_manager.create_run("Acme", "logistics")
-    run_manager.store_report(run.run_id, {"title": "Test"})
+    run_state.store_report(run.run_id, {"title": "Test"})
     assert get_report_store().get(run.run_id) == {"title": "Test"}
 
 
 def test_get_evidence_reads_from_store():
     run = run_manager.create_run("Acme", "logistics")
-    run_manager.add_evidence(run.run_id, [_ev("e2", run_id=run.run_id)])
-    assert any(e.evidence_id == "e2" for e in run_manager.get_evidence(run.run_id))
+    run_state.add_evidence(run.run_id, [_ev("e2", run_id=run.run_id)])
+    assert any(e.evidence_id == "e2" for e in run_state.get_evidence(run.run_id))
 
 
 def test_dual_write_keeps_run_evidence():
     run = run_manager.create_run("Acme", "logistics")
-    run_manager.add_evidence(run.run_id, [_ev("e3", run_id=run.run_id)])
+    run_state.add_evidence(run.run_id, [_ev("e3", run_id=run.run_id)])
     assert any(e.evidence_id == "e3" for e in run_manager.get_run(run.run_id).evidence)
 
 

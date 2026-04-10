@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.app import app
-from core import run_manager
+from core import run_manager, run_state
 from core.schemas import EvidenceItem, EvidenceSource, ReasoningState
 from services.storage.memory_store import MemoryStore
 
@@ -54,7 +54,7 @@ def _create_reasoning_complete_run(rid: str) -> None:
         overall_confidence=0.6,
         loops_completed=3,
     )
-    run_manager.update_reasoning_state(rid, state)
+    run_state.update_reasoning_state(rid, state)
     ev = EvidenceItem(
         evidence_id="ev-test-001",
         run_id=rid,
@@ -64,7 +64,7 @@ def _create_reasoning_complete_run(rid: str) -> None:
         snippet="customer support triage chatbot routing help desk deflection",
         relevance_score=0.85,
     )
-    run_manager.add_evidence(rid, [ev])
+    run_state.add_evidence(rid, [ev])
 
 
 @pytest.mark.requires_gcp

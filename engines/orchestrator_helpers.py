@@ -8,6 +8,7 @@ from __future__ import annotations
 import logging
 
 from core import run_manager as rm
+from core import run_state as rs
 from core.events import EventType
 from core.schemas import (
     AgentResult,
@@ -39,20 +40,20 @@ _AGENT_TO_PHASE = {
 
 def promote_result(run_id: str, result: AgentResult) -> None:
     """Write agent output into run state via run_manager."""
-    rm.add_agent_state(run_id, _result_to_state(result))
+    rs.add_agent_state(run_id, _result_to_state(result))
     phase = _AGENT_TO_PHASE.get(result.agent_type, "grounding")
     if result.evidence_items:
-        rm.add_evidence(run_id, result.evidence_items, source_label=result.agent_type, phase=phase)
+        rs.add_evidence(run_id, result.evidence_items, source_label=result.agent_type, phase=phase)
     if result.derived_insights:
         get_synthesis_store().save_insights(run_id, result.derived_insights)
     if result.company_understanding:
-        rm.update_company_understanding(run_id, result.company_understanding)
+        rs.update_company_understanding(run_id, result.company_understanding)
     if result.industry_context:
-        rm.update_industry_context(run_id, result.industry_context)
+        rs.update_industry_context(run_id, result.industry_context)
     if result.pain_points:
-        rm.add_pain_points(run_id, result.pain_points)
+        rs.add_pain_points(run_id, result.pain_points)
     if result.hypotheses:
-        rm.add_hypotheses(run_id, result.hypotheses)
+        rs.add_hypotheses(run_id, result.hypotheses)
     if result.spawn_requests:
         run = rm.get_run(run_id)
         if run is None:
@@ -142,7 +143,7 @@ async def handle_spawns(
             reason=sr.reason,
             agent_id=sr.requesting_agent,
         )
-        rm.add_hypotheses(run_id, [h])
+        rs.add_hypotheses(run_id, [h])
     spawned = [h for h in tracker.get_all() if h.hypothesis_id not in existing_ids]
     if spawned and has_budget(budget, config):
         await test_hypotheses(run_id, spawned, budget, tracker, config, grounder, rag)
