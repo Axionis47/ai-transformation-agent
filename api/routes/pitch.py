@@ -13,10 +13,10 @@ from core.schemas import (
     EvidenceItem,
     Opportunity,
     ReasoningState,
-    RefineRequest,
     Run,
     RunStatus,
 )
+from api.schemas import RefineRequest
 from engines.pitch.engine import PitchEngine
 from services.memory.opp_store import get_opportunity_store
 from services.memory.report_store import get_report_store

@@ -7,15 +7,17 @@ import pytest
 from core.schemas import (
     BudgetConfig,
     BudgetState,
-    BudgetView,
     CompanyIntake,
-    EditableField,
     EvidenceItem,
     EvidenceSource,
     Opportunity,
     OpportunityTier,
     Run,
     RunStatus,
+)
+from api.schemas import (
+    BudgetView,
+    EditableField,
     UIAction,
     UIHints,
 )

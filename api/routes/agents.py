@@ -8,15 +8,17 @@ from pydantic import BaseModel
 from core import run_manager
 from core.schemas import (
     AgentState,
-    EnrichRequest,
-    EnrichResponse,
     Hypothesis,
-    HypothesisDelta,
     HypothesisStatus,
-    ReportRefineRequest,
     Run,
     RunStatus,
     UserInteractionPoint,
+)
+from api.schemas import (
+    EnrichRequest,
+    EnrichResponse,
+    HypothesisDelta,
+    ReportRefineRequest,
 )
 
 router = APIRouter()

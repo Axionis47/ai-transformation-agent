@@ -10,12 +10,12 @@ import uuid
 from dataclasses import dataclass, field
 
 from core.schemas import (
-    EnrichmentInput,
     EvidenceItem,
     EvidenceSource,
     Hypothesis,
     Run,
 )
+from api.schemas import EnrichmentInput
 
 _CATEGORY_TO_DIMENSION: dict[str, str] = {
     "technology": "technology",
