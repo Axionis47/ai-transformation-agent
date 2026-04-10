@@ -6,14 +6,16 @@ import type {
   AgentState,
   Hypothesis,
   CompanyIntake,
-  CompanyUnderstanding,
-  IndustryContext,
-  PainPoint,
 } from "@/lib/types";
 import AgentActivityPanel from "@/components/AgentActivityPanel";
 import HypothesisList from "@/components/HypothesisList";
 import IntakeForm from "@/components/IntakeForm";
 import Badge from "@/components/ui/Badge";
+import SectionTitle from "@/components/phases/SectionTitle";
+import SummaryStats from "@/components/phases/SummaryStats";
+import CompanyUnderstandingPanel from "@/components/phases/CompanyUnderstandingPanel";
+import IndustryContextPanel from "@/components/phases/IndustryContextPanel";
+import PainPointsPanel from "@/components/phases/PainPointsPanel";
 
 interface RunPhaseContentProps {
   run: Run;
@@ -23,162 +25,6 @@ interface RunPhaseContentProps {
   intakeLoading: boolean;
   depth: number;
   threshold: number;
-}
-
-function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
-  return (
-    <div className="mb-6">
-      <div className="flex items-center gap-3 mb-1">
-        <h2 className="text-lg font-semibold text-ink">{title}</h2>
-        <div className="flex-1 border-t border-edge-subtle" />
-      </div>
-      {subtitle && <p className="text-sm text-ink-tertiary">{subtitle}</p>}
-    </div>
-  );
-}
-
-function SummaryStats({
-  hypotheses,
-  evidenceCount,
-}: {
-  hypotheses: Hypothesis[];
-  evidenceCount: number;
-}) {
-  const validated = hypotheses.filter((h) => h.status === "validated").length;
-  const rejected = hypotheses.filter((h) => h.status === "rejected").length;
-  return (
-    <div className="grid grid-cols-3 gap-4 mb-6">
-      {[
-        { label: "Validated", value: validated, variant: "mint" as const },
-        { label: "Rejected", value: rejected, variant: "rose" as const },
-        { label: "Evidence", value: evidenceCount, variant: "indigo" as const },
-      ].map((s) => (
-        <div
-          key={s.label}
-          className="bg-canvas-raised border border-edge-subtle rounded-md p-4 text-center"
-        >
-          <p className="text-2xl font-semibold font-mono text-ink">{s.value}</p>
-          <p className="text-xs text-ink-tertiary uppercase tracking-wider mt-1">
-            <Badge variant={s.variant}>{s.label}</Badge>
-          </p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function CompanyUnderstandingPanel({ run }: { run: Run }) {
-  const cu: CompanyUnderstanding | undefined = run.company_understanding;
-  if (!cu || !cu.what_they_do) return null;
-  return (
-    <div className="mt-6 bg-canvas-raised border border-edge-subtle rounded-md p-5">
-      <p className="text-xs text-indigo uppercase tracking-wider font-medium mb-3">
-        Company Understanding
-      </p>
-      <div className="space-y-2 text-sm text-ink-secondary">
-        {cu.what_they_do && (
-          <p>
-            <span className="text-ink-tertiary font-mono text-2xs mr-2">DOES</span>
-            {cu.what_they_do}
-          </p>
-        )}
-        {cu.how_they_make_money && (
-          <p>
-            <span className="text-ink-tertiary font-mono text-2xs mr-2">REVENUE</span>
-            {cu.how_they_make_money}
-          </p>
-        )}
-        {cu.size_and_scale && (
-          <p>
-            <span className="text-ink-tertiary font-mono text-2xs mr-2">SCALE</span>
-            {cu.size_and_scale}
-          </p>
-        )}
-        {cu.technology_landscape && (
-          <p>
-            <span className="text-ink-tertiary font-mono text-2xs mr-2">TECH</span>
-            {cu.technology_landscape}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function IndustryContextPanel({ run }: { run: Run }) {
-  const ic: IndustryContext | undefined = run.industry_context;
-  if (!ic || !ic.industry) return null;
-  const trends = ic.key_trends ?? [];
-  return (
-    <div className="mt-4 bg-canvas-raised border border-edge-subtle rounded-md p-5">
-      <p className="text-xs text-indigo uppercase tracking-wider font-medium mb-3">
-        Industry Context
-      </p>
-      <div className="space-y-2 text-sm text-ink-secondary">
-        {ic.ai_adoption_level && (
-          <p>
-            <span className="text-ink-tertiary font-mono text-2xs mr-2">AI ADOPTION</span>
-            {ic.ai_adoption_level}
-          </p>
-        )}
-        {ic.competitive_dynamics && (
-          <p>
-            <span className="text-ink-tertiary font-mono text-2xs mr-2">COMPETITION</span>
-            {ic.competitive_dynamics}
-          </p>
-        )}
-        {trends.length > 0 && (
-          <div>
-            <span className="text-ink-tertiary font-mono text-2xs mr-2">TRENDS</span>
-            <div className="flex flex-wrap gap-1.5 mt-1">
-              {trends.slice(0, 5).map((t, i) => (
-                <span
-                  key={i}
-                  className="bg-indigo/10 text-indigo text-2xs font-mono px-2 py-0.5 rounded"
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function PainPointsPanel({ run }: { run: Run }) {
-  const pps: PainPoint[] | undefined = run.pain_points;
-  if (!pps || pps.length === 0) return null;
-  return (
-    <div className="mt-6 bg-canvas-raised border border-edge-subtle rounded-md p-5">
-      <p className="text-xs text-amber uppercase tracking-wider font-medium mb-3">
-        Discovered Pain Points ({pps.length})
-      </p>
-      <div className="space-y-3">
-        {pps.map((pp, i) => (
-          <div key={i} className="flex items-start gap-2">
-            <span
-              className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${
-                pp.severity === "high"
-                  ? "bg-rose"
-                  : pp.severity === "medium"
-                    ? "bg-amber"
-                    : "bg-mint"
-              }`}
-            />
-            <div>
-              <p className="text-sm text-ink">{pp.description}</p>
-              <p className="text-2xs text-ink-tertiary font-mono mt-0.5">
-                {pp.affected_process}
-                {pp.severity && <> &middot; {pp.severity.toUpperCase()}</>}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 }
 
 export default function RunPhaseContent({
