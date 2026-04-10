@@ -3,16 +3,7 @@
 import { useState } from "react";
 import type { Hypothesis, EnrichmentInput, EnrichmentCategory } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
-
-const CATEGORIES: { value: EnrichmentCategory; label: string }[] = [
-  { value: "technology", label: "Technology & Systems" },
-  { value: "financials", label: "Financials & Budget" },
-  { value: "operations", label: "Operations & Processes" },
-  { value: "pain_points", label: "Pain Points" },
-  { value: "constraints", label: "Constraints & Blockers" },
-  { value: "corrections", label: "Corrections (tried & failed)" },
-  { value: "additional_context", label: "Additional Context" },
-];
+import { ENRICHMENT_CATEGORIES as CATEGORIES } from "@/config/constants";
 
 interface Props {
   hypotheses: Hypothesis[];

@@ -24,27 +24,14 @@ import type {
   CompanyIntake,
   ReasoningConfig,
 } from "@/lib/types";
-
-const PHASES = [
-  "INTAKE",
-  "GROUNDING",
-  "DEEP_RESEARCH",
-  "HYPOTHESIS_FORMATION",
-  "HYPOTHESIS_TESTING",
-  "SYNTHESIS",
-  "REVIEW",
-  "PUBLISHED",
-];
-const ACTIVE_PHASES = [
-  "grounding",
-  "deep_research",
-  "hypothesis_formation",
-  "hypothesis_testing",
-  "synthesis",
-];
-const AGENT_PHASES = ["grounding", "deep_research", "hypothesis_formation", "hypothesis_testing"];
-const HYPOTHESIS_PHASES = ["hypothesis_formation", "hypothesis_testing"];
-const TERMINAL = ["review", "published", "failed"];
+import {
+  PHASES,
+  ACTIVE_PHASES,
+  AGENT_PHASES,
+  HYPOTHESIS_PHASES,
+  TERMINAL,
+  POLL_INTERVAL_MS,
+} from "@/config/constants";
 
 export default function RunPage() {
   const params = useParams();
@@ -104,7 +91,7 @@ export default function RunPage() {
     }
 
     poll();
-    intervalRef.current = setInterval(poll, 2000);
+    intervalRef.current = setInterval(poll, POLL_INTERVAL_MS);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };

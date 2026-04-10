@@ -24,27 +24,13 @@ import type {
   ReportFeedback,
   EvidenceItem,
 } from "@/lib/types";
-
-const TIER_BORDER: Record<string, string> = {
-  easy: "border-l-mint",
-  medium: "border-l-amber",
-  hard: "border-l-rose",
-};
-const TIER_VARIANT: Record<string, "mint" | "amber" | "rose"> = {
-  easy: "mint",
-  medium: "amber",
-  hard: "rose",
-};
-const TIER_LABEL: Record<string, string> = {
-  easy: "Quick Win",
-  medium: "Strategic Initiative",
-  hard: "Transformation",
-};
-const TIER_TIMELINE: Record<string, string> = {
-  easy: "4-6 weeks",
-  medium: "2-3 months",
-  hard: "6+ months",
-};
+import {
+  TIER_BORDER,
+  TIER_VARIANT,
+  TIER_LABEL,
+  TIER_TIMELINE,
+  FEEDBACK_HIGHLIGHT_MS,
+} from "@/config/constants";
 
 function SectionHeader({
   children,
@@ -274,7 +260,7 @@ export default function ReportPage() {
       await refineReportWithFeedback(runId, [feedback]);
       await load();
       setLastEdited(feedback.target_section);
-      setTimeout(() => setLastEdited(null), 3000);
+      setTimeout(() => setLastEdited(null), FEEDBACK_HIGHLIGHT_MS);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Report refinement failed");
     } finally {

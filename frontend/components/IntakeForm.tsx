@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Spinner from "@/components/ui/Spinner";
 import type { CompanyIntake, ReasoningConfig } from "@/lib/types";
+import { SIZE_OPTIONS } from "@/config/constants";
 
 interface IntakeFormProps {
   onSubmit: (data: CompanyIntake, config: ReasoningConfig) => void;
@@ -12,8 +13,6 @@ interface IntakeFormProps {
   onDepthChange: (v: number) => void;
   onThresholdChange: (v: number) => void;
 }
-
-const SIZE_OPTIONS = ["50-100", "100-200", "200-500", "500-2000", "2000+"];
 
 const field =
   "w-full bg-canvas-inset border border-edge text-ink text-sm font-sans p-2.5 rounded focus:border-mint focus:outline-none transition-colors";

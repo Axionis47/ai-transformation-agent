@@ -1,13 +1,4 @@
-const STAGE_ORDER = [
-  "created",
-  "intake",
-  "assumptions_draft",
-  "assumptions_confirmed",
-  "reasoning",
-  "synthesis",
-  "report",
-  "published",
-];
+import { STAGE_ORDER } from "@/config/constants";
 
 export type StageStatusValue = "active" | "completed" | "pending";
 

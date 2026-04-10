@@ -7,6 +7,13 @@ import { getRun, getTrace, getAgentStates } from "@/lib/api";
 import Spinner from "@/components/ui/Spinner";
 import Badge from "@/components/ui/Badge";
 import type { Run, AgentState } from "@/lib/types";
+import {
+  PHASE_COLORS,
+  EVENT_LABELS,
+  AGENT_TYPE_LABELS,
+  FILTERS,
+  TRACE_JSON_TRUNCATE,
+} from "@/config/constants";
 
 interface TraceEvent {
   event_id: string;
@@ -14,63 +21,6 @@ interface TraceEvent {
   timestamp: string;
   payload: Record<string, unknown>;
 }
-
-const PHASE_COLORS: Record<string, string> = {
-  grounding: "text-indigo",
-  deep_research: "text-amber",
-  hypothesis_formation: "text-amber",
-  hypothesis_testing: "text-mint",
-  synthesis: "text-mint",
-  review: "text-mint",
-};
-
-const EVENT_LABELS: Record<string, string> = {
-  // Multi-agent events
-  AGENT_SPAWNED: "Agent Spawned",
-  AGENT_COMPLETED: "Agent Completed",
-  AGENT_FAILED: "Agent Failed",
-  HYPOTHESIS_FORMED: "Hypothesis Formed",
-  HYPOTHESIS_TESTED: "Hypothesis Tested",
-  HYPOTHESIS_VALIDATED: "Hypothesis Validated",
-  HYPOTHESIS_REJECTED: "Hypothesis Rejected",
-  USER_INTERACTION_SURFACED: "User Interaction",
-  USER_INTERACTION_RESOLVED: "Interaction Resolved",
-  SPAWN_REQUESTED: "Spawn Requested",
-  PHASE_BACKTRACK: "Phase Backtrack",
-  REPORT_STRUCTURE_DECIDED: "Report Structured",
-  // Evidence & tools
-  GROUNDING_CALL_REQUESTED: "Google Search",
-  GROUNDING_CALL_COMPLETED: "Ground Result",
-  GROUNDING_QUERIES_COUNTED: "Search Budget",
-  RAG_QUERY_EXECUTED: "KB Search",
-  RAG_RESULTS_FILTERED: "KB Cross-ref",
-  EVIDENCE_PROMOTED: "Evidence Stored",
-  EVIDENCE_REJECTED: "Evidence Rejected",
-  EVIDENCE_CONTRADICTION: "Evidence Conflict",
-  // Budget & errors
-  EXTERNAL_BUDGET_EXHAUSTED: "Budget Exhausted",
-  BUDGET_VIOLATION_BLOCKED: "Budget Blocked",
-  STAGE_FAILED: "Stage Failed",
-  // Lifecycle
-  RUN_CREATED: "Run Created",
-  COMPANY_INTAKE_SAVED: "Intake Saved",
-  REASONING_LOOP_STARTED: "Loop Started",
-  REASONING_LOOP_COMPLETED: "Loop Completed",
-  REPORT_RENDERED: "Report Rendered",
-  REPORT_REFINED: "Report Refined",
-  RUN_PUBLISHED: "Published",
-};
-
-const AGENT_TYPE_LABELS: Record<string, string> = {
-  company_profiler: "Company Profiler",
-  industry_analyst: "Industry Analyst",
-  pain_investigator: "Pain Investigator",
-  hypothesis_former: "Hypothesis Former",
-  hypothesis_tester: "Hypothesis Tester",
-  report_synthesizer: "Report Synthesizer",
-};
-
-const FILTERS = ["all", "agents", "hypotheses", "evidence", "budget"] as const;
 type Filter = (typeof FILTERS)[number];
 
 function matchesFilter(e: TraceEvent, f: Filter): boolean {
@@ -347,7 +297,7 @@ export default function TracePage() {
                     {isExpanded && (
                       <div className="mt-2 ml-[76px] bg-canvas-raised border border-edge-subtle rounded-md p-3">
                         <pre className="text-2xs text-ink-secondary font-mono whitespace-pre-wrap break-words leading-relaxed">
-                          {JSON.stringify(p, null, 2).slice(0, 2000)}
+                          {JSON.stringify(p, null, 2).slice(0, TRACE_JSON_TRUNCATE)}
                         </pre>
                       </div>
                     )}
