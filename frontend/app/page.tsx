@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import IntakeForm from "@/components/IntakeForm";
-import { createRun, submitIntake, startRun, getDefaults, checkHealth } from "@/lib/api";
-import type { SystemDefaults } from "@/lib/api";
+import { createRun, submitIntake, startRun } from "@/lib/api";
+import { useDefaults, useHealth } from "@/lib/hooks";
 import type { CompanyIntake, ReasoningConfig } from "@/lib/types";
 
 interface RecentRun {
@@ -21,8 +21,10 @@ export default function HomePage() {
   const [recents, setRecents] = useState<RecentRun[]>([]);
   const [depth, setDepth] = useState(5);
   const [threshold, setThreshold] = useState(0.7);
-  const [defaults, setDefaults] = useState<SystemDefaults | null>(null);
-  const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
+
+  const { data: defaults } = useDefaults();
+  const { data: backendOnline } = useHealth();
+  const backendStatus = backendOnline === undefined ? null : backendOnline;
 
   useEffect(() => {
     try {
@@ -31,10 +33,6 @@ export default function HomePage() {
     } catch {
       /* ignore */
     }
-    getDefaults()
-      .then(setDefaults)
-      .catch(() => {});
-    checkHealth().then(setBackendOnline);
   }, []);
 
   function saveRecent(id: string, company: string, industry: string) {
@@ -74,10 +72,10 @@ export default function HomePage() {
         <div className="flex-1" />
         <div className="flex items-center gap-1.5">
           <div
-            className={`w-1.5 h-1.5 rounded-full ${backendOnline === true ? "bg-mint animate-pulse-slow" : backendOnline === false ? "bg-rose" : "bg-amber"}`}
+            className={`w-1.5 h-1.5 rounded-full ${backendStatus === true ? "bg-mint animate-pulse-slow" : backendStatus === false ? "bg-rose" : "bg-amber"}`}
           />
           <span className="text-2xs text-ink-tertiary font-mono">
-            {backendOnline === true ? "ONLINE" : backendOnline === false ? "OFFLINE" : "CHECKING"}
+            {backendStatus === true ? "ONLINE" : backendStatus === false ? "OFFLINE" : "CHECKING"}
           </span>
         </div>
       </header>
@@ -176,9 +174,9 @@ export default function HomePage() {
                     <StatusRow
                       label="Backend API"
                       status={
-                        backendOnline === true
+                        backendStatus === true
                           ? "online"
-                          : backendOnline === false
+                          : backendStatus === false
                             ? "offline"
                             : "checking"
                       }

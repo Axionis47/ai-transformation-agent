@@ -1,29 +1,16 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  getRun,
-  getReport,
-  getEvidence,
-  approveReport,
-  requestDeeperInvestigation,
-  refineReportWithFeedback,
-} from "@/lib/api";
+import { useReport, useApproveReport, useInvestigateDeeper, useRefineReport } from "@/lib/hooks";
 import ReasoningChain from "@/components/ReasoningChain";
 import ConfidenceNarrative from "@/components/ConfidenceNarrative";
 import EvidenceAnnex from "@/components/EvidenceAnnex";
 import FeedbackButton from "@/components/FeedbackButton";
 import Badge from "@/components/ui/Badge";
 import Spinner from "@/components/ui/Spinner";
-import type {
-  Run,
-  AdaptiveReport,
-  ReportOpportunity,
-  ReportFeedback,
-  EvidenceItem,
-} from "@/lib/types";
+import type { ReportOpportunity, ReportFeedback } from "@/lib/types";
 import {
   TIER_BORDER,
   TIER_VARIANT,
@@ -198,43 +185,29 @@ export default function ReportPage() {
   const params = useParams();
   const router = useRouter();
   const runId = params.id as string;
-  const [run, setRun] = useState<Run | null>(null);
   const [approved, setApproved] = useState(false);
-  const [report, setReport] = useState<AdaptiveReport | null>(null);
-  const [evidence, setEvidence] = useState<EvidenceItem[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [reviewAction, setReviewAction] = useState<string | null>(null);
   const [refining, setRefining] = useState(false);
   const [lastEdited, setLastEdited] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    try {
-      const [r, rpt, ev] = await Promise.all([
-        getRun(runId),
-        getReport(runId),
-        getEvidence(runId).catch(() => [] as EvidenceItem[]),
-      ]);
-      setRun(r);
-      setEvidence(ev);
-      if (rpt && typeof rpt.key_insight === "string" && Array.isArray(rpt.opportunities)) {
-        setReport(rpt as unknown as AdaptiveReport);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load report");
-    }
-  }, [runId]);
+  const { data, error: loadError } = useReport(runId);
+  const approveMutation = useApproveReport(runId);
+  const investigateMutation = useInvestigateDeeper(runId);
+  const refineMutation = useRefineReport(runId);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const run = data?.run ?? null;
+  const report = data?.report ?? null;
+  const evidence = data?.evidence ?? [];
+
+  const displayError = error || (loadError instanceof Error ? loadError.message : null);
 
   async function handleApprove() {
     setReviewAction("approving");
     setError(null);
     try {
-      await approveReport(runId);
+      await approveMutation.mutateAsync();
       setApproved(true);
-      await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Approval failed");
     } finally {
@@ -245,7 +218,7 @@ export default function ReportPage() {
     setReviewAction("investigating");
     setError(null);
     try {
-      await requestDeeperInvestigation(runId);
+      await investigateMutation.mutateAsync();
       router.push(`/run/${runId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Investigation request failed");
@@ -257,8 +230,7 @@ export default function ReportPage() {
     setError(null);
     setLastEdited(null);
     try {
-      await refineReportWithFeedback(runId, [feedback]);
-      await load();
+      await refineMutation.mutateAsync([feedback]);
       setLastEdited(feedback.target_section);
       setTimeout(() => setLastEdited(null), FEEDBACK_HIGHLIGHT_MS);
     } catch (err) {
@@ -278,14 +250,14 @@ export default function ReportPage() {
   const shell = (child: React.ReactNode) => (
     <div className="min-h-screen bg-canvas flex items-center justify-center">{child}</div>
   );
-  if (!run && !error)
+  if (!run && !displayError)
     return shell(
       <div className="flex flex-col items-center gap-3">
         <Spinner size={24} />
         <span className="text-2xs text-ink-tertiary font-mono">Loading report...</span>
       </div>,
     );
-  if (error && !report) return shell(<p className="text-rose text-sm font-mono">{error}</p>);
+  if (displayError && !report) return shell(<p className="text-rose text-sm font-mono">{displayError}</p>);
   if (!report)
     return shell(
       <div className="text-center">
@@ -336,9 +308,9 @@ export default function ReportPage() {
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-8 pb-16 print:p-0 print:max-w-none">
-        {error && (
+        {displayError && (
           <div className="bg-rose/10 border border-rose/20 rounded-md p-3 mb-6">
-            <p className="text-sm text-rose font-mono">{error}</p>
+            <p className="text-sm text-rose font-mono">{displayError}</p>
           </div>
         )}
         {refining && (

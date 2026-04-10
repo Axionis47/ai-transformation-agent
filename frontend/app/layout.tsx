@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import Providers from "@/lib/providers";
 import "./globals.css";
 
 const inter = Inter({
@@ -22,7 +23,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
-      <body className="bg-canvas text-ink font-sans min-h-screen">{children}</body>
+      <body className="bg-canvas text-ink font-sans min-h-screen">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

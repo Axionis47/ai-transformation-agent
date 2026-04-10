@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { getRun, getTrace, getAgentStates } from "@/lib/api";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRun, useTrace } from "@/lib/hooks";
 import Spinner from "@/components/ui/Spinner";
 import Badge from "@/components/ui/Badge";
-import type { Run, AgentState } from "@/lib/types";
+import type { AgentState } from "@/lib/types";
 import {
   PHASE_COLORS,
   EVENT_LABELS,
@@ -81,36 +82,21 @@ function BudgetMeter({ label, used, total }: { label: string; used: number; tota
 export default function TracePage() {
   const params = useParams();
   const runId = params.id as string;
-  const [run, setRun] = useState<Run | null>(null);
-  const [events, setEvents] = useState<TraceEvent[]>([]);
-  const [agents, setAgents] = useState<AgentState[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const [filter, setFilter] = useState<Filter>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    try {
-      const [r, t, a] = await Promise.all([
-        getRun(runId),
-        getTrace(runId),
-        getAgentStates(runId).catch(() => [] as AgentState[]),
-      ]);
-      setRun(r);
-      setEvents(t as unknown as TraceEvent[]);
-      setAgents(a);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load trace");
-    }
-  }, [runId]);
+  const { data: run, error: runError } = useRun(runId);
+  const { data: traceData, error: traceError } = useTrace(runId);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const events = (traceData?.trace ?? []) as unknown as TraceEvent[];
+  const agents = traceData?.agents ?? [];
+  const error = runError || traceError;
 
   if (error)
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-rose text-sm">{error}</p>
+        <p className="text-rose text-sm">{error instanceof Error ? error.message : "Failed to load trace"}</p>
       </div>
     );
   if (!run)
@@ -217,7 +203,10 @@ export default function TracePage() {
                 </p>
               </div>
               <button
-                onClick={load}
+                onClick={() => {
+                  queryClient.invalidateQueries({ queryKey: ["trace", runId] });
+                  queryClient.invalidateQueries({ queryKey: ["run", runId] });
+                }}
                 className="text-2xs text-ink-tertiary hover:text-mint transition-colors font-mono"
               >
                 Refresh

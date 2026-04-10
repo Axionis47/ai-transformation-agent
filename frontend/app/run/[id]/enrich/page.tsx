@@ -1,55 +1,40 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { getRun, getHypotheses, enrichRun } from "@/lib/api";
+import { useRun, useHypotheses, useEnrich } from "@/lib/hooks";
 import EnrichForm from "@/components/EnrichForm";
 import Badge from "@/components/ui/Badge";
 import Spinner from "@/components/ui/Spinner";
-import type { Run, Hypothesis, EnrichmentInput, EnrichResponse } from "@/lib/types";
+import type { EnrichmentInput, EnrichResponse } from "@/lib/types";
 
 export default function EnrichPage() {
   const params = useParams();
   const runId = params.id as string;
-  const [run, setRun] = useState<Run | null>(null);
-  const [hypotheses, setHypotheses] = useState<Hypothesis[]>([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<EnrichResponse | null>(null);
 
-  const load = useCallback(async () => {
-    try {
-      const [r, h] = await Promise.all([getRun(runId), getHypotheses(runId).catch(() => [])]);
-      setRun(r);
-      setHypotheses(h);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load run");
-    }
-  }, [runId]);
+  const { data: run, error: runError } = useRun(runId);
+  const { data: hypotheses = [] } = useHypotheses(runId, !!run);
+  const enrichMutation = useEnrich(runId);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const displayError = error || (runError instanceof Error ? runError.message : null);
 
   async function handleSubmit(inputs: EnrichmentInput[]) {
-    setLoading(true);
     setError(null);
     try {
-      const res = await enrichRun(runId, inputs);
+      const res = await enrichMutation.mutateAsync(inputs);
       setResult(res);
-      await load(); // refresh run state
     } catch (err) {
       setError(err instanceof Error ? err.message : "Enrichment failed");
-    } finally {
-      setLoading(false);
     }
   }
 
   if (!run)
     return (
       <div className="min-h-screen bg-canvas flex items-center justify-center">
-        {error ? <p className="text-rose text-sm">{error}</p> : <Spinner size={24} />}
+        {displayError ? <p className="text-rose text-sm">{displayError}</p> : <Spinner size={24} />}
       </div>
     );
 
@@ -83,9 +68,9 @@ export default function EnrichPage() {
           </p>
         </div>
 
-        {error && (
+        {displayError && (
           <div className="bg-rose/10 border border-rose/20 rounded-md p-3 mb-6">
-            <p className="text-sm text-rose font-mono">{error}</p>
+            <p className="text-sm text-rose font-mono">{displayError}</p>
           </div>
         )}
 
@@ -159,7 +144,7 @@ export default function EnrichPage() {
         )}
 
         {/* Enrich form */}
-        <EnrichForm hypotheses={hypotheses} onSubmit={handleSubmit} loading={loading} />
+        <EnrichForm hypotheses={hypotheses} onSubmit={handleSubmit} loading={enrichMutation.isPending} />
       </main>
     </div>
   );
