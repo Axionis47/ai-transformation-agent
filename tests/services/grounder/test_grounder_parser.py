@@ -12,7 +12,7 @@ from services.grounder.parser import (
     parse_grounding_response,
 )
 
-FIXTURE_PATH = Path(__file__).parent / "fixtures" / "grounding_response.json"
+FIXTURE_PATH = Path(__file__).resolve().parents[2] / "fixtures" / "grounding_response.json"
 
 
 @pytest.fixture
