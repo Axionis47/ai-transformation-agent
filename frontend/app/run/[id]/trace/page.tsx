@@ -6,23 +6,11 @@ import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRun, useTrace } from "@/lib/hooks";
 import Spinner from "@/components/ui/Spinner";
-import Badge from "@/components/ui/Badge";
-import type { AgentState } from "@/lib/types";
-import {
-  PHASE_COLORS,
-  EVENT_LABELS,
-  AGENT_TYPE_LABELS,
-  FILTERS,
-  TRACE_JSON_TRUNCATE,
-} from "@/config/constants";
-
-interface TraceEvent {
-  event_id: string;
-  event_type: string;
-  timestamp: string;
-  payload: Record<string, unknown>;
-}
-type Filter = (typeof FILTERS)[number];
+import TraceEventRow from "@/components/trace/TraceEvent";
+import type { TraceEvent } from "@/components/trace/TraceEvent";
+import TraceSidebar from "@/components/trace/TraceSidebar";
+import TraceFilterBar from "@/components/trace/TraceFilterBar";
+import type { Filter } from "@/components/trace/TraceFilterBar";
 
 function matchesFilter(e: TraceEvent, f: Filter): boolean {
   if (f === "all") return true;
@@ -41,42 +29,6 @@ function matchesFilter(e: TraceEvent, f: Filter): boolean {
       e.event_type.includes("QUERIES_COUNTED")
     );
   return true;
-}
-
-function eventBorderColor(type: string): string {
-  if (type.includes("AGENT_SPAWNED")) return "border-l-indigo";
-  if (type.includes("AGENT_COMPLETED")) return "border-l-mint";
-  if (type.includes("AGENT_FAILED") || type.includes("STAGE_FAILED")) return "border-l-rose";
-  if (type.includes("HYPOTHESIS_VALIDATED")) return "border-l-mint";
-  if (type.includes("HYPOTHESIS_REJECTED")) return "border-l-rose";
-  if (type.includes("HYPOTHESIS")) return "border-l-amber";
-  if (type.includes("EXHAUSTED") || type.includes("BLOCKED")) return "border-l-rose";
-  if (type.includes("EVIDENCE")) return "border-l-mint";
-  if (type.includes("GROUNDING") || type.includes("RAG")) return "border-l-indigo";
-  return "border-l-edge-subtle";
-}
-
-function BudgetMeter({ label, used, total }: { label: string; used: number; total: number }) {
-  const pct = total > 0 ? Math.min(100, (used / total) * 100) : 0;
-  const exhausted = used >= total;
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-2xs font-mono text-ink-tertiary uppercase">{label}</span>
-        <span
-          className={`text-2xs font-mono tabular ${exhausted ? "text-rose" : "text-ink-secondary"}`}
-        >
-          {Math.max(0, total - used)}/{total}
-        </span>
-      </div>
-      <div className="h-1 bg-edge-subtle rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all ${exhausted ? "bg-rose" : pct > 70 ? "bg-amber" : "bg-mint"}`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-    </div>
-  );
 }
 
 export default function TracePage() {
@@ -135,64 +87,14 @@ export default function TracePage() {
       </header>
 
       <div className="flex">
-        {/* Left: Agent Activity + Budget */}
-        <aside className="w-72 bg-canvas-raised border-r border-edge-subtle shrink-0 sticky top-12 h-[calc(100vh-48px)] overflow-y-auto hidden lg:block">
-          <div className="p-4">
-            <p className="text-xs text-ink-secondary uppercase tracking-wider font-medium mb-4">
-              Agents
-            </p>
-            {agents.length > 0 ? (
-              <div className="space-y-3">
-                {agents.map((agent) => {
-                  const label = AGENT_TYPE_LABELS[agent.agent_type] || agent.agent_type;
-                  const isRunning = agent.status === "running";
-                  const isCompleted = agent.status === "completed";
-                  const isFailed = agent.status === "failed";
-                  return (
-                    <div key={agent.agent_id} className="border border-edge-subtle rounded-md p-3">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-2xs text-ink-secondary uppercase tracking-wider font-medium">
-                          {label}
-                        </span>
-                        <Badge
-                          variant={
-                            isCompleted ? "mint" : isFailed ? "rose" : isRunning ? "amber" : "muted"
-                          }
-                        >
-                          {agent.status}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-3 text-2xs font-mono text-ink-tertiary">
-                        <span>{agent.tool_calls_made} calls</span>
-                        <span>{agent.evidence_produced.length} evidence</span>
-                      </div>
-                      {agent.summary && (
-                        <p className="text-2xs text-ink-secondary mt-1.5 line-clamp-2">
-                          {agent.summary}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-2xs text-ink-tertiary">No agents spawned yet.</p>
-            )}
+        <TraceSidebar
+          agents={agents}
+          searchUsed={searchUsed}
+          searchTotal={searchTotal}
+          ragUsed={ragUsed}
+          ragTotal={ragTotal}
+        />
 
-            {/* Budget — from run state */}
-            <div className="mt-6 border-t border-edge-subtle pt-4">
-              <p className="text-xs text-ink-secondary uppercase tracking-wider font-medium mb-3">
-                Budget
-              </p>
-              <div className="space-y-3">
-                <BudgetMeter label="Search" used={searchUsed} total={searchTotal} />
-                <BudgetMeter label="RAG" used={ragUsed} total={ragTotal} />
-              </div>
-            </div>
-          </div>
-        </aside>
-
-        {/* Right: Event Timeline */}
         <main className="flex-1 min-w-0 p-6">
           <div className="max-w-4xl">
             <div className="flex items-center justify-between mb-6">
@@ -213,86 +115,17 @@ export default function TracePage() {
               </button>
             </div>
 
-            <div className="flex gap-2 mb-6">
-              {FILTERS.map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  className={`text-2xs font-mono px-3 py-1.5 rounded transition-colors ${filter === f ? "bg-canvas-overlay text-ink border border-edge" : "text-ink-tertiary hover:text-ink-secondary"}`}
-                >
-                  {f.toUpperCase()}
-                </button>
-              ))}
-            </div>
+            <TraceFilterBar filter={filter} onFilterChange={setFilter} />
 
             <div className="space-y-1">
-              {filtered.map((ev, i) => {
-                const label = EVENT_LABELS[ev.event_type] || ev.event_type.replace(/_/g, " ");
-                const p = (ev.payload || {}) as Record<string, string | number | boolean | null>;
-                const phase = (p.phase as string) || "";
-                const phaseColor = PHASE_COLORS[phase.toLowerCase()] || "text-ink-tertiary";
-                const isExpanded = expandedId === ev.event_id;
-                const isError =
-                  ev.event_type.includes("FAILED") ||
-                  ev.event_type.includes("EXHAUSTED") ||
-                  ev.event_type.includes("REJECTED");
-
-                return (
-                  <div
-                    key={ev.event_id || i}
-                    className={`border-l-2 pl-4 py-2 cursor-pointer hover:bg-canvas-raised/50 transition-colors ${eventBorderColor(ev.event_type)}`}
-                    onClick={() => setExpandedId(isExpanded ? null : ev.event_id)}
-                  >
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <span className="text-2xs font-mono text-ink-tertiary w-16 shrink-0 tabular">
-                        {ev.timestamp ? new Date(ev.timestamp).toLocaleTimeString() : ""}
-                      </span>
-                      <span
-                        className={`text-2xs font-medium ${isError ? "text-rose" : "text-ink-secondary"}`}
-                      >
-                        {label}
-                      </span>
-                      {phase && <span className={`text-2xs font-mono ${phaseColor}`}>{phase}</span>}
-                      {p.agent_type && (
-                        <span className="text-2xs font-mono text-indigo">
-                          {AGENT_TYPE_LABELS[p.agent_type as string] || p.agent_type}
-                        </span>
-                      )}
-                      {p.agent_id && (
-                        <span className="text-2xs font-mono text-ink-tertiary">
-                          {(p.agent_id as string).slice(0, 8)}
-                        </span>
-                      )}
-                      {p.hypothesis_id && (
-                        <span className="text-2xs font-mono text-amber">
-                          {(p.hypothesis_id as string).slice(0, 8)}
-                        </span>
-                      )}
-                      {p.confidence !== undefined && (
-                        <span className="text-2xs font-mono text-mint">
-                          {Math.round((p.confidence as number) * 100)}%
-                        </span>
-                      )}
-                      {p.opportunities !== undefined && (
-                        <span className="text-2xs font-mono text-mint">{p.opportunities} opps</span>
-                      )}
-                      {p.error && (
-                        <span className="text-2xs text-rose truncate max-w-xs">
-                          {String(p.error).slice(0, 60)}
-                        </span>
-                      )}
-                    </div>
-
-                    {isExpanded && (
-                      <div className="mt-2 ml-[76px] bg-canvas-raised border border-edge-subtle rounded-md p-3">
-                        <pre className="text-2xs text-ink-secondary font-mono whitespace-pre-wrap break-words leading-relaxed">
-                          {JSON.stringify(p, null, 2).slice(0, TRACE_JSON_TRUNCATE)}
-                        </pre>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              {filtered.map((ev, i) => (
+                <TraceEventRow
+                  key={ev.event_id || i}
+                  event={ev}
+                  expanded={expandedId === ev.event_id}
+                  onToggle={() => setExpandedId(expandedId === ev.event_id ? null : ev.event_id)}
+                />
+              ))}
 
               {filtered.length === 0 && (
                 <p className="text-2xs text-ink-tertiary font-mono py-8 text-center">
